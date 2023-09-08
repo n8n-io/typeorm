@@ -80,7 +80,7 @@ export class SchemaLogCommand implements yargs.CommandModule {
                         sqlString.substr(-1) === ";"
                             ? sqlString
                             : sqlString + ";"
-                    console.log((sqlString))
+                    console.log(sqlString)
                 })
             }
             await dataSource.destroy()

@@ -42,7 +42,7 @@ export class Gulpfile {
     @Task()
     compile() {
         return gulp.src("package.json", { read: false })
-            .pipe(shell(["npm run compile"]));
+            .pipe(shell(["pnpm compile"]));
     }
 
     // -------------------------------------------------------------------------
@@ -117,7 +117,7 @@ export class Gulpfile {
                 "cd ./build/package && npm publish"
             ]));
     }
-    
+
     /**
      * Packs a .tgz from ./build/package directory.
      */

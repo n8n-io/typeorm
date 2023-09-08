@@ -36,7 +36,7 @@ describe("commands - migration create", () => {
         "cockroachdb",
     ] as DatabaseType[]
 
-    // simulate args: `npm run typeorm migration:run -- -n test-migration -d test-directory`
+    // simulate args: `pnpm typeorm migration:run -- -n test-migration -d test-directory`
     const testHandlerArgs = (options: Record<string, any>) => ({
         $0: "test",
         _: ["test"],

@@ -10,8 +10,10 @@
     "email": "pleerock.me@gmail.com"
   },
   "engines": {
-    "node": ">= 12.9.0"
+    "node": ">=18.10",
+    "pnpm": ">=8.7"
   },
+  "packageManager": "pnpm@8.7.0",
   "exports": {
     ".": {
       "types": "./index.d.ts",
@@ -97,6 +99,7 @@
     "@types/chai": "^4.3.4",
     "@types/chai-as-promised": "^7.1.5",
     "@types/debug": "^4.1.7",
+    "@types/glob": "^8.1.0",
     "@types/mkdirp": "^1.0.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.13.0",

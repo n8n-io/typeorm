@@ -60,12 +60,12 @@ If you want to load more modules like [module-alias](https://github.com/ilearnio
 Then you may run the command like this:
 
 ```
-npm run typeorm migration:run -- -d path-to-datasource-config
+pnpm typeorm migration:run -- -d path-to-datasource-config
 ```
 
 ### How to read the documentation
 
-To reduce verbosity of the documentation, the following sections are using a globally installed typeorm CLI. Depending on how you installed the CLI, you may replace `typeorm` at the start of the command, by either `npx typeorm` or `npm run typeorm`.
+To reduce verbosity of the documentation, the following sections are using a globally installed typeorm CLI. Depending on how you installed the CLI, you may replace `typeorm` at the start of the command, by either `npx typeorm` or `pnpm typeorm`.
 
 ## Initialize a new TypeORM project
 

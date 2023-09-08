@@ -54,7 +54,7 @@ git remote add upstream https://github.com/typeorm/typeorm.git
 Install all TypeORM dependencies by running this command:
 
 ```shell
-npm install
+pnpm install
 ```
 
 During installation, you may have some problems with some dependencies.
@@ -74,7 +74,7 @@ cp ormconfig.json.dist ormconfig.json
 To build a distribution package of TypeORM run:
 
 ```shell
-npm run package
+pnpm package
 ```
 
 This command will generate you a distribution package in the `build/package` directory.
@@ -84,7 +84,7 @@ You can link (or simply copy/paste) this directory into your project and test Ty
 To build the distribution package of TypeORM packed into a `.tgz`, run:
 
 ```shell
-npm run pack
+pnpm pack
 ```
 
 This command will generate you a distribution package tar in the `build` directory (`build/typeorm-x.x.x.tgz`).
@@ -137,7 +137,7 @@ replacing parameters with your own.
 Then run tests:
 
 ```shell
-npm test
+pnpm test
 ```
 
 You should execute test suites before submitting a PR to github.
@@ -153,18 +153,18 @@ describe.only('your describe test', ....)
 >statements that match the Regex will be run. For example:
 >
 >```shell
->npm test -- --grep="github issues > #363"
+>pnpm test -- --grep="github issues > #363"
 >```
 >
 >This is useful when trying to get a specific test or subset of tests to pass.
 
 ### Faster developer cycle for editing code and running tests
 
-The `npm test` script works by deleting built TypeScript code, rebuilding the codebase, and then running tests. This can take a long time.
+The `pnpm test` script works by deleting built TypeScript code, rebuilding the codebase, and then running tests. This can take a long time.
 
-Instead, for a quicker feedback cycle, you can run `npm run compile -- --watch` to make a fresh build and instruct TypeScript to watch for changes and only compile what code you've changed.
+Instead, for a quicker feedback cycle, you can run `pnpm compile -- --watch` to make a fresh build and instruct TypeScript to watch for changes and only compile what code you've changed.
 
-Once TypeScript finishes compiling your changes, you can run `npm run test-fast` (instead of `test`), to trigger a test without causing a full recompile, which allows you to edit and check your changes much faster.
+Once TypeScript finishes compiling your changes, you can run `pnpm test-fast` (instead of `test`), to trigger a test without causing a full recompile, which allows you to edit and check your changes much faster.
 
 ## Using Docker
 

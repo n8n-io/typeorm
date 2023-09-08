@@ -39,13 +39,13 @@ npm install ts-node --save-dev
 然后运行如下命令：
 
 ```
-npm run typeorm migration:run
+pnpm typeorm migration:run
 ```
 
 如果你需要将带有破折号的参数传递给 npm 脚本，则需要在`--`之后添加。例如，如果需要生成，则命令如下：
 
 ```
-npm run typeorm migration:generate -- -n migrationNameHere
+pnpm typeorm migration:generate -- -n migrationNameHere
 ```
 
 ## 初始化一个新的TypeORM项目

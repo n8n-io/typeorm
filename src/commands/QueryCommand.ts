@@ -47,9 +47,7 @@ export class QueryCommand implements yargs.CommandModule {
             // create a query runner and execute query using it
             queryRunner = dataSource.createQueryRunner()
             const query = args.query as string
-            console.log(
-                chalk.green("Running query: ") + query,
-            )
+            console.log(chalk.green("Running query: ") + query)
             const queryResult = await queryRunner.query(query)
 
             if (typeof queryResult === "undefined") {
