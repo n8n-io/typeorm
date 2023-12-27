@@ -286,9 +286,6 @@ export class DeleteQueryBuilder<Entity extends ObjectLiteral>
         if (returningExpression === "") {
             return `DELETE FROM ${tableName}${whereExpression}`
         }
-        if (this.connection.driver.options.type === "mssql") {
-            return `DELETE FROM ${tableName} OUTPUT ${returningExpression}${whereExpression}`
-        }
         return `DELETE FROM ${tableName}${whereExpression} RETURNING ${returningExpression}`
     }
 }

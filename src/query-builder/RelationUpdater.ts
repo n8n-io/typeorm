@@ -160,28 +160,12 @@ export class RelationUpdater {
 
             if (!bulkInserted.length) return
 
-            if (
-                this.queryBuilder.connection.driver.options.type === "oracle" ||
-                this.queryBuilder.connection.driver.options.type === "sap"
-            ) {
-                await Promise.all(
-                    bulkInserted.map((value) => {
-                        return this.queryBuilder
-                            .createQueryBuilder()
-                            .insert()
-                            .into(junctionMetadata.tableName)
-                            .values(value)
-                            .execute()
-                    }),
-                )
-            } else {
-                await this.queryBuilder
-                    .createQueryBuilder()
-                    .insert()
-                    .into(junctionMetadata.tableName)
-                    .values(bulkInserted)
-                    .execute()
-            }
+            await this.queryBuilder
+                .createQueryBuilder()
+                .insert()
+                .into(junctionMetadata.tableName)
+                .values(bulkInserted)
+                .execute()
         }
     }
 }

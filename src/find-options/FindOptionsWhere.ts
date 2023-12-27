@@ -1,5 +1,4 @@
 import { FindOperator } from "./FindOperator"
-import { ObjectId } from "../driver/mongodb/typings"
 import { EqualOperator } from "./EqualOperator"
 
 /**
@@ -21,8 +20,6 @@ export type FindOptionsWhereProperty<
     : PropertyToBeNarrowed extends Buffer
     ? Property | FindOperator<Property>
     : PropertyToBeNarrowed extends Date
-    ? Property | FindOperator<Property>
-    : PropertyToBeNarrowed extends ObjectId
     ? Property | FindOperator<Property>
     : PropertyToBeNarrowed extends string
     ? Property | FindOperator<Property>

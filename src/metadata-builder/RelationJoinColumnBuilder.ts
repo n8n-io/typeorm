@@ -203,11 +203,7 @@ export class RelationJoinColumnBuilder {
                             type: referencedColumn.type,
                             length:
                                 !referencedColumn.length &&
-                                (DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
-                                ) ||
-                                    this.connection.driver.options.type ===
-                                        "aurora-mysql") &&
+                                (DriverUtils.isMySQLFamily(this.connection.driver)) &&
                                 // some versions of mariadb support the column type and should not try to provide the length property
                                 this.connection.driver.normalizeType(
                                     referencedColumn,

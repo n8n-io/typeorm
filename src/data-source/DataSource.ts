@@ -20,8 +20,6 @@ import { Logger } from "../logger/Logger"
 import { MigrationInterface } from "../migration/MigrationInterface"
 import { MigrationExecutor } from "../migration/MigrationExecutor"
 import { Migration } from "../migration/Migration"
-import { MongoRepository } from "../repository/MongoRepository"
-import { MongoEntityManager } from "../entity-manager/MongoEntityManager"
 import { EntityMetadataValidator } from "../metadata-builder/EntityMetadataValidator"
 import { DataSourceOptions } from "./DataSourceOptions"
 import { EntityManagerFactory } from "../entity-manager/EntityManagerFactory"
@@ -32,7 +30,6 @@ import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder"
 import { LoggerFactory } from "../logger/LoggerFactory"
 import { QueryResultCacheFactory } from "../cache/QueryResultCacheFactory"
 import { QueryResultCache } from "../cache/QueryResultCache"
-import { SqljsEntityManager } from "../entity-manager/SqljsEntityManager"
 import { RelationLoader } from "../query-builder/RelationLoader"
 import { ObjectUtils } from "../util/ObjectUtils"
 import { IsolationLevel } from "../driver/types/IsolationLevel"
@@ -146,14 +143,10 @@ export class DataSource {
             this.options.logger,
             this.options.logging,
         )
-        this.driver = new DriverFactory().create(this)
         this.manager = this.createEntityManager()
         this.namingStrategy =
             options.namingStrategy || new DefaultNamingStrategy()
         this.metadataTableName = options.metadataTableName || "typeorm_metadata"
-        this.queryResultCache = options.cache
-            ? new QueryResultCacheFactory(this).create()
-            : undefined
         this.relationLoader = new RelationLoader(this)
         this.relationIdLoader = new RelationIdLoader(this)
         this.isInitialized = false
@@ -170,35 +163,6 @@ export class DataSource {
      */
     get isConnected() {
         return this.isInitialized
-    }
-
-    /**
-     * Gets the mongodb entity manager that allows to perform mongodb-specific repository operations
-     * with any entity in this connection.
-     *
-     * Available only in mongodb connections.
-     */
-    get mongoManager(): MongoEntityManager {
-        if (!InstanceChecker.isMongoEntityManager(this.manager))
-            throw new TypeORMError(
-                `MongoEntityManager is only available for MongoDB databases.`,
-            )
-
-        return this.manager as MongoEntityManager
-    }
-
-    /**
-     * Gets a sql.js specific Entity Manager that allows to perform special load and save operations
-     *
-     * Available only in connection with the sqljs driver.
-     */
-    get sqljsManager(): SqljsEntityManager {
-        if (!InstanceChecker.isSqljsEntityManager(this.manager))
-            throw new TypeORMError(
-                `SqljsEntityManager is only available for Sqljs databases.`,
-            )
-
-        return this.manager
     }
 
     // -------------------------------------------------------------------------
@@ -248,6 +212,11 @@ export class DataSource {
     async initialize(): Promise<this> {
         if (this.isInitialized)
             throw new CannotConnectAlreadyConnectedError(this.name)
+
+        this.driver = await DriverFactory.create(this)
+        this.queryResultCache = this.options.cache
+            ? new QueryResultCacheFactory(this).create()
+            : undefined
 
         // connect to the database via its driver
         await this.driver.connect()
@@ -349,9 +318,7 @@ export class DataSource {
         const queryRunner = this.createQueryRunner()
         try {
             if (
-                this.driver.options.type === "mssql" ||
                 DriverUtils.isMySQLFamily(this.driver) ||
-                this.driver.options.type === "aurora-mysql" ||
                 DriverUtils.isSQLiteFamily(this.driver)
             ) {
                 const databases: string[] = []
@@ -472,21 +439,6 @@ export class DataSource {
     }
 
     /**
-     * Gets mongodb-specific repository for the given entity class or name.
-     * Works only if connection is mongodb-specific.
-     */
-    getMongoRepository<Entity extends ObjectLiteral>(
-        target: EntityTarget<Entity>,
-    ): MongoRepository<Entity> {
-        if (!(this.driver.options.type === "mongodb"))
-            throw new TypeORMError(
-                `You can use getMongoRepository only for MongoDB connections.`,
-            )
-
-        return this.manager.getRepository(target) as any
-    }
-
-    /**
      * Gets custom entity repository marked with @EntityRepository decorator.
      *
      * @deprecated use Repository.extend function to create a custom repository
@@ -526,9 +478,6 @@ export class DataSource {
         parameters?: any[],
         queryRunner?: QueryRunner,
     ): Promise<T> {
-        if (InstanceChecker.isMongoEntityManager(this.manager))
-            throw new TypeORMError(`Queries aren't supported by MongoDB.`)
-
         if (queryRunner && queryRunner.isReleased)
             throw new QueryRunnerProviderAlreadyReleasedError()
 
@@ -563,9 +512,6 @@ export class DataSource {
         alias?: string,
         queryRunner?: QueryRunner,
     ): SelectQueryBuilder<Entity> {
-        if (InstanceChecker.isMongoEntityManager(this.manager))
-            throw new TypeORMError(`Query Builder is not supported by MongoDB.`)
-
         if (alias) {
             alias = DriverUtils.buildAlias(this.driver, undefined, alias)
             const metadata = this.getMetadata(

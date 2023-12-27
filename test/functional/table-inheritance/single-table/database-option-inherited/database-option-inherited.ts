@@ -13,16 +13,7 @@ describe("table-inheritance > single-table > database-option-inherited", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 // creating more databases isn't always possible(e.g oracle official docker images)
-                enabledDrivers: [
-                    "postgres",
-                    "cockroachdb",
-                    "mariadb",
-                    "mssql",
-                    "mysql",
-                    "sqlite",
-                    "better-sqlite3",
-                    "sqljs",
-                ],
+                enabledDrivers: ["postgres", "mariadb", "mysql", "sqlite"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

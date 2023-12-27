@@ -3,19 +3,15 @@ import { exec } from "child_process"
 import { readFileSync, writeFileSync } from "fs"
 import { dirname } from "path"
 import rimraf from "rimraf"
+import type { DatabaseType } from "../../../src"
 
 describe("cli init command", () => {
     const cliPath = `${dirname(dirname(dirname(__dirname)))}/src/cli.js`
-    const databaseOptions = [
+    const databaseTypes: DatabaseType[] = [
         "mysql",
         "mariadb",
         "postgres",
-        "cockroachdb",
         "sqlite",
-        "better-sqlite3",
-        // "oracle", // as always oracle have issues: dependency installation doesn't work on mac m1 due to missing oracle binaries for m1
-        "mssql",
-        "mongodb",
     ]
     const testProjectName = Date.now() + "TestProject"
     const builtSrcDirectory = "build/compiled/src"
@@ -56,7 +52,7 @@ describe("cli init command", () => {
         await rimraf(`./${testProjectName}`)
     })
 
-    for (const databaseOption of databaseOptions) {
+    for (const databaseOption of databaseTypes) {
         it(`should work with ${databaseOption} option`, (done) => {
             exec(
                 `${cliPath} init --name ${testProjectName} --database ${databaseOption}`,

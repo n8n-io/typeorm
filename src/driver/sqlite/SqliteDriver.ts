@@ -27,7 +27,7 @@ export class SqliteDriver extends AbstractSqliteDriver {
     /**
      * SQLite underlying library.
      */
-    sqlite: any
+    declare sqlite: any
 
     // -------------------------------------------------------------------------
     // Constructor

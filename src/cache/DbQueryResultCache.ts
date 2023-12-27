@@ -1,11 +1,9 @@
 import { ObjectLiteral } from "../common/ObjectLiteral"
 import { DataSource } from "../data-source/DataSource"
-import { MssqlParameter } from "../driver/sqlserver/MssqlParameter"
 import { QueryRunner } from "../query-runner/QueryRunner"
 import { Table } from "../schema-builder/table/Table"
 import { QueryResultCache } from "./QueryResultCache"
 import { QueryResultCacheOptions } from "./QueryResultCacheOptions"
-import { v4 as uuidv4 } from "uuid"
 
 /**
  * Caches query result into current database, into separate table called "query-result-cache".
@@ -81,10 +79,7 @@ export class DbQueryResultCache implements QueryResultCache {
                         type: driver.normalizeType({
                             type: driver.mappedDataTypes.cacheId,
                         }),
-                        generationStrategy:
-                            driver.options.type === "spanner"
-                                ? "uuid"
-                                : "increment",
+                        generationStrategy: "increment",
                         isGenerated: true,
                     },
                     {
@@ -153,33 +148,15 @@ export class DbQueryResultCache implements QueryResultCache {
                     )} = :identifier`,
                 )
                 .setParameters({
-                    identifier:
-                        this.connection.driver.options.type === "mssql"
-                            ? new MssqlParameter(options.identifier, "nvarchar")
-                            : options.identifier,
+                    identifier: options.identifier,
                 })
                 .cache(false) // disable cache to avoid infinite loops when cache is alwaysEnable
                 .getRawOne()
         } else if (options.query) {
-            if (this.connection.driver.options.type === "oracle") {
-                return qb
-                    .where(
-                        `dbms_lob.compare(${qb.escape("cache")}.${qb.escape(
-                            "query",
-                        )}, :query) = 0`,
-                        { query: options.query },
-                    )
-                    .cache(false) // disable cache to avoid infinite loops when cache is alwaysEnable
-                    .getRawOne()
-            }
-
             return qb
                 .where(`${qb.escape("cache")}.${qb.escape("query")} = :query`)
                 .setParameters({
-                    query:
-                        this.connection.driver.options.type === "mssql"
-                            ? new MssqlParameter(options.query, "nvarchar")
-                            : options.query,
+                    query: options.query,
                 })
                 .cache(false) // disable cache to avoid infinite loops when cache is alwaysEnable
                 .getRawOne()
@@ -222,16 +199,6 @@ export class DbQueryResultCache implements QueryResultCache {
         }
 
         let insertedValues: ObjectLiteral = options
-        if (this.connection.driver.options.type === "mssql") {
-            // todo: bad abstraction, re-implement this part, probably better if we create an entity metadata for cache table
-            insertedValues = {
-                identifier: new MssqlParameter(options.identifier, "nvarchar"),
-                time: new MssqlParameter(options.time, "bigint"),
-                duration: new MssqlParameter(options.duration, "int"),
-                query: new MssqlParameter(options.query, "nvarchar"),
-                result: new MssqlParameter(options.result, "nvarchar"),
-            }
-        }
 
         if (savedCache && savedCache.identifier) {
             // if exist then update
@@ -251,26 +218,12 @@ export class DbQueryResultCache implements QueryResultCache {
                 .update(this.queryResultCacheTable)
                 .set(insertedValues)
 
-            if (this.connection.driver.options.type === "oracle") {
-                qb.where(`dbms_lob.compare("query", :condition) = 0`, {
-                    condition: insertedValues.query,
-                })
-            } else {
-                qb.where(`${qb.escape("query")} = :condition`, {
-                    condition: insertedValues.query,
-                })
-            }
+            qb.where(`${qb.escape("query")} = :condition`, {
+                condition: insertedValues.query,
+            })
 
             await qb.execute()
         } else {
-            // Spanner does not support auto-generated columns
-            if (
-                this.connection.driver.options.type === "spanner" &&
-                !insertedValues.id
-            ) {
-                insertedValues.id = uuidv4()
-            }
-
             // otherwise insert
             await queryRunner.manager
                 .createQueryBuilder()

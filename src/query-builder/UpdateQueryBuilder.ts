@@ -13,10 +13,8 @@ import { OrderByCondition } from "../find-options/OrderByCondition"
 import { LimitOnUpdateNotSupportedError } from "../error/LimitOnUpdateNotSupportedError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
 import { QueryDeepPartialEntity } from "./QueryPartialEntity"
-import { AuroraMysqlDriver } from "../driver/aurora-mysql/AuroraMysqlDriver"
 import { TypeORMError } from "../error"
 import { EntityPropertyNotFoundError } from "../error/EntityPropertyNotFoundError"
-import { SqlServerDriver } from "../driver/sqlserver/SqlServerDriver"
 import { DriverUtils } from "../driver/DriverUtils"
 
 /**
@@ -123,19 +121,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                         (c) => !returningColumns.includes(c),
                     ),
                 )
-            }
-
-            if (
-                returningColumns.length > 0 &&
-                this.connection.driver.options.type === "mssql"
-            ) {
-                declareSql = (
-                    this.connection.driver as SqlServerDriver
-                ).buildTableVariableDeclaration(
-                    "@OutputTable",
-                    returningColumns,
-                )
-                selectOutputSql = `SELECT * FROM @OutputTable`
             }
 
             // execute update query
@@ -540,41 +525,20 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                                     " = " +
                                     value(),
                             )
-                        } else if (
-                            (this.connection.driver.options.type === "sap" ||
-                                this.connection.driver.options.type ===
-                                    "spanner") &&
-                            value === null
-                        ) {
-                            updateColumnAndValues.push(
-                                this.escape(column.databaseName) + " = NULL",
-                            )
                         } else {
-                            if (
-                                this.connection.driver.options.type === "mssql"
-                            ) {
-                                value = (
-                                    this.connection.driver as SqlServerDriver
-                                ).parametrizeValue(column, value)
-                            }
-
                             const paramName = this.createParameter(value)
 
                             let expression = null
                             if (
                                 (DriverUtils.isMySQLFamily(
                                     this.connection.driver,
-                                ) ||
-                                    this.connection.driver.options.type ===
-                                        "aurora-mysql") &&
+                                )) &&
                                 this.connection.driver.spatialTypes.indexOf(
                                     column.type,
                                 ) !== -1
                             ) {
                                 const useLegacy = (
-                                    this.connection.driver as
-                                        | MysqlDriver
-                                        | AuroraMysqlDriver
+                                    this.connection.driver as MysqlDriver
                                 ).options.legacySpatialSupport
                                 const geomFromText = useLegacy
                                     ? "GeomFromText"
@@ -597,20 +561,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                                 } else {
                                     expression = `ST_GeomFromGeoJSON(${paramName})::${column.type}`
                                 }
-                            } else if (
-                                this.connection.driver.options.type ===
-                                    "mssql" &&
-                                this.connection.driver.spatialTypes.indexOf(
-                                    column.type,
-                                ) !== -1
-                            ) {
-                                expression =
-                                    column.type +
-                                    "::STGeomFromText(" +
-                                    paramName +
-                                    ", " +
-                                    (column.srid || "0") +
-                                    ")"
                             } else {
                                 expression = paramName
                             }
@@ -658,12 +608,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                     updateColumnAndValues.push(
                         this.escape(key) + " = " + value(),
                     )
-                } else if (
-                    (this.connection.driver.options.type === "sap" ||
-                        this.connection.driver.options.type === "spanner") &&
-                    value === null
-                ) {
-                    updateColumnAndValues.push(this.escape(key) + " = NULL")
                 } else {
                     // we need to store array values in a special class to make sure parameter replacement will work correctly
                     // if (value instanceof Array)
@@ -689,13 +633,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
             return `UPDATE ${this.getTableName(
                 this.getMainTableName(),
             )} SET ${updateColumnAndValues.join(", ")}${whereExpression}` // todo: how do we replace aliases in where to nothing?
-        }
-        if (this.connection.driver.options.type === "mssql") {
-            return `UPDATE ${this.getTableName(
-                this.getMainTableName(),
-            )} SET ${updateColumnAndValues.join(
-                ", ",
-            )} OUTPUT ${returningExpression}${whereExpression}`
         }
         return `UPDATE ${this.getTableName(
             this.getMainTableName(),
@@ -744,8 +681,7 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
 
         if (limit) {
             if (
-                DriverUtils.isMySQLFamily(this.connection.driver) ||
-                this.connection.driver.options.type === "aurora-mysql"
+                DriverUtils.isMySQLFamily(this.connection.driver)
             ) {
                 return " LIMIT " + limit
             } else {

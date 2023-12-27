@@ -25,16 +25,12 @@ describe("commands - migration create", () => {
     let connectionOptionsReader: ConnectionOptionsReader
     let baseConnectionOptions: DataSourceOptions
 
-    const enabledDrivers: DatabaseType[] = [
-        "better-sqlite3",
-        "cockroachdb",
-        "mariadb",
-        "mssql",
-        "mysql",
-        "oracle",
+    const enabledDrivers = [
         "postgres",
+        "mysql",
+        "mariadb",
         "sqlite",
-    ]
+    ] as DatabaseType[]
 
     // simulate args: `npm run typeorm migration:run -- -n test-migration -d test-directory`
     const testHandlerArgs = (options: Record<string, any>) => ({

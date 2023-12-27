@@ -3,8 +3,6 @@ import { DataSource } from "../data-source/DataSource"
 import { Migration } from "./Migration"
 import { ObjectLiteral } from "../common/ObjectLiteral"
 import { QueryRunner } from "../query-runner/QueryRunner"
-import { MssqlParameter } from "../driver/sqlserver/MssqlParameter"
-import { MongoQueryRunner } from "../driver/mongodb/MongoQueryRunner"
 import { ForbiddenTransactionModeOverrideError, TypeORMError } from "../error"
 import { InstanceChecker } from "../util/InstanceChecker"
 
@@ -496,10 +494,6 @@ export class MigrationExecutor {
     protected async createMigrationsTableIfNotExist(
         queryRunner: QueryRunner,
     ): Promise<void> {
-        // If driver is mongo no need to create
-        if (this.connection.driver.options.type === "mongodb") {
-            return
-        }
         const tableExist = await queryRunner.hasTable(this.migrationsTable) // todo: table name should be configurable
         if (!tableExist) {
             await queryRunner.createTable(
@@ -548,27 +542,19 @@ export class MigrationExecutor {
     protected async loadExecutedMigrations(
         queryRunner: QueryRunner,
     ): Promise<Migration[]> {
-        if (this.connection.driver.options.type === "mongodb") {
-            const mongoRunner = queryRunner as MongoQueryRunner
-            return mongoRunner
-                .cursor(this.migrationsTableName, {})
-                .sort({ _id: -1 })
-                .toArray()
-        } else {
-            const migrationsRaw: ObjectLiteral[] = await this.connection.manager
-                .createQueryBuilder(queryRunner)
-                .select()
-                .orderBy(this.connection.driver.escape("id"), "DESC")
-                .from(this.migrationsTable, this.migrationsTableName)
-                .getRawMany()
-            return migrationsRaw.map((migrationRaw) => {
-                return new Migration(
-                    parseInt(migrationRaw["id"]),
-                    parseInt(migrationRaw["timestamp"]),
-                    migrationRaw["name"],
-                )
-            })
-        }
+        const migrationsRaw: ObjectLiteral[] = await this.connection.manager
+            .createQueryBuilder(queryRunner)
+            .select()
+            .orderBy(this.connection.driver.escape("id"), "DESC")
+            .from(this.migrationsTable, this.migrationsTableName)
+            .getRawMany()
+        return migrationsRaw.map((migrationRaw) => {
+            return new Migration(
+                parseInt(migrationRaw["id"]),
+                parseInt(migrationRaw["timestamp"]),
+                migrationRaw["name"],
+            )
+        })
     }
 
     /**
@@ -647,38 +633,14 @@ export class MigrationExecutor {
         migration: Migration,
     ): Promise<void> {
         const values: ObjectLiteral = {}
-        if (this.connection.driver.options.type === "mssql") {
-            values["timestamp"] = new MssqlParameter(
-                migration.timestamp,
-                this.connection.driver.normalizeType({
-                    type: this.connection.driver.mappedDataTypes
-                        .migrationTimestamp,
-                }) as any,
-            )
-            values["name"] = new MssqlParameter(
-                migration.name,
-                this.connection.driver.normalizeType({
-                    type: this.connection.driver.mappedDataTypes.migrationName,
-                }) as any,
-            )
-        } else {
-            values["timestamp"] = migration.timestamp
-            values["name"] = migration.name
-        }
-        if (this.connection.driver.options.type === "mongodb") {
-            const mongoRunner = queryRunner as MongoQueryRunner
-            await mongoRunner.databaseConnection
-                .db(this.connection.driver.database!)
-                .collection(this.migrationsTableName)
-                .insertOne(values)
-        } else {
-            const qb = queryRunner.manager.createQueryBuilder()
-            await qb
-                .insert()
-                .into(this.migrationsTable)
-                .values(values)
-                .execute()
-        }
+        values["timestamp"] = migration.timestamp
+        values["name"] = migration.name
+        const qb = queryRunner.manager.createQueryBuilder()
+        await qb
+            .insert()
+            .into(this.migrationsTable)
+            .values(values)
+            .execute()
     }
 
     /**
@@ -689,41 +651,17 @@ export class MigrationExecutor {
         migration: Migration,
     ): Promise<void> {
         const conditions: ObjectLiteral = {}
-        if (this.connection.driver.options.type === "mssql") {
-            conditions["timestamp"] = new MssqlParameter(
-                migration.timestamp,
-                this.connection.driver.normalizeType({
-                    type: this.connection.driver.mappedDataTypes
-                        .migrationTimestamp,
-                }) as any,
-            )
-            conditions["name"] = new MssqlParameter(
-                migration.name,
-                this.connection.driver.normalizeType({
-                    type: this.connection.driver.mappedDataTypes.migrationName,
-                }) as any,
-            )
-        } else {
-            conditions["timestamp"] = migration.timestamp
-            conditions["name"] = migration.name
-        }
+        conditions["timestamp"] = migration.timestamp
+        conditions["name"] = migration.name
 
-        if (this.connection.driver.options.type === "mongodb") {
-            const mongoRunner = queryRunner as MongoQueryRunner
-            await mongoRunner.databaseConnection
-                .db(this.connection.driver.database!)
-                .collection(this.migrationsTableName)
-                .deleteOne(conditions)
-        } else {
-            const qb = queryRunner.manager.createQueryBuilder()
-            await qb
-                .delete()
-                .from(this.migrationsTable)
-                .where(`${qb.escape("timestamp")} = :timestamp`)
-                .andWhere(`${qb.escape("name")} = :name`)
-                .setParameters(conditions)
-                .execute()
-        }
+        const qb = queryRunner.manager.createQueryBuilder()
+        await qb
+            .delete()
+            .from(this.migrationsTable)
+            .where(`${qb.escape("timestamp")} = :timestamp`)
+            .andWhere(`${qb.escape("name")} = :name`)
+            .setParameters(conditions)
+            .execute()
     }
 
     protected async withQueryRunner<T extends any>(

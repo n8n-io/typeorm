@@ -25,16 +25,12 @@ describe.skip("github issues > #4415 allow beautify generated migrations", () =>
     let connectionOptionsReader: ConnectionOptionsReader
     let baseConnectionOptions: DataSourceOptions
 
-    const enabledDrivers = [
+    const enabledDrivers: DatabaseType[] = [
         "postgres",
-        "mssql",
         "mysql",
         "mariadb",
         "sqlite",
-        "better-sqlite3",
-        "oracle",
-        "cockroachdb",
-    ] as DatabaseType[]
+    ]
 
     // simulate args: `npm run typeorm migration:run -- -n test-migration -d test-directory`
     const testHandlerArgs = (options: Record<string, any>) => ({

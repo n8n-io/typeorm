@@ -7,15 +7,15 @@ import {
 import { DataSource } from "../../../src/data-source/DataSource"
 import { expect } from "chai"
 
-describe("github issues > #2733 should correctly handle function calls with upercase letters as default values", () => {
+describe("github issues > #2733 should correctly handle function calls with uppercase letters as default values", () => {
     let connections: DataSource[]
 
-    it("MSSQL, Sqljs, Sqlite", async () => {
+    it("Sqlite", async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/MSSQLDummy{.js,.ts}"],
             schemaCreate: true,
             dropSchema: true,
-            enabledDrivers: ["mssql", "sqljs", "sqlite", "better-sqlite3"],
+            enabledDrivers: ["sqlite"],
         })
         await reloadTestingDatabases(connections)
         await Promise.all(

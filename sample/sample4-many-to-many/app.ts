@@ -4,7 +4,7 @@ import { Post } from "./entity/Post"
 import { PostDetails } from "./entity/PostDetails"
 
 const options: DataSourceOptions = {
-    type: "mssql",
+    type: "postgres",
     host: "192.168.1.10",
     username: "sa",
     password: "admin12345",

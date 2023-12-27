@@ -96,9 +96,6 @@ export interface BaseDataSourceOptions {
      * Be careful with this option and don't use this in production - otherwise you can lose production data.
      * This option is useful during debug and development.
      * Alternative to it, you can use CLI and run schema:sync command.
-     *
-     * Note that for MongoDB database it does not create schema, because MongoDB is schemaless.
-     * Instead, it syncs just by creating indices.
      */
     readonly synchronize?: boolean
 
@@ -173,7 +170,7 @@ export interface BaseDataSourceOptions {
                   | "database"
                   | "redis"
                   | "ioredis"
-                  | "ioredis/cluster" // todo: add mongodb and other cache providers as well in the future
+                  | "ioredis/cluster" // todo: add other cache providers as well in the future
 
               /**
                * Factory function for custom cache providers that implement QueryResultCache.

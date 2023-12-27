@@ -43,23 +43,11 @@
     "./browser/connection/ConnectionOptionsReader.js": "./browser/platform/BrowserConnectionOptionsReaderDummy.js",
     "./browser/connection/options-reader/ConnectionOptionsXmlReader.js": "./browser/platform/BrowserConnectionOptionsReaderDummy.js",
     "./browser/connection/options-reader/ConnectionOptionsYmlReader.js": "./browser/platform/BrowserConnectionOptionsReaderDummy.js",
-    "./browser/driver/aurora-data-api/AuroraDataApiDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/better-sqlite3/BetterSqlite3Driver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/cockroachdb/CockroachDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/MongoDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/MongoQueryRunner.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/bson.typings.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/typings.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/driver/mysql/MysqlDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/oracle/OracleDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/driver/postgres/PostgresDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/sap/SapDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/driver/sqlite/SqliteDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/sqlserver/SqlServerDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/entity-manager/MongoEntityManager.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/logger/FileLogger.js": "./browser/platform/BrowserFileLoggerDummy.js",
     "./browser/platform/PlatformTools.js": "./browser/platform/BrowserPlatformTools.js",
-    "./browser/repository/MongoRepository.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/util/DirectoryExportedClassesLoader.js": "./browser/platform/BrowserDirectoryExportedClassesLoader.js",
     "./index.js": "./browser/index.js",
     "./index.mjs": "./browser/index.js"
@@ -82,15 +70,8 @@
     "postgresql-orm",
     "mariadb",
     "mariadb-orm",
-    "spanner",
     "sqlite",
-    "sqlite-orm",
-    "sql-server",
-    "sql-server-orm",
-    "oracle",
-    "oracle-orm",
-    "cloud-spanner",
-    "cloud-spanner-orm"
+    "sqlite-orm"
   ],
   "devDependencies": {
     "@tsconfig/node16": "^16.1.1",
@@ -109,7 +90,6 @@
     "@types/uuid": "^9.0.0",
     "@types/yargs": "^17.0.22",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "better-sqlite3": "^8.1.0",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "class-transformer": "^0.5.1",
@@ -128,8 +108,6 @@
     "gulpclass": "^0.2.0",
     "husky": "^8.0.3",
     "mocha": "^10.2.0",
-    "mongodb": "^6.3.0",
-    "mssql": "^10.0.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.1.1",
     "pg": "^8.9.0",
@@ -141,57 +119,25 @@
     "sinon": "^15.0.1",
     "sinon-chai": "^3.7.0",
     "source-map-support": "^0.5.21",
-    "sql.js": "^1.8.0",
     "sqlite3": "^5.1.4",
     "ts-node": "^10.9.2",
-    "typeorm-aurora-data-api-driver": "^2.4.4",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "@google-cloud/spanner": "^5.18.0",
-    "@sap/hana-client": "^2.12.25",
-    "better-sqlite3": "^7.1.2 || ^8.0.0 || ^9.0.0",
-    "hdb-pool": "^0.1.6",
     "ioredis": "^5.0.4",
-    "mongodb": "^5.8.0",
-    "mssql": "^9.1.1 || ^10.0.1",
     "mysql2": "^2.2.5 || ^3.0.1",
-    "oracledb": "^6.3.0",
     "pg": "^8.5.1",
     "pg-native": "^3.0.0",
     "pg-query-stream": "^4.0.0",
     "redis": "^3.1.1 || ^4.0.0",
-    "sql.js": "^1.4.0",
     "sqlite3": "^5.0.3",
-    "ts-node": "^10.7.0",
-    "typeorm-aurora-data-api-driver": "^2.0.0"
+    "ts-node": "^10.7.0"
   },
   "peerDependenciesMeta": {
-    "@google-cloud/spanner": {
-      "optional": true
-    },
-    "@sap/hana-client": {
-      "optional": true
-    },
-    "better-sqlite3": {
-      "optional": true
-    },
-    "hdb-pool": {
-      "optional": true
-    },
     "ioredis": {
       "optional": true
     },
-    "mongodb": {
-      "optional": true
-    },
-    "mssql": {
-      "optional": true
-    },
     "mysql2": {
-      "optional": true
-    },
-    "oracledb": {
       "optional": true
     },
     "pg": {
@@ -206,16 +152,10 @@
     "redis": {
       "optional": true
     },
-    "sql.js": {
-      "optional": true
-    },
     "sqlite3": {
       "optional": true
     },
     "ts-node": {
-      "optional": true
-    },
-    "typeorm-aurora-data-api-driver": {
       "optional": true
     }
   },
@@ -237,9 +177,9 @@
     "yargs": "^17.6.2"
   },
   "scripts": {
-    "test": "rimraf ./build && tsc && mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 90000 ./build/compiled/test",
+    "test": "tsc && mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 90000 ./build/compiled/test",
     "test-fast": "mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 90000 ./build/compiled/test",
-    "compile": "rimraf ./build && tsc",
+    "compile": "tsc",
     "watch": "./node_modules/.bin/tsc -w",
     "package": "gulp package",
     "pack": "gulp pack",

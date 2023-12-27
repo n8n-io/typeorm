@@ -3,8 +3,8 @@ import { DataSource, DataSourceOptions } from "../../src/index"
 import { Post } from "./entity/Post"
 
 const options: DataSourceOptions = {
-    name: "sap",
-    type: "sap",
+    name: "postgres",
+    type: "postgres",
     host: "192.168.56.102",
     port: 39015,
     username: "SYSTEM",

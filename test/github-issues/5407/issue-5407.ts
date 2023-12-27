@@ -12,14 +12,7 @@ describe("github issues > #5407 Wrong migration created because of default colum
         async () =>
             (connections = await createTestingConnections({
                 migrations: [],
-                enabledDrivers: [
-                    "mysql",
-                    "mariadb",
-                    "postgres",
-                    "better-sqlite3",
-                    "cockroachdb",
-                    "sqlite",
-                ],
+                enabledDrivers: ["mysql", "mariadb", "postgres", "sqlite"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [User],

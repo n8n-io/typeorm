@@ -4,7 +4,6 @@ import { ObjectLiteral } from "../../common/ObjectLiteral"
 import { CannotAttachTreeChildrenEntityError } from "../../error/CannotAttachTreeChildrenEntityError"
 import { DeleteQueryBuilder } from "../../query-builder/DeleteQueryBuilder"
 import { OrmUtils } from "../../util/OrmUtils"
-import { ColumnMetadata } from "../../metadata/ColumnMetadata"
 
 /**
  * Executes subject operations for closure entities.
@@ -322,41 +321,6 @@ export class ClosureSubjectExecutor {
      */
     async remove(subjects: Subject | Subject[]): Promise<void> {
         // Only mssql need to execute deletes for the juntion table as it doesn't support multi cascade paths.
-        if (!(this.queryRunner.connection.driver.options.type === "mssql")) {
-            return
-        }
-
-        if (!Array.isArray(subjects)) subjects = [subjects]
-
-        const escape = (alias: string) =>
-            this.queryRunner.connection.driver.escape(alias)
-        const identifiers = subjects.map((subject) => subject.identifier)
-        const closureTable = subjects[0].metadata.closureJunctionTable
-
-        const generateWheres = (columns: ColumnMetadata[]) => {
-            return columns
-                .map((column) => {
-                    const data = identifiers.map(
-                        (identifier) =>
-                            identifier![column.referencedColumn!.databaseName],
-                    )
-                    return `${escape(column.databaseName)} IN (${data.join(
-                        ", ",
-                    )})`
-                })
-                .join(" AND ")
-        }
-
-        const ancestorWhere = generateWheres(closureTable.ancestorColumns)
-        const descendantWhere = generateWheres(closureTable.descendantColumns)
-
-        await this.queryRunner.manager
-            .createQueryBuilder()
-            .delete()
-            .from(closureTable.tablePath)
-            .where(ancestorWhere)
-            .orWhere(descendantWhere)
-            .execute()
     }
 
     /**

@@ -192,14 +192,7 @@ export class EntityMetadataBuilder {
                             if (
                                 DriverUtils.isMySQLFamily(
                                     this.connection.driver,
-                                ) ||
-                                this.connection.driver.options.type ===
-                                    "aurora-mysql" ||
-                                this.connection.driver.options.type ===
-                                    "mssql" ||
-                                this.connection.driver.options.type === "sap" ||
-                                this.connection.driver.options.type ===
-                                    "spanner"
+                                )
                             ) {
                                 const index = new IndexMetadata({
                                     entityMetadata:
@@ -212,26 +205,6 @@ export class EntityMetadataBuilder {
                                         synchronize: true,
                                     },
                                 })
-
-                                if (
-                                    this.connection.driver.options.type ===
-                                    "mssql"
-                                ) {
-                                    index.where = index.columns
-                                        .map((column) => {
-                                            return `${this.connection.driver.escape(
-                                                column.databaseName,
-                                            )} IS NOT NULL`
-                                        })
-                                        .join(" AND ")
-                                }
-
-                                if (
-                                    this.connection.driver.options.type ===
-                                    "spanner"
-                                ) {
-                                    index.isNullFiltered = true
-                                }
 
                                 if (relation.embeddedMetadata) {
                                     relation.embeddedMetadata.indices.push(
@@ -255,27 +228,6 @@ export class EntityMetadataBuilder {
                                 }
                                 this.computeEntityMetadataStep2(entityMetadata)
                             }
-                        }
-
-                        if (
-                            foreignKey &&
-                            this.connection.driver.options.type ===
-                                "cockroachdb"
-                        ) {
-                            const index = new IndexMetadata({
-                                entityMetadata: relation.entityMetadata,
-                                columns: foreignKey.columns,
-                                args: {
-                                    target: relation.entityMetadata.target!,
-                                    synchronize: true,
-                                },
-                            })
-                            if (relation.embeddedMetadata) {
-                                relation.embeddedMetadata.indices.push(index)
-                            } else {
-                                relation.entityMetadata.ownIndices.push(index)
-                            }
-                            this.computeEntityMetadataStep2(entityMetadata)
                         }
                     })
 
@@ -775,43 +727,14 @@ export class EntityMetadataBuilder {
                 })
         }
 
-        if (this.connection.driver.options.type === "cockroachdb") {
-            entityMetadata.ownIndices = this.metadataArgsStorage
-                .filterIndices(entityMetadata.inheritanceTree)
-                .filter((args) => !args.unique)
-                .map((args) => {
-                    return new IndexMetadata({ entityMetadata, args })
-                })
-
-            const uniques = this.metadataArgsStorage
-                .filterIndices(entityMetadata.inheritanceTree)
-                .filter((args) => args.unique)
-                .map((args) => {
-                    return new UniqueMetadata({
-                        entityMetadata: entityMetadata,
-                        args: {
-                            target: args.target,
-                            name: args.name,
-                            columns: args.columns,
-                        },
-                    })
-                })
-            entityMetadata.ownUniques.push(...uniques)
-        } else {
-            entityMetadata.ownIndices = this.metadataArgsStorage
-                .filterIndices(entityMetadata.inheritanceTree)
-                .map((args) => {
-                    return new IndexMetadata({ entityMetadata, args })
-                })
-        }
+        entityMetadata.ownIndices = this.metadataArgsStorage
+            .filterIndices(entityMetadata.inheritanceTree)
+            .map((args) => {
+                return new IndexMetadata({ entityMetadata, args })
+            })
 
         // This drivers stores unique constraints as unique indices.
-        if (
-            DriverUtils.isMySQLFamily(this.connection.driver) ||
-            this.connection.driver.options.type === "aurora-mysql" ||
-            this.connection.driver.options.type === "sap" ||
-            this.connection.driver.options.type === "spanner"
-        ) {
+        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
             const indices = this.metadataArgsStorage
                 .filterUniques(entityMetadata.inheritanceTree)
                 .map((args) => {

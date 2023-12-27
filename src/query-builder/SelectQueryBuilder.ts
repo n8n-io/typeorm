@@ -41,7 +41,6 @@ import { FindOptionsUtils } from "../find-options/FindOptionsUtils"
 import { FindOptionsRelations } from "../find-options/FindOptionsRelations"
 import { OrmUtils } from "../util/OrmUtils"
 import { EntityPropertyNotFoundError } from "../error/EntityPropertyNotFoundError"
-import { AuroraMysqlDriver } from "../driver/aurora-mysql/AuroraMysqlDriver"
 import { InstanceChecker } from "../util/InstanceChecker"
 import { FindOperator } from "../find-options/FindOperator"
 import { ApplyValueTransformers } from "../util/ApplyValueTransformers"
@@ -1336,14 +1335,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
      * Enables time travelling for the current query (only supported by cockroach currently)
      */
     timeTravelQuery(timeTravelFn?: string | boolean): this {
-        if (this.connection.driver.options.type === "cockroachdb") {
-            if (timeTravelFn === undefined) {
-                this.expressionMap.timeTravel = "follower_read_timestamp()"
-            } else {
-                this.expressionMap.timeTravel = timeTravelFn
-            }
-        }
-
         return this
     }
 
@@ -2552,39 +2543,8 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             limit = this.expressionMap.take
         }
 
-        if (this.connection.driver.options.type === "mssql") {
-            // Due to a limitation in SQL Server's parser implementation it does not support using
-            // OFFSET or FETCH NEXT without an ORDER BY clause being provided. In cases where the
-            // user does not request one we insert a dummy ORDER BY that does nothing and should
-            // have no effect on the query planner or on the order of the results returned.
-            // https://dba.stackexchange.com/a/193799
-            let prefix = ""
-            if (
-                (limit || offset) &&
-                Object.keys(this.expressionMap.allOrderBys).length <= 0
-            ) {
-                prefix = " ORDER BY (SELECT NULL)"
-            }
-
-            if (limit && offset)
-                return (
-                    prefix +
-                    " OFFSET " +
-                    offset +
-                    " ROWS FETCH NEXT " +
-                    limit +
-                    " ROWS ONLY"
-                )
-            if (limit)
-                return (
-                    prefix + " OFFSET 0 ROWS FETCH NEXT " + limit + " ROWS ONLY"
-                )
-            if (offset) return prefix + " OFFSET " + offset + " ROWS"
-        } else if (
-            DriverUtils.isMySQLFamily(this.connection.driver) ||
-            this.connection.driver.options.type === "aurora-mysql" ||
-            this.connection.driver.options.type === "sap" ||
-            this.connection.driver.options.type === "spanner"
+        if (
+            DriverUtils.isMySQLFamily(this.connection.driver)
         ) {
             if (limit && offset) return " LIMIT " + limit + " OFFSET " + offset
             if (limit) return " LIMIT " + limit
@@ -2593,17 +2553,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             if (limit && offset) return " LIMIT " + limit + " OFFSET " + offset
             if (limit) return " LIMIT " + limit
             if (offset) return " LIMIT -1 OFFSET " + offset
-        } else if (this.connection.driver.options.type === "oracle") {
-            if (limit && offset)
-                return (
-                    " OFFSET " +
-                    offset +
-                    " ROWS FETCH NEXT " +
-                    limit +
-                    " ROWS ONLY"
-                )
-            if (limit) return " FETCH NEXT " + limit + " ROWS ONLY"
-            if (offset) return " OFFSET " + offset + " ROWS"
         } else {
             if (limit && offset) return " LIMIT " + limit + " OFFSET " + offset
             if (limit) return " LIMIT " + limit
@@ -2622,17 +2571,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
      *      ON U.ID=O.OrderID
      */
     private createTableLockExpression(): string {
-        if (this.connection.driver.options.type === "mssql") {
-            switch (this.expressionMap.lockMode) {
-                case "pessimistic_read":
-                    return " WITH (HOLDLOCK, ROWLOCK)"
-                case "pessimistic_write":
-                    return " WITH (UPDLOCK, ROWLOCK)"
-                case "dirty_read":
-                    return " WITH (NOLOCK)"
-            }
-        }
-
         return ""
     }
 
@@ -2647,8 +2585,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
         if (this.expressionMap.lockTables) {
             if (
                 !(
-                    DriverUtils.isPostgresFamily(driver) ||
-                    driver.options.type === "cockroachdb"
+                    DriverUtils.isPostgresFamily(driver)
                 )
             ) {
                 throw new TypeORMError(
@@ -2670,8 +2607,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
         switch (this.expressionMap.lockMode) {
             case "pessimistic_read":
                 if (
-                    driver.options.type === "mysql" ||
-                    driver.options.type === "aurora-mysql"
+                    driver.options.type === "mysql"
                 ) {
                     if (
                         DriverUtils.isReleaseVersionOrGreater(driver, "8.0.0")
@@ -2686,27 +2622,14 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                     return " LOCK IN SHARE MODE"
                 } else if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR SHARE" + lockTablesClause + onLockExpression
-                } else if (driver.options.type === "oracle") {
-                    return " FOR UPDATE"
-                } else if (driver.options.type === "mssql") {
-                    return ""
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
                 }
             case "pessimistic_write":
                 if (
-                    DriverUtils.isMySQLFamily(driver) ||
-                    driver.options.type === "aurora-mysql" ||
-                    driver.options.type === "oracle"
+                    DriverUtils.isMySQLFamily(driver)
                 ) {
                     return " FOR UPDATE" + onLockExpression
-                } else if (
-                    DriverUtils.isPostgresFamily(driver) ||
-                    driver.options.type === "cockroachdb"
-                ) {
-                    return " FOR UPDATE" + lockTablesClause + onLockExpression
-                } else if (driver.options.type === "mssql") {
-                    return ""
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
                 }
@@ -2720,8 +2643,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                 }
             case "pessimistic_write_or_fail":
                 if (
-                    DriverUtils.isPostgresFamily(driver) ||
-                    driver.options.type === "cockroachdb"
+                    DriverUtils.isPostgresFamily(driver)
                 ) {
                     return " FOR UPDATE" + lockTablesClause + " NOWAIT"
                 } else if (DriverUtils.isMySQLFamily(driver)) {
@@ -2731,8 +2653,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                 }
             case "for_no_key_update":
                 if (
-                    DriverUtils.isPostgresFamily(driver) ||
-                    driver.options.type === "cockroachdb"
+                    DriverUtils.isPostgresFamily(driver)
                 ) {
                     return (
                         " FOR NO KEY UPDATE" +
@@ -2838,13 +2759,10 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                 this.connection.driver.spatialTypes.indexOf(column.type) !== -1
             ) {
                 if (
-                    DriverUtils.isMySQLFamily(this.connection.driver) ||
-                    this.connection.driver.options.type === "aurora-mysql"
+                    DriverUtils.isMySQLFamily(this.connection.driver)
                 ) {
                     const useLegacy = (
-                        this.connection.driver as
-                            | MysqlDriver
-                            | AuroraMysqlDriver
+                        this.connection.driver as MysqlDriver
                     ).options.legacySpatialSupport
                     const asText = useLegacy ? "AsText" : "ST_AsText"
                     selectionPath = `${asText}(${selectionPath})`
@@ -2857,8 +2775,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                     } else {
                         selectionPath = `ST_AsGeoJSON(${selectionPath})::json`
                     }
-                if (this.connection.driver.options.type === "mssql")
-                    selectionPath = `${selectionPath}.ToString()`
             }
 
             const selections = this.expressionMap.selects.filter(
@@ -2940,7 +2856,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
         // For everything else, we'll need to do some hackery to get the correct count values.
 
         if (
-            this.connection.driver.options.type === "cockroachdb" ||
             DriverUtils.isPostgresFamily(this.connection.driver)
         ) {
             // Postgres and CockroachDB can pass multiple parameters to the `DISTINCT` function
@@ -2970,49 +2885,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                     .join(", ") +
                 ")"
             )
-        }
-
-        if (this.connection.driver.options.type === "mssql") {
-            // SQL Server has gotta be different from everyone else.  They don't support
-            // distinct counting multiple columns & they don't have the same operator
-            // characteristic for concatenating, so we gotta use the `CONCAT` function.
-            // However, If it's exactly 1 column we can omit the `CONCAT` for better performance.
-
-            const columnsExpression = primaryColumns
-                .map(
-                    (primaryColumn) =>
-                        `${distinctAlias}.${this.escape(
-                            primaryColumn.databaseName,
-                        )}`,
-                )
-                .join(", '|;|', ")
-
-            if (primaryColumns.length === 1) {
-                return `COUNT(DISTINCT(${columnsExpression}))`
-            }
-
-            return `COUNT(DISTINCT(CONCAT(${columnsExpression})))`
-        }
-
-        if (this.connection.driver.options.type === "spanner") {
-            // spanner also has gotta be different from everyone else.
-            // they do not support concatenation of different column types without casting them to string
-
-            if (primaryColumns.length === 1) {
-                return `COUNT(DISTINCT(${distinctAlias}.${this.escape(
-                    primaryColumns[0].databaseName,
-                )}))`
-            }
-
-            const columnsExpression = primaryColumns
-                .map(
-                    (primaryColumn) =>
-                        `CAST(${distinctAlias}.${this.escape(
-                            primaryColumn.databaseName,
-                        )} AS STRING)`,
-                )
-                .join(", '|;|', ")
-            return `COUNT(DISTINCT(CONCAT(${columnsExpression})))`
         }
 
         // If all else fails, fall back to a `COUNT` and `DISTINCT` across all the primary columns concatenated.

@@ -27,13 +27,9 @@ describe("commands - migration generate", () => {
 
     const enabledDrivers = [
         "postgres",
-        "mssql",
         "mysql",
         "mariadb",
         "sqlite",
-        "better-sqlite3",
-        "oracle",
-        "cockroachdb",
     ] as DatabaseType[]
 
     // simulate args: `npm run typeorm migration:run -- -n test-migration -d test-directory`

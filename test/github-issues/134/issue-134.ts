@@ -14,14 +14,7 @@ describe("github issues > #134 Error TIME is converted to 'HH-mm' instead of 'HH
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "mysql",
-                    "mariadb",
-                    "sqlite",
-                    "better-sqlite3",
-                    "mssql",
-                    "postgres",
-                ], // Oracle does not support TIME data type.
+                enabledDrivers: ["mysql", "mariadb", "sqlite", "postgres"], // Oracle does not support TIME data type.
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

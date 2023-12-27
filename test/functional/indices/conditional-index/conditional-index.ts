@@ -11,7 +11,7 @@ describe("indices > conditional index", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mssql", "postgres", "sqlite", "better-sqlite3"], // only these drivers supports conditional indices
+            enabledDrivers: ["postgres", "sqlite"], // only these drivers supports conditional indices
             schemaCreate: true,
             dropSchema: true,
         })
