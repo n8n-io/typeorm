@@ -77,6 +77,8 @@ const getDriver = async (
                 "sqlite",
                 "sqljs",
                 "spanner",
+                "libsql",
+                "sqlite-pooled",
             ])
     }
 }
