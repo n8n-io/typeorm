@@ -17,6 +17,7 @@ describe("cli init command", () => {
         "mssql",
         "mongodb",
         "libsql",
+        "sqlite-pooled",
     ]
     const testProjectName = Date.now() + "TestProject"
     const builtSrcDirectory = "build/compiled/src"

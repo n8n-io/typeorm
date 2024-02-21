@@ -50,6 +50,9 @@ const getDriver = async (
             return (await import("./spanner/SpannerDriver")).SpannerDriver
         case "libsql":
             return (await import("./libsql/LibSqlDriver")).LibSqlDriver
+        case "sqlite-pooled":
+            return (await import("./sqlite-pooled/SqlitePooledDriver"))
+                .SqlitePooledDriver
         default:
             const { MissingDriverError } = await import(
                 "../error/MissingDriverError"

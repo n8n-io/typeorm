@@ -17,6 +17,7 @@ import { BetterSqlite3ConnectionOptions } from "../driver/better-sqlite3/BetterS
 import { CapacitorConnectionOptions } from "../driver/capacitor/CapacitorConnectionOptions"
 import { SpannerConnectionOptions } from "../driver/spanner/SpannerConnectionOptions"
 import { LibSqlConnectionOptions } from "../driver/libsql/LibSqlConnectionOptions"
+import { SqlitePooledConnectionOptions } from "../driver/sqlite-pooled/SqlitePooledConnectionOptions"
 
 /**
  * DataSourceOptions is an interface with settings and options for specific DataSource.
@@ -41,3 +42,4 @@ export type DataSourceOptions =
     | CapacitorConnectionOptions
     | SpannerConnectionOptions
     | LibSqlConnectionOptions
+    | SqlitePooledConnectionOptions

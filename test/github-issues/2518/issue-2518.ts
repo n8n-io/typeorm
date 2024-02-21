@@ -26,6 +26,7 @@ describe("github issues > #2518 TreeRepository.findDescendantsTree does not load
                     "better-sqlite3",
                     "sqljs",
                     "libsql",
+                    "sqlite-pooled",
                 ],
             })),
     )

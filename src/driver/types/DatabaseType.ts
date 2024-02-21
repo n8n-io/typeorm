@@ -22,3 +22,4 @@ export type DatabaseType =
     | "capacitor"
     | "spanner"
     | "libsql"
+    | "sqlite-pooled"

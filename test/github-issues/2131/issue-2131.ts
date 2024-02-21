@@ -33,7 +33,12 @@ describe("github issues > #2131 InsertResult return the same primary key", () =>
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["sqlite", "mysql", "aurora-mysql"],
+                enabledDrivers: [
+                    "sqlite",
+                    "mysql",
+                    "aurora-mysql",
+                    "sqlite-pooled",
+                ],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

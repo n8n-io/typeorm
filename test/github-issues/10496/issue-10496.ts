@@ -31,6 +31,7 @@ describe("github issues > #10496 User-defined index name for Single Table Inheri
                     "spanner",
                     "sqlite",
                     "libsql",
+                    "sqlite-pooled",
                 ],
             })),
     )

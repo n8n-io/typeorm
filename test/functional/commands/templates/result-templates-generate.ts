@@ -15,4 +15,5 @@ export const resultsTemplates: Record<string, Record<string, string>> = {
     oracle,
     cockroachdb,
     libsql: sqlite,
+    "sqlite-pooled": sqlite,
 }

@@ -24,6 +24,7 @@ export class DriverUtils {
             "better-sqlite3",
             "capacitor",
             "libsql",
+            "sqlite-pooled",
         ].includes(driver.options.type)
     }
 

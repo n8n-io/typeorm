@@ -21,6 +21,7 @@ describe("query runner > create unique constraint", () => {
                 "oracle",
                 "cockroachdb",
                 "libsql",
+                "sqlite-pooled",
             ], // mysql and sap does not supports unique constraints
             schemaCreate: true,
             dropSchema: true,

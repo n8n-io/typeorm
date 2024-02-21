@@ -35,6 +35,7 @@ describe("commands - migration generate", () => {
         "oracle",
         "cockroachdb",
         "libsql",
+        "sqlite-pooled",
     ] as DatabaseType[]
 
     // simulate args: `npm run typeorm migration:run -- -n test-migration -d test-directory`

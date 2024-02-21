@@ -394,7 +394,8 @@ describe("repository > basic methods", () => {
                         (c) =>
                             c.name === "sqlite" ||
                             c.name === "better-sqlite3" ||
-                            c.name === "libsql",
+                            c.name === "libsql" ||
+                            c.name === "sqlite-pooled",
                     )
                     .map(async (connection) => {
                         if (

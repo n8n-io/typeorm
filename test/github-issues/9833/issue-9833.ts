@@ -33,6 +33,7 @@ describe("github issues > #9833 Add support for Single Table Inheritance when us
                     "spanner",
                     "sqlite",
                     "libsql",
+                    "sqlite-pooled",
                 ],
             })),
     )

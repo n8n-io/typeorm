@@ -21,6 +21,7 @@ describe("github issues > #2733 should correctly handle function calls with uper
                 "sqlite",
                 "better-sqlite3",
                 "libsql",
+                "sqlite-pooled",
             ],
         })
         await reloadTestingDatabases(connections)

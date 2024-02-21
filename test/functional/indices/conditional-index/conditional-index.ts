@@ -17,6 +17,7 @@ describe("indices > conditional index", () => {
                 "sqlite",
                 "better-sqlite3",
                 "libsql",
+                "sqlite-pooled",
             ], // only these drivers supports conditional indices
             schemaCreate: true,
             dropSchema: true,
