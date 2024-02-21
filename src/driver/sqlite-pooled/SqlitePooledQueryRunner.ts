@@ -67,7 +67,6 @@ export class SqlitePooledQueryRunner extends AbstractSqlitePooledQueryRunner<
                     const isUpdateQuery = query.startsWith("UPDATE ")
 
                     const execute = () => {
-                        console.log("Executing", query, parameters)
                         if (isInsertQuery || isDeleteQuery || isUpdateQuery) {
                             databaseConnection.run(query, parameters, handler)
                         } else {
@@ -149,7 +148,6 @@ export class SqlitePooledQueryRunner extends AbstractSqlitePooledQueryRunner<
 
                             result.affected = this["changes"]
 
-                            console.log("OK", useStructuredResult, result)
                             if (useStructuredResult) {
                                 ok(result)
                             } else {
@@ -160,7 +158,6 @@ export class SqlitePooledQueryRunner extends AbstractSqlitePooledQueryRunner<
 
                     execute()
                 } catch (err) {
-                    console.error(err)
                     fail(err)
                 }
             })
