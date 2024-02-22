@@ -21,7 +21,6 @@ describe("github issues > #2199 - Inserting value for @PrimaryGeneratedColumn() 
                     "better-sqlite3",
                     "mssql",
                     "libsql",
-                    "sqlite-pooled",
                 ],
                 schemaCreate: true,
                 dropSchema: true,

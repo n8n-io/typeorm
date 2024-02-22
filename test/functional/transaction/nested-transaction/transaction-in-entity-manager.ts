@@ -14,7 +14,8 @@ describe("transaction > nested transaction", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                disabledDrivers: ["sqlite-pooled"],
+                shouldDisabledDriver: (opts) =>
+                    opts.type === "sqlite" && !!opts.poolSize,
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

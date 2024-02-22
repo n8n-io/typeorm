@@ -19,7 +19,6 @@ describe("github issues > #3997 synchronize=true always failing when using decim
                     "mssql",
                     "mysql",
                     "sqlite",
-                    "sqlite-pooled",
                 ],
                 schemaCreate: false,
                 dropSchema: true,

@@ -22,7 +22,6 @@ describe("github issues > #1465 save child and parent entity", () => {
                     "better-sqlite3",
                     "sqljs",
                     "libsql",
-                    "sqlite-pooled",
                 ],
             })),
     )

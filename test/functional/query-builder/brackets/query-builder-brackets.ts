@@ -15,7 +15,7 @@ describe("query builder > brackets", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["sqlite", "sqlite-pooled"],
+                enabledDrivers: ["sqlite"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

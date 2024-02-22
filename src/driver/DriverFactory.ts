@@ -2,8 +2,10 @@ import type { Driver, DriverConstructor } from "./Driver"
 import type { DataSource } from "../data-source/DataSource"
 
 const getDriver = async (
-    type: DataSource["options"]["type"],
+    options: DataSource["options"],
 ): Promise<DriverConstructor> => {
+    const { type } = options
+
     switch (type) {
         case "mysql":
         case "mariadb":
@@ -15,8 +17,12 @@ const getDriver = async (
                 .CockroachDriver
         case "sap":
             return (await import("./sap/SapDriver")).SapDriver
-        case "sqlite":
-            return (await import("./sqlite/SqliteDriver")).SqliteDriver
+        case "sqlite": {
+            return typeof options.poolSize === "number"
+                ? (await import("./sqlite-pooled/SqlitePooledDriver"))
+                      .SqlitePooledDriver
+                : (await import("./sqlite/SqliteDriver")).SqliteDriver
+        }
         case "better-sqlite3":
             return (await import("./better-sqlite3/BetterSqlite3Driver"))
                 .BetterSqlite3Driver
@@ -50,9 +56,6 @@ const getDriver = async (
             return (await import("./spanner/SpannerDriver")).SpannerDriver
         case "libsql":
             return (await import("./libsql/LibSqlDriver")).LibSqlDriver
-        case "sqlite-pooled":
-            return (await import("./sqlite-pooled/SqlitePooledDriver"))
-                .SqlitePooledDriver
         default:
             const { MissingDriverError } = await import(
                 "../error/MissingDriverError"
@@ -78,7 +81,6 @@ const getDriver = async (
                 "sqljs",
                 "spanner",
                 "libsql",
-                "sqlite-pooled",
             ])
     }
 }
@@ -91,7 +93,6 @@ export class DriverFactory {
      * Creates a new driver depend on a given connection's driver type.
      */
     static async create(connection: DataSource): Promise<Driver> {
-        const { type } = connection.options
-        return new (await getDriver(type))(connection)
+        return new (await getDriver(connection.options))(connection)
     }
 }

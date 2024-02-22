@@ -11,12 +11,7 @@ describe("escape sqlite query parameters", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "sqlite",
-                    "better-sqlite3",
-                    "libsql",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["sqlite", "better-sqlite3", "libsql"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

@@ -228,8 +228,7 @@ export class ConnectionOptionsReader {
             if (
                 options.type === "sqlite" ||
                 options.type === "better-sqlite3" ||
-                options.type === "libsql" ||
-                options.type === "sqlite-pooled"
+                options.type === "libsql"
             ) {
                 if (
                     typeof options.database === "string" &&

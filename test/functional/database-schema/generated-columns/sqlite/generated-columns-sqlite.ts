@@ -12,7 +12,7 @@ describe("database schema > generated columns > sqlite", () => {
     before(async () => {
         dataSources = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["sqlite", "sqlite-pooled"],
+            enabledDrivers: ["sqlite"],
             schemaCreate: true,
             dropSchema: true,
         })

@@ -26,7 +26,6 @@ describe("database schema > simple-enums", () => {
                 "better-sqlite3",
                 "libsql",
                 "mssql",
-                "sqlite-pooled",
             ],
         })
     })

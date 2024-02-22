@@ -203,10 +203,6 @@ export class InitCommand implements yargs.CommandModule {
                 dbSettings = `type: "libsql",
     database: "database.sqlite",`
                 break
-            case "sqlite-pooled":
-                dbSettings = `type: "sqlite-pooled",
-    database: "database.sqlite",`
-                break
             case "postgres":
                 dbSettings = `type: "postgres",
     host: "localhost",
@@ -615,7 +611,6 @@ services:
             case "sqlite":
             case "better-sqlite3":
             case "libsql":
-            case "sqlite-pooled":
                 return `version: '3'
 services:
 `
@@ -724,7 +719,6 @@ Steps to run this project:
                 packageJson.dependencies["pg"] = "^8.4.0"
                 break
             case "sqlite":
-            case "sqlite-pooled":
                 packageJson.dependencies["sqlite3"] = "^5.0.2"
                 break
             case "better-sqlite3":

@@ -24,7 +24,6 @@ describe("github issues > #1476 subqueries", () => {
                     "better-sqlite3",
                     "sqljs",
                     "libsql",
-                    "sqlite-pooled",
                 ],
             })),
     )

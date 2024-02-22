@@ -2,8 +2,8 @@ import { DataSource } from "../../data-source/DataSource"
 import { QueryRunner } from "../../query-runner/QueryRunner"
 import { ReplicationMode } from "../types/ReplicationMode"
 import { Pool } from "tarn"
-import { AbstractSqlitePooledConnectionOptions } from "./AbstractSqlitePooledConnectionOptions"
 import { AbstractSqliteDriver } from "../sqlite-abstract/AbstractSqliteDriver"
+import { AbstractSqliteConnectionOptions } from "../sqlite-abstract/AbstractSqliteConnectionOptions"
 
 export abstract class AbstractSqlitePooledDriver<
     TSQLiteLib,
@@ -33,10 +33,11 @@ export abstract class AbstractSqlitePooledDriver<
     /**
      * Connection options.
      */
-    options: AbstractSqlitePooledConnectionOptions
+    options: AbstractSqliteConnectionOptions
 
     /**
-     * Represent transaction support by this driver
+     * Represent transaction support by this driver. We intentionally
+     * do NOT support nested transactions
      */
     transactionSupport: "simple" | "none" = "simple"
 
@@ -61,8 +62,7 @@ export abstract class AbstractSqlitePooledDriver<
     constructor(connection: DataSource) {
         super(connection)
 
-        this.options =
-            connection.options as AbstractSqlitePooledConnectionOptions
+        this.options = connection.options as AbstractSqliteConnectionOptions
     }
 
     // -------------------------------------------------------------------------
@@ -145,8 +145,8 @@ export abstract class AbstractSqlitePooledDriver<
 
                 return await this.destroyDatabaseConnection(dbConnection)
             },
-            min: this.options.minPoolSize ?? 1,
-            max: this.options.maxPoolSize ?? 4,
+            min: 1,
+            max: this.options.poolSize ?? 4,
         })
 
         return pool

@@ -21,7 +21,6 @@ describe("transaction > return data from transaction", () => {
                     "better-sqlite3",
                     "postgres",
                     "libsql",
-                    "sqlite-pooled",
                 ], // todo: for some reasons mariadb tests are not passing here
             })),
     )

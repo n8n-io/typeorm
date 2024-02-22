@@ -54,9 +54,9 @@ export interface TestingOptions {
     enabledDrivers?: DatabaseType[]
 
     /**
-     * List of disabled drivers for the given test suite.
+     * A way to dynamically disable driver
      */
-    disabledDrivers?: DatabaseType[]
+    shouldDisabledDriver?: (opts: TestingConnectionOptions) => boolean
 
     /**
      * Entities needs to be included in the connection for the given test suite.
@@ -252,14 +252,11 @@ export function setupTestingConnections(
                 ) // ! is temporary
 
             if (
-                options &&
-                options.disabledDrivers &&
-                options.disabledDrivers.length
-            )
-                return (
-                    options.disabledDrivers.indexOf(connectionOptions.type!) ===
-                    -1
-                )
+                options?.shouldDisabledDriver &&
+                options?.shouldDisabledDriver(connectionOptions)
+            ) {
+                return false
+            }
 
             if (connectionOptions.disabledIfNotEnabledImplicitly === true)
                 return false

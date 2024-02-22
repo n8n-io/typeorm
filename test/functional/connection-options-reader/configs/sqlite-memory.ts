@@ -24,14 +24,4 @@ module.exports = [
         name: "libsql-memory",
         database: ":memory:",
     },
-    {
-        type: "sqlite-pooled",
-        name: "sqlite-pooled-file",
-        database: "test-pooled",
-    },
-    {
-        type: "sqlite-pooled",
-        name: "sqlite-pooled-memory",
-        database: ":memory:",
-    },
 ]

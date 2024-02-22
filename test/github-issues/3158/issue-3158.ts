@@ -24,7 +24,6 @@ describe("github issues > #3158 Cannot run sync a second time", async () => {
                     "sqlite",
                     "better-sqlite3",
                     "libsql",
-                    "sqlite-pooled",
                 ],
                 // todo(AlexMesser): check why tests are failing under postgres driver
             })),

@@ -4,7 +4,7 @@ export interface AbstractSqliteConnectionOptions extends BaseDataSourceOptions {
     /**
      * Database type.
      */
-    readonly type: "sqlite" | "better-sqlite3" | "libsql" | "sqlite-pooled"
+    readonly type: "sqlite" | "better-sqlite3" | "libsql"
 
     /**
      * Storage type or path to the storage.
@@ -29,5 +29,11 @@ export interface AbstractSqliteConnectionOptions extends BaseDataSourceOptions {
      */
     readonly enableWAL?: boolean
 
-    readonly poolSize?: never
+    /**
+     * Maximum number of clients in the pool. When left undefined (=default),
+     * the driver will NOT use a pool but instead just create a single
+     * connection and single query runner that will be shared across all
+     * usages (i.e. no blocking).
+     */
+    readonly poolSize?: number
 }

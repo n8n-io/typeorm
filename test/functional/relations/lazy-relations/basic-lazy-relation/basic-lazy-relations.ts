@@ -385,7 +385,6 @@ describe("basic-lazy-relations", () => {
                         "better-sqlite3",
                         "postgres",
                         "libsql",
-                        "sqlite-pooled",
                     ]).has(connection.options.type),
                 )
                 .map(async (connection) => {

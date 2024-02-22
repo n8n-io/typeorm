@@ -20,7 +20,6 @@ describe("github issues > #5407 Wrong migration created because of default colum
                     "cockroachdb",
                     "sqlite",
                     "libsql",
-                    "sqlite-pooled",
                 ],
                 schemaCreate: false,
                 dropSchema: true,

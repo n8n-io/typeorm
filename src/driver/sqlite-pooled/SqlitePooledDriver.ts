@@ -9,7 +9,7 @@ import path, { isAbsolute } from "path"
 import { AbstractSqlitePooledDriver } from "./AbstractSqlitePooledDriver"
 import { ColumnType } from "../types/ColumnTypes"
 import { filepathToName } from "../../util/PathUtils"
-import { SqlitePooledConnectionOptions } from "./SqlitePooledConnectionOptions"
+import { SqliteConnectionOptions } from "../sqlite/SqliteConnectionOptions"
 
 /**
  * Database driver for sqlite that uses sqlite3 npm package and
@@ -26,7 +26,7 @@ export class SqlitePooledDriver extends AbstractSqlitePooledDriver<
     /**
      * Connection options.
      */
-    options: SqlitePooledConnectionOptions
+    options: SqliteConnectionOptions
 
     // -------------------------------------------------------------------------
     // Constructor
