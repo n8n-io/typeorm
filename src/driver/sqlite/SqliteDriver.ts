@@ -1,21 +1,24 @@
-import mkdirp from "mkdirp"
-import path from "path"
 import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
+import { DataSource } from "../../data-source/DataSource"
+import { QueryRunner } from "../../query-runner/QueryRunner"
+import { PlatformTools } from "../../platform/PlatformTools"
 import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
 import { SqliteQueryRunner } from "./SqliteQueryRunner"
-import { PlatformTools } from "../../platform/PlatformTools"
-import { DataSource } from "../../data-source/DataSource"
-import { SqliteConnectionOptions } from "./SqliteConnectionOptions"
+import { mkdirp } from "mkdirp"
+import path, { isAbsolute } from "path"
+import { AbstractSqlitePooledDriver } from "../sqlite-abstract/AbstractSqlitePooledDriver"
 import { ColumnType } from "../types/ColumnTypes"
-import { QueryRunner } from "../../query-runner/QueryRunner"
-import { AbstractSqliteDriver } from "../sqlite-abstract/AbstractSqliteDriver"
-import { ReplicationMode } from "../types/ReplicationMode"
-import { filepathToName, isAbsolute } from "../../util/PathUtils"
+import { filepathToName } from "../../util/PathUtils"
+import { SqliteConnectionOptions } from "../sqlite/SqliteConnectionOptions"
 
 /**
- * Organizes communication with sqlite DBMS.
+ * Database driver for sqlite that uses sqlite3 npm package and
+ * pooled database connections.
  */
-export class SqliteDriver extends AbstractSqliteDriver {
+export class SqliteDriver extends AbstractSqlitePooledDriver<
+    sqlite3,
+    Sqlite3Database
+> {
     // -------------------------------------------------------------------------
     // Public Properties
     // -------------------------------------------------------------------------
@@ -25,48 +28,22 @@ export class SqliteDriver extends AbstractSqliteDriver {
      */
     options: SqliteConnectionOptions
 
-    /**
-     * SQLite underlying library.
-     */
-    sqlite: sqlite3
-
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
     constructor(connection: DataSource) {
         super(connection)
-        this.connection = connection
-        this.options = connection.options as SqliteConnectionOptions
-        this.database = this.options.database
 
         // load sqlite package
         this.loadDependencies()
     }
 
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Closes connection with database.
-     */
-    async disconnect(): Promise<void> {
-        return new Promise<void>((ok, fail) => {
-            this.queryRunner = undefined
-            this.databaseConnection.close((err: any) =>
-                err ? fail(err) : ok(),
-            )
-        })
-    }
-
     /**
      * Creates a query runner used to execute database queries.
      */
-    createQueryRunner(mode: ReplicationMode): QueryRunner {
-        if (!this.queryRunner) this.queryRunner = new SqliteQueryRunner(this)
-
-        return this.queryRunner
+    createQueryRunner(): QueryRunner {
+        return new SqliteQueryRunner(this)
     }
 
     normalizeType(column: {
@@ -125,7 +102,7 @@ export class SqliteDriver extends AbstractSqliteDriver {
     /**
      * Creates connection with the database.
      */
-    protected async createDatabaseConnection() {
+    protected async createDatabaseConnection(): Promise<Sqlite3Database> {
         if (
             this.options.flags === undefined ||
             !(this.options.flags & this.sqlite.OPEN_URI)
@@ -188,6 +165,16 @@ export class SqliteDriver extends AbstractSqliteDriver {
         await run(`PRAGMA foreign_keys = ON`)
 
         return databaseConnection
+    }
+
+    protected destroyDatabaseConnection(
+        dbConnection: Sqlite3Database,
+    ): Promise<void> {
+        return new Promise((resolve, reject) => {
+            dbConnection.close((err: unknown) =>
+                err ? reject(err) : resolve(),
+            )
+        })
     }
 
     /**

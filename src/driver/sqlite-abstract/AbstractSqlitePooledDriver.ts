@@ -149,6 +149,57 @@ export abstract class AbstractSqlitePooledDriver<
             max: this.options.poolSize ?? 4,
         })
 
+        // // resource is acquired from pool
+        // pool.on("acquireRequest", (eventId) => {
+        //     console.log("acquireRequest", eventId)
+        // })
+        // pool.on("acquireSuccess", (eventId, resource) => {
+        //     console.log("acquireSuccess", eventId, resource)
+        // })
+        // pool.on("acquireFail", (eventId, err) => {
+        //     console.log("acquireFail", eventId, err)
+        // })
+
+        // // resource returned to pool
+        // pool.on("release", (resource) => {
+        //     console.log("release", resource)
+        // })
+
+        // // resource was created and added to the pool
+        // pool.on("createRequest", (eventId) => {
+        //     console.log("createRequest", eventId)
+        // })
+        // pool.on("createSuccess", (eventId, resource) => {
+        //     console.log("createSuccess", eventId, resource)
+        // })
+        // pool.on("createFail", (eventId, err) => {
+        //     console.log("createFail", eventId, err)
+        // })
+
+        // // resource is destroyed and evicted from pool
+        // // resource may or may not be invalid when destroySuccess / destroyFail is called
+        // pool.on("destroyRequest", (eventId, resource) => {
+        //     console.log("destroyRequest", eventId, resource)
+        // })
+        // pool.on("destroySuccess", (eventId, resource) => {
+        //     console.log("destroySuccess", eventId, resource)
+        // })
+        // pool.on("destroyFail", (eventId, resource, err) => {
+        //     console.log("destroyFail", eventId, resource, err)
+        // })
+
+        // // when internal reaping event clock is activated / deactivated
+        // pool.on("startReaping", () => {})
+        // pool.on("stopReaping", () => {})
+
+        // // pool is destroyed (after poolDestroySuccess all event handlers are also cleared)
+        // pool.on("poolDestroyRequest", (eventId) => {
+        //     console.log("poolDestroyRequest", eventId)
+        // })
+        // pool.on("poolDestroySuccess", (eventId) => {
+        //     console.log("poolDestroySuccess", eventId)
+        // })
+
         return pool
     }
 

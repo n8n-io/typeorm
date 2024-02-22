@@ -54,9 +54,9 @@ export interface TestingOptions {
     enabledDrivers?: DatabaseType[]
 
     /**
-     * A way to dynamically disable driver
+     * List of disabled drivers for the given test suite.
      */
-    shouldDisabledDriver?: (opts: TestingConnectionOptions) => boolean
+    disabledDrivers?: DatabaseType[]
 
     /**
      * Entities needs to be included in the connection for the given test suite.
@@ -252,11 +252,12 @@ export function setupTestingConnections(
                 ) // ! is temporary
 
             if (
-                options?.shouldDisabledDriver &&
-                options?.shouldDisabledDriver(connectionOptions)
-            ) {
+                options?.disabledDrivers?.length &&
+                options.disabledDrivers.some(
+                    (driver) => driver === connectionOptions.type,
+                )
+            )
                 return false
-            }
 
             if (connectionOptions.disabledIfNotEnabledImplicitly === true)
                 return false
@@ -508,11 +509,20 @@ export function closeTestingConnections(connections: DataSource[]) {
 /**
  * Reloads all databases for all given connections.
  */
-export function reloadTestingDatabases(connections: DataSource[]) {
+export async function reloadTestingDatabases(
+    connections: DataSource[],
+    async = true,
+) {
     GeneratedColumnReplacerSubscriber.globalIncrementValues = {}
-    return Promise.all(
-        connections.map((connection) => connection.synchronize(true)),
-    )
+    if (async) {
+        await Promise.all(
+            connections.map((connection) => connection.synchronize(true)),
+        )
+    } else {
+        for (const connection of connections) {
+            await connection.synchronize(true)
+        }
+    }
 }
 
 /**

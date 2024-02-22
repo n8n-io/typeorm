@@ -2,10 +2,8 @@ import type { Driver, DriverConstructor } from "./Driver"
 import type { DataSource } from "../data-source/DataSource"
 
 const getDriver = async (
-    options: DataSource["options"],
+    type: DataSource["options"]["type"],
 ): Promise<DriverConstructor> => {
-    const { type } = options
-
     switch (type) {
         case "mysql":
         case "mariadb":
@@ -18,10 +16,7 @@ const getDriver = async (
         case "sap":
             return (await import("./sap/SapDriver")).SapDriver
         case "sqlite": {
-            return typeof options.poolSize === "number"
-                ? (await import("./sqlite-pooled/SqlitePooledDriver"))
-                      .SqlitePooledDriver
-                : (await import("./sqlite/SqliteDriver")).SqliteDriver
+            return (await import("./sqlite/SqliteDriver")).SqliteDriver
         }
         case "better-sqlite3":
             return (await import("./better-sqlite3/BetterSqlite3Driver"))
@@ -93,6 +88,7 @@ export class DriverFactory {
      * Creates a new driver depend on a given connection's driver type.
      */
     static async create(connection: DataSource): Promise<Driver> {
-        return new (await getDriver(connection.options))(connection)
+        const { type } = connection.options
+        return new (await getDriver(type))(connection)
     }
 }
