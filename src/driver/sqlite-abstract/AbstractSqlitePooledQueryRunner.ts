@@ -19,6 +19,8 @@ export abstract class AbstractSqlitePooledQueryRunner<
     // Public Implemented Properties
     // -------------------------------------------------------------------------
 
+    public abortController = new AbortController()
+
     /**
      * Database driver used by connection.
      */
@@ -65,9 +67,7 @@ export abstract class AbstractSqlitePooledQueryRunner<
     }
 
     /**
-     * Releases used database connection.
-     * We just clear loaded tables and sql in memory, because sqlite do
-     * not support multiple connections thus query runners.
+     * Releases used database connection
      */
     async release(): Promise<void> {
         if (this.isReleased || !this.databaseConnectionPromise) {
@@ -76,6 +76,10 @@ export abstract class AbstractSqlitePooledQueryRunner<
 
         // Handle the case where the connection is still being made
         const dbConnection = await this.databaseConnectionPromise
+
+        // Abort any ongoing retry operations
+        this.abortController.abort()
+
         this.driver.releaseDatabaseConnection(dbConnection)
         this.driver.connectedQueryRunners =
             this.driver.connectedQueryRunners.filter(
