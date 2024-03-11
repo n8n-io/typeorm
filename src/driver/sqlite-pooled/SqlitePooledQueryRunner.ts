@@ -4,7 +4,12 @@ import type { Database as Sqlite3Database } from "sqlite3"
 import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
 import { IsolationLevel } from "../types/IsolationLevel"
 import { QueryResult } from "../../query-runner/QueryResult"
-import { QueryFailedError, TransactionNotStartedError, TransactionAlreadyStartedError, TypeORMError } from "../../error"
+import {
+    QueryFailedError,
+    TransactionNotStartedError,
+    TransactionAlreadyStartedError,
+    TypeORMError,
+} from "../../error"
 import { TransactionRollbackFailedError } from "../../error/TransactionRollbackFailedError"
 import { TransactionCommitFailedError } from "../../error/TransactionCommitFailedError"
 import { AbstractSqliteQueryRunner } from "../sqlite-abstract/AbstractSqliteQueryRunner"
@@ -29,7 +34,6 @@ export class SqlitePooledQueryRunner extends AbstractSqliteQueryRunner {
      * Promise used to obtain a database connection for a first time.
      */
     protected databaseConnectionPromise: Promise<Sqlite3Database>
-
 
     constructor(driver: SqlitePooledDriver) {
         super()

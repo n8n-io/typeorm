@@ -14,7 +14,13 @@ describe("github issues > #3949 sqlite date hydration is susceptible to corrupti
             entities: [__dirname + "/entity/*{.js,.ts}"],
             schemaCreate: true,
             dropSchema: true,
-            enabledDrivers: ["sqlite", "sqlite-pooled", "better-sqlite3", "sqljs", "libsql"],
+            enabledDrivers: [
+                "sqlite",
+                "sqlite-pooled",
+                "better-sqlite3",
+                "sqljs",
+                "libsql",
+            ],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))

@@ -73,7 +73,6 @@ export class SqlitePooledDriver extends AbstractSqliteDriver {
         this.loadDependencies()
     }
 
-
     /**
      * Performs connection to the database.
      */
@@ -297,7 +296,6 @@ export class SqlitePooledDriver extends AbstractSqliteDriver {
                 : path.join(process.cwd(), optionsDb),
         )
     }
-
 
     //#region Pool
 
