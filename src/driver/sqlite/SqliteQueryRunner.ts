@@ -1,4 +1,4 @@
-import { pRetry } from "../../lib/p-retry"
+import pRetry from "p-retry"
 import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
 import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
 import { QueryResult } from "../../query-runner/QueryResult"

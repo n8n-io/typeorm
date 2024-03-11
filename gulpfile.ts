@@ -137,8 +137,7 @@ export class Gulpfile {
             typescript: require("typescript")
         });
         const tsResult = gulp.src([
-            "./src/**/*.ts",
-            "./src/**/*.js",
+            "./src/**/*.ts"
         ])
             .pipe(sourcemaps.init())
             .pipe(tsProject());

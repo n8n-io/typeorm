@@ -21,8 +21,7 @@
         "strictFunctionTypes": false,
         "strictPropertyInitialization": false,
         "stripInternal": true,
-        "useUnknownInCatchVariables": false,
-        "allowJs": true
+        "useUnknownInCatchVariables": false
     },
     "include": [
       "sample",
