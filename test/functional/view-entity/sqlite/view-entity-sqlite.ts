@@ -16,7 +16,7 @@ describe("view entity > sqlite", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["sqlite", "better-sqlite3", "libsql"],
+                enabledDrivers: ["sqlite", "sqlite-pooled", "better-sqlite3", "libsql"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

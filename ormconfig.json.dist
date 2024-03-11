@@ -40,7 +40,7 @@
   {
     "skip": false,
     "name": "sqlite-pooled",
-    "type": "sqlite",
+    "type": "sqlite-pooled",
     "database": "./temp/sqlitedb-2.db",
     "logging": false,
     "relationLoadStrategy": "query",

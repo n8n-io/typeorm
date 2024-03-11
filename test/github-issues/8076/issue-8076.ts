@@ -20,7 +20,7 @@ describe("github issues > #8076 Add relation options to all tree queries (missin
                 schemaCreate: true,
                 dropSchema: true,
                 // TODO: Seems to be broken with sqlite and "relationLoadStrategy": "query"
-                disabledDrivers: ["sqlite"],
+                disabledDrivers: ["sqlite-pooled"],
             })),
     )
 

@@ -20,6 +20,7 @@ describe("table-inheritance > single-table > database-option-inherited", () => {
                     "mssql",
                     "mysql",
                     "sqlite",
+                    "sqlite-pooled",
                     "better-sqlite3",
                     "sqljs",
                     "libsql",

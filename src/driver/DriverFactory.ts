@@ -1,5 +1,6 @@
 import type { Driver, DriverConstructor } from "./Driver"
 import type { DataSource } from "../data-source/DataSource"
+import { MissingDriverError } from "../error/MissingDriverError"
 
 const getDriver = async (
     type: DataSource["options"]["type"],
@@ -15,9 +16,10 @@ const getDriver = async (
                 .CockroachDriver
         case "sap":
             return (await import("./sap/SapDriver")).SapDriver
-        case "sqlite": {
+        case "sqlite":
             return (await import("./sqlite/SqliteDriver")).SqliteDriver
-        }
+        case "sqlite-pooled":
+            return (await import("./sqlite-pooled/SqlitePooledDriver")).SqlitePooledDriver
         case "better-sqlite3":
             return (await import("./better-sqlite3/BetterSqlite3Driver"))
                 .BetterSqlite3Driver
@@ -52,9 +54,6 @@ const getDriver = async (
         case "libsql":
             return (await import("./libsql/LibSqlDriver")).LibSqlDriver
         default:
-            const { MissingDriverError } = await import(
-                "../error/MissingDriverError"
-            )
             throw new MissingDriverError(type, [
                 "aurora-mysql",
                 "aurora-postgres",
@@ -73,6 +72,7 @@ const getDriver = async (
                 "react-native",
                 "sap",
                 "sqlite",
+                "sqlite-pooled",
                 "sqljs",
                 "spanner",
                 "libsql",

@@ -1,21 +1,28 @@
-import mkdirp from "mkdirp"
-import path from "path"
 import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
-import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
-import { SqliteQueryRunner } from "./SqliteQueryRunner"
-import { PlatformTools } from "../../platform/PlatformTools"
+import { Pool } from "tarn"
+import { mkdirp } from "mkdirp"
+import path, { isAbsolute } from "path"
+
 import { DataSource } from "../../data-source/DataSource"
-import { SqliteConnectionOptions } from "./SqliteConnectionOptions"
-import { ColumnType } from "../types/ColumnTypes"
 import { QueryRunner } from "../../query-runner/QueryRunner"
+import { PlatformTools } from "../../platform/PlatformTools"
+import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
 import { AbstractSqliteDriver } from "../sqlite-abstract/AbstractSqliteDriver"
-import { ReplicationMode } from "../types/ReplicationMode"
-import { filepathToName, isAbsolute } from "../../util/PathUtils"
+import { ColumnType } from "../types/ColumnTypes"
+import { filepathToName } from "../../util/PathUtils"
+import { SqlitePooledQueryRunner } from "./SqlitePooledQueryRunner"
+import { SqlitePooledConnectionOptions } from "./SqlitePooledConnectionOptions"
 
 /**
- * Organizes communication with sqlite DBMS.
+ * Database driver for sqlite that uses sqlite3 npm package and
+ * pooled database connections.
  */
-export class SqliteDriver extends AbstractSqliteDriver {
+export class SqlitePooledDriver extends AbstractSqliteDriver {
+    /**
+     * Connections that are marked as invalid and are destroyed
+     */
+    readonly invalidConnections = new WeakSet<Sqlite3Database>()
+
     // -------------------------------------------------------------------------
     // Public Properties
     // -------------------------------------------------------------------------
@@ -23,12 +30,35 @@ export class SqliteDriver extends AbstractSqliteDriver {
     /**
      * Connection options.
      */
-    options: SqliteConnectionOptions
+    options: SqlitePooledConnectionOptions
+
+    queryRunner?: never
+    databaseConnection: never
 
     /**
      * SQLite underlying library.
      */
     sqlite: sqlite3
+
+    /**
+     * Pool for the database.
+     */
+    pool: Pool<Sqlite3Database>
+
+    // -------------------------------------------------------------------------
+    // Public Implemented Properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * Represent transaction support by this driver. We intentionally
+     * do NOT support nested transactions
+     */
+    transactionSupport: "simple" | "none" = "simple"
+
+    /**
+     * We store all created query runners because we need to release them.
+     */
+    connectedQueryRunners: QueryRunner[] = []
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -36,37 +66,58 @@ export class SqliteDriver extends AbstractSqliteDriver {
 
     constructor(connection: DataSource) {
         super(connection)
-        this.connection = connection
-        this.options = connection.options as SqliteConnectionOptions
-        this.database = this.options.database
+
+        this.options = connection.options as SqlitePooledConnectionOptions
 
         // load sqlite package
         this.loadDependencies()
     }
 
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
+
+    /**
+     * Performs connection to the database.
+     */
+    async connect(): Promise<void> {
+        this.pool = await this.createPool()
+    }
 
     /**
      * Closes connection with database.
      */
     async disconnect(): Promise<void> {
-        return new Promise<void>((ok, fail) => {
-            this.queryRunner = undefined
-            this.databaseConnection.close((err: any) =>
-                err ? fail(err) : ok(),
-            )
-        })
+        await this.closePool()
+    }
+
+    async obtainDatabaseConnection(): Promise<Sqlite3Database> {
+        const dbConnection = await this.pool.acquire().promise
+
+        return dbConnection
+    }
+
+    releaseDatabaseConnection(dbConnection: Sqlite3Database) {
+        this.pool.release(dbConnection)
+    }
+
+    /**
+     * Marks the connection as invalid, so it's not usable anymore and is
+     * eventually destroyed
+     */
+    invalidateDatabaseConnection(dbConnection: Sqlite3Database) {
+        this.invalidConnections.add(dbConnection)
+    }
+
+    /**
+     * Returns true if driver supports RETURNING / OUTPUT statement.
+     */
+    isReturningSqlSupported(): boolean {
+        return false
     }
 
     /**
      * Creates a query runner used to execute database queries.
      */
-    createQueryRunner(mode: ReplicationMode): QueryRunner {
-        if (!this.queryRunner) this.queryRunner = new SqliteQueryRunner(this)
-
-        return this.queryRunner
+    createQueryRunner(): QueryRunner {
+        return new SqlitePooledQueryRunner(this)
     }
 
     normalizeType(column: {
@@ -125,7 +176,7 @@ export class SqliteDriver extends AbstractSqliteDriver {
     /**
      * Creates connection with the database.
      */
-    protected async createDatabaseConnection() {
+    protected async createDatabaseConnection(): Promise<Sqlite3Database> {
         if (
             this.options.flags === undefined ||
             !(this.options.flags & this.sqlite.OPEN_URI)
@@ -190,6 +241,16 @@ export class SqliteDriver extends AbstractSqliteDriver {
         return databaseConnection
     }
 
+    protected destroyDatabaseConnection(
+        dbConnection: Sqlite3Database,
+    ): Promise<void> {
+        return new Promise((resolve, reject) => {
+            dbConnection.close((err: unknown) =>
+                err ? reject(err) : resolve(),
+            )
+        })
+    }
+
     /**
      * If driver dependency is not given explicitly, then try to load it via "require".
      */
@@ -236,4 +297,41 @@ export class SqliteDriver extends AbstractSqliteDriver {
                 : path.join(process.cwd(), optionsDb),
         )
     }
+
+
+    //#region Pool
+
+    protected validateDatabaseConnection(dbConnection: Sqlite3Database) {
+        return !this.invalidConnections.has(dbConnection)
+    }
+
+    private async createPool(): Promise<Pool<Sqlite3Database>> {
+        const pool = new Pool<Sqlite3Database>({
+            create: async () => {
+                return await this.createDatabaseConnection()
+            },
+            validate: (dbConnection) => {
+                return this.validateDatabaseConnection(dbConnection)
+            },
+            destroy: async (dbConnection) => {
+                this.invalidConnections.delete(dbConnection)
+
+                return await this.destroyDatabaseConnection(dbConnection)
+            },
+            min: 1,
+            max: this.options.poolSize ?? 4,
+        })
+
+        return pool
+    }
+
+    private async closePool(): Promise<void> {
+        while (this.connectedQueryRunners.length) {
+            await this.connectedQueryRunners[0].release()
+        }
+
+        await this.pool.destroy()
+    }
+
+    //#endregion Pool
 }

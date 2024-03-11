@@ -1,20 +1,37 @@
-import pRetry from "p-retry"
-import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
+import type { Database as Sqlite3Database } from "sqlite3"
 import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
-import { QueryResult } from "../../query-runner/QueryResult"
 import { QueryFailedError } from "../../error/QueryFailedError"
-import { AbstractSqlitePooledQueryRunner } from "../sqlite-abstract/AbstractSqlitePooledQueryRunner"
-import { BroadcasterResult } from "../../subscriber/BroadcasterResult"
+import { AbstractSqliteQueryRunner } from "../sqlite-abstract/AbstractSqliteQueryRunner"
+import { SqliteConnectionOptions } from "./SqliteConnectionOptions"
+import { SqliteDriver } from "./SqliteDriver"
+import { Broadcaster } from "../../subscriber/Broadcaster"
 import { ConnectionIsNotSetError } from "../../error/ConnectionIsNotSetError"
+import { QueryResult } from "../../query-runner/QueryResult"
+import { BroadcasterResult } from "../../subscriber/BroadcasterResult"
 
-function shouldRetry(err: Error) {
-    return err.message.includes("SQLITE_BUSY")
-}
+/**
+ * Runs queries on a single sqlite database connection.
+ *
+ * Does not support compose primary keys with autoincrement field.
+ * todo: need to throw exception for this case.
+ */
+export class SqliteQueryRunner extends AbstractSqliteQueryRunner {
+    /**
+     * Database driver used by connection.
+     */
+    driver: SqliteDriver
 
-export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
-    sqlite3,
-    Sqlite3Database
-> {
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    constructor(driver: SqliteDriver) {
+        super()
+        this.driver = driver
+        this.connection = driver.connection
+        this.broadcaster = new Broadcaster(this)
+    }
+
     /**
      * Called before migrations are run.
      */
@@ -32,7 +49,7 @@ export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
     /**
      * Executes a given SQL query.
      */
-    async query(
+    query(
         query: string,
         parameters?: any[],
         useStructuredResult = false,
@@ -40,6 +57,8 @@ export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
         if (this.isReleased) throw new QueryRunnerAlreadyReleasedError()
 
         const connection = this.driver.connection
+        const options = connection.options as SqliteConnectionOptions
+        const maxQueryExecutionTime = this.driver.options.maxQueryExecutionTime
         const broadcasterResult = new BroadcasterResult()
         const broadcaster = this.broadcaster
 
@@ -53,115 +72,68 @@ export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
             throw new ConnectionIsNotSetError("sqlite")
         }
 
-        try {
-            const databaseConnection = await this.connect()
-
-            return await this.runQueryWithRetry(
-                databaseConnection,
-                broadcasterResult,
-                query,
-                parameters,
-                useStructuredResult,
-            )
-        } finally {
-            await broadcasterResult.wait()
-        }
-    }
-
-    private async runQueryWithRetry(
-        databaseConnection: Sqlite3Database,
-        broadcasterResult: BroadcasterResult,
-        query: string,
-        parameters?: any[],
-        useStructuredResult = false,
-    ): Promise<QueryResult | any> {
-        const broadcaster = this.broadcaster
-        const connection = this.driver.connection
-        const maxQueryExecutionTime = this.driver.options.maxQueryExecutionTime
-
-        try {
-            this.driver.connection.logger.logQuery(query, parameters, this)
-            const queryStartTime = +new Date()
-
-            const retryOptions = {
-                // Max 10 retries, starting with 20ms and 1.71x factor and
-                // using randomize (multiply each retry with random number
-                // between 1 and 2).
-                // Total delay with 10 retries: between 6000ms and 12000ms
-                factor: 1.71,
-                minTimeout: 20,
-                retries: 10,
-                randomize: true,
-                signal: this.abortController.signal,
-                shouldRetry,
-            }
-
-            const result = await pRetry(
-                () =>
-                    this.runQuery(
-                        databaseConnection,
-                        query,
-                        parameters,
-                        useStructuredResult,
-                    ),
-                retryOptions,
-            )
-
-            // log slow queries if maxQueryExecution time is set
-            const queryEndTime = +new Date()
-            const queryExecutionTime = queryEndTime - queryStartTime
-            if (
-                maxQueryExecutionTime &&
-                queryExecutionTime > maxQueryExecutionTime
-            )
-                connection.logger.logQuerySlow(
-                    queryExecutionTime,
-                    query,
-                    parameters,
-                    this,
-                )
-
-            broadcaster.broadcastAfterQueryEvent(
-                broadcasterResult,
-                query,
-                parameters,
-                true,
-                queryExecutionTime,
-                useStructuredResult ? result.raw : result,
-                undefined,
-            )
-
-            return result
-        } catch (err) {
-            connection.logger.logQueryError(err, query, parameters, this)
-            broadcaster.broadcastAfterQueryEvent(
-                broadcasterResult,
-                query,
-                parameters,
-                false,
-                undefined,
-                undefined,
-                err,
-            )
-            throw err
-        }
-    }
-
-    private async runQuery(
-        databaseConnection: Sqlite3Database,
-        query: string,
-        parameters?: any[],
-        useStructuredResult = false,
-    ): Promise<QueryResult | any> {
-        return await new Promise((resolve, reject) => {
+        return new Promise(async (ok, fail) => {
             try {
+                const databaseConnection =
+                    (await this.connect()) as Sqlite3Database
+                this.driver.connection.logger.logQuery(query, parameters, this)
+                const queryStartTime = +new Date()
                 const isInsertQuery = query.startsWith("INSERT ")
                 const isDeleteQuery = query.startsWith("DELETE ")
                 const isUpdateQuery = query.startsWith("UPDATE ")
 
+                const execute = async () => {
+                    if (isInsertQuery || isDeleteQuery || isUpdateQuery) {
+                        databaseConnection.run(query, parameters, handler)
+                    } else {
+                        databaseConnection.all(query, parameters, handler)
+                    }
+                }
+
+                const self = this
                 const handler = function (this: any, err: any, rows: any) {
+                    if (err && err.toString().indexOf("SQLITE_BUSY:") !== -1) {
+                        if (
+                            typeof options.busyErrorRetry === "number" &&
+                            options.busyErrorRetry > 0
+                        ) {
+                            setTimeout(execute, options.busyErrorRetry)
+                            return
+                        }
+                    }
+
+                    // log slow queries if maxQueryExecution time is set
+                    const queryEndTime = +new Date()
+                    const queryExecutionTime = queryEndTime - queryStartTime
+                    if (
+                        maxQueryExecutionTime &&
+                        queryExecutionTime > maxQueryExecutionTime
+                    )
+                        connection.logger.logQuerySlow(
+                            queryExecutionTime,
+                            query,
+                            parameters,
+                            self,
+                        )
+
                     if (err) {
-                        return reject(
+                        connection.logger.logQueryError(
+                            err,
+                            query,
+                            parameters,
+                            self,
+                        )
+                        broadcaster.broadcastAfterQueryEvent(
+                            broadcasterResult,
+                            query,
+                            parameters,
+                            false,
+                            undefined,
+                            undefined,
+                            err,
+                        )
+
+                        return fail(
                             new QueryFailedError(query, parameters, err),
                         )
                     } else {
@@ -173,6 +145,16 @@ export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
                             result.raw = rows
                         }
 
+                        broadcaster.broadcastAfterQueryEvent(
+                            broadcasterResult,
+                            query,
+                            parameters,
+                            true,
+                            queryExecutionTime,
+                            result.raw,
+                            undefined,
+                        )
+
                         if (Array.isArray(rows)) {
                             result.records = rows
                         }
@@ -180,20 +162,18 @@ export class SqliteQueryRunner extends AbstractSqlitePooledQueryRunner<
                         result.affected = this["changes"]
 
                         if (useStructuredResult) {
-                            resolve(result)
+                            ok(result)
                         } else {
-                            resolve(result.raw)
+                            ok(result.raw)
                         }
                     }
                 }
 
-                if (isInsertQuery || isDeleteQuery || isUpdateQuery) {
-                    databaseConnection.run(query, parameters, handler)
-                } else {
-                    databaseConnection.all(query, parameters, handler)
-                }
+                await execute()
             } catch (err) {
-                reject(err)
+                fail(err)
+            } finally {
+                await broadcasterResult.wait()
             }
         })
     }
