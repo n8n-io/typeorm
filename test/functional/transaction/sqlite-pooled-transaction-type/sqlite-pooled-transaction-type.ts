@@ -29,7 +29,6 @@ describe("transaction > transaction with sqlite-pooled", () => {
                 await queryRunner.startTransaction()
 
                 expect(queryFn.called).to.be.true
-                console.log(queryFn.firstCall.args[0])
                 expect(queryFn.firstCall.args[0]).to.be.eql(
                     "BEGIN IMMEDIATE TRANSACTION",
                 )
