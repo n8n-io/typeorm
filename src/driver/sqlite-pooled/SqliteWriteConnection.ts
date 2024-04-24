@@ -1,3 +1,4 @@
+import { captureException } from "@sentry/node"
 import { Database as Sqlite3Database } from "sqlite3"
 import {
     DbLease,
@@ -5,11 +6,12 @@ import {
     DbLeaseOwner,
     SqliteConnectionPool,
 } from "./SqlitePooledTypes"
-import { Mutex, MutexInterface, withTimeout } from "async-mutex"
+import { Mutex, MutexInterface, withTimeout, E_TIMEOUT } from "async-mutex"
 import assert from "assert"
 import { DriverAlreadyReleasedError } from "../../error/DriverAlreadyReleasedError"
 import { SqliteLibrary } from "./SqliteLibrary"
 import { LeasedDbConnection } from "./LeasedDbConnection"
+import { TimeoutTimer } from "./Timer"
 
 /**
  * A single write connection to the database.
@@ -92,6 +94,12 @@ export class SqliteWriteConnection
 
                 return result
             })
+        } catch (error) {
+            if (error === E_TIMEOUT) {
+                captureException(error)
+            }
+
+            throw error
         } finally {
             this.dbLease = undefined
         }
@@ -100,7 +108,12 @@ export class SqliteWriteConnection
     public async leaseConnection(dbLeaseHolder: DbLeaseHolder) {
         this.assertNotReleased()
 
-        await this.writeConnectionMutex.acquire()
+        try {
+            await this.writeConnectionMutex.acquire()
+        } catch (error) {
+            captureException(error)
+            throw error
+        }
 
         this.dbLease = await this.createAndGetConnection(dbLeaseHolder)
         return this.dbLease

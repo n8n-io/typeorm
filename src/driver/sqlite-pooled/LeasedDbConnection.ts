@@ -1,4 +1,3 @@
-import { captureMessage } from "@sentry/node"
 import type { Database as Sqlite3Database } from "sqlite3"
 import { DatabaseConnectionLeaseAlreadyReleasedError } from "../../error/DatabaseConnectionLeaseAlreadyReleasedError"
 import { DbLease, DbLeaseHolder, DbLeaseOwner } from "./SqlitePooledTypes"
@@ -10,8 +9,6 @@ import { DbLease, DbLeaseHolder, DbLeaseOwner } from "./SqlitePooledTypes"
  */
 export class LeasedDbConnection implements DbLease {
     private isReleased = false
-
-    private timeoutTimerId: NodeJS.Timeout
 
     public get connection(): Sqlite3Database {
         if (this.isReleased) {
@@ -25,16 +22,7 @@ export class LeasedDbConnection implements DbLease {
         private readonly _connection: Sqlite3Database,
         private readonly leaseOwner: DbLeaseOwner,
         private readonly leaseHolder: DbLeaseHolder,
-    ) {
-        this.timeoutTimerId = setTimeout(() => {
-            captureMessage(
-                "LeasedDbConnection was not released within 60 seconds",
-                {
-                    level: "warning",
-                },
-            )
-        }, 60_000)
-    }
+    ) {}
 
     public markAsInvalid() {
         this.leaseOwner.invalidateConnection(this)
@@ -44,8 +32,6 @@ export class LeasedDbConnection implements DbLease {
         if (this.isReleased) {
             return
         }
-
-        clearTimeout(this.timeoutTimerId)
 
         this.leaseOwner.releaseConnection(this)
         this.isReleased = true
