@@ -37,7 +37,7 @@ export class SqliteWriteConnection
 
     constructor(
         private readonly sqliteLibray: SqliteLibrary,
-        options: {
+        private readonly options: {
             acquireTimeout: number
             destroyTimeout: number
         },
@@ -67,7 +67,7 @@ export class SqliteWriteConnection
             this.dbLease.requestRelease()
         }
 
-        const timeoutTimer = TimeoutTimer.start(5000)
+        const timeoutTimer = TimeoutTimer.start(this.options.destroyTimeout)
         await Promise.race([
             this.writeConnectionMutex.acquire(),
             timeoutTimer.promise,
