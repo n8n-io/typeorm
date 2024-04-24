@@ -64,10 +64,13 @@ export class SqliteWriteConnection
             this.dbLease.requestRelease()
         }
 
+        const timeoutTimer = TimeoutTimer.start(5000)
         await Promise.race([
             this.writeConnectionMutex.acquire(),
-            new Promise((resolve) => setTimeout(resolve, 5000)),
-        ])
+            timeoutTimer.promise,
+        ]).finally(() => {
+            timeoutTimer.clear()
+        })
 
         if (this.writeConnectionPromise) {
             const dbConnection = await this.writeConnectionPromise
