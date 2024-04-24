@@ -39,6 +39,7 @@ export class SqliteWriteConnection
         private readonly sqliteLibray: SqliteLibrary,
         options: {
             acquireTimeout: number
+            destroyTimeout: number
         },
     ) {
         const acquireTimeout = options.acquireTimeout

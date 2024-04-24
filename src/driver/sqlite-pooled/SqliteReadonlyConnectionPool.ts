@@ -33,6 +33,8 @@ export class SqliteReadonlyConnectionPool implements SqliteConnectionPool {
         private readonly sqlite: SqliteLibrary,
         private readonly options: {
             poolSize: number
+            acquireTimeout: number
+            destroyTimeout: number
         },
     ) {
         assert(this.options.poolSize > 0)
@@ -102,6 +104,8 @@ export class SqliteReadonlyConnectionPool implements SqliteConnectionPool {
 
     private createReadonlyPool(): Pool<Sqlite3Database> {
         const pool = new Pool<Sqlite3Database>({
+            acquireTimeoutMillis: this.options.acquireTimeout,
+            destroyTimeoutMillis: this.options.destroyTimeout,
             create: async () => {
                 return await this.sqlite.createDatabaseConnection(
                     SQLITE_OPEN_READONLY,

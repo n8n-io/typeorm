@@ -74,10 +74,13 @@ export class SqliteReadWriteDriver extends AbstractSqliteDriver {
             this.sqliteLibrary,
             {
                 poolSize: this.options.poolSize ?? 4,
+                acquireTimeout: this.options.acquireTimeout ?? 60_000,
+                destroyTimeout: this.options.destroyTimeout ?? 5_000,
             },
         )
         this.writeConnection = new SqliteWriteConnection(this.sqliteLibrary, {
-            acquireTimeout: 60_000,
+            acquireTimeout: this.options.acquireTimeout ?? 60_000,
+            destroyTimeout: this.options.destroyTimeout ?? 5_000,
         })
     }
 
