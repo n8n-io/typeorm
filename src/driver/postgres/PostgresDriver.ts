@@ -1172,22 +1172,16 @@ export class PostgresDriver implements Driver {
             throw new TypeORMError("Driver not Connected")
         }
 
+        const connection = await this.master.connect();
         const { schema } = this.options;
-        return new Promise((ok, fail) => {
-            this.master.connect(async (err: any, connection: any, release: any) => {
-                if (err)
-                    fail(err);
-                else {
-                    if (schema !== 'public') {
-                        await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
-                        await connection.query(`SET search_path TO ${schema},public`);
-                    } else {
-                        await connection.query('SET search_path TO public');
-                    }
-                    ok([connection, release]);
-                }
-            })
-        })
+        if (schema !== 'public') {
+            await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
+            await connection.query(`SET search_path TO ${schema},public`);
+        }
+        else {
+            await connection.query('SET search_path TO public');
+        }
+        return [connection, () => connection.release()];
     }
 
     /**
