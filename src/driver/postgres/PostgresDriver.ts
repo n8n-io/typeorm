@@ -1175,7 +1175,8 @@ export class PostgresDriver implements Driver {
         const connection = await this.master.connect();
         const { schema } = this.options;
         if (schema !== 'public') {
-            await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
+            //await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
+            await connection.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = '${schema}') THEN EXECUTE 'CREATE SCHEMA ${schema}'; END IF; END $$;`);
             await connection.query(`SET search_path TO ${schema},public`);
         }
         else {
