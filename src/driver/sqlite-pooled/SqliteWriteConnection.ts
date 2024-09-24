@@ -36,7 +36,7 @@ export class SqliteWriteConnection
     private dbLease: DbLease | undefined
 
     constructor(
-        private readonly sqliteLibray: SqliteLibrary,
+        private readonly sqliteLibrary: SqliteLibrary,
         private readonly options: {
             acquireTimeout: number
             destroyTimeout: number
@@ -77,7 +77,7 @@ export class SqliteWriteConnection
 
         if (this.writeConnectionPromise) {
             const dbConnection = await this.writeConnectionPromise
-            this.sqliteLibray.destroyDatabaseConnection(dbConnection)
+            this.sqliteLibrary.destroyDatabaseConnection(dbConnection)
         }
     }
 
@@ -135,7 +135,7 @@ export class SqliteWriteConnection
         try {
             const connection = await this.writeConnectionPromise
             if (!this.isConnectionValid) {
-                this.sqliteLibray.destroyDatabaseConnection(connection)
+                this.sqliteLibrary.destroyDatabaseConnection(connection)
                 this.writeConnectionPromise = null
             }
         } finally {
@@ -149,7 +149,7 @@ export class SqliteWriteConnection
     ): Promise<LeasedDbConnection> {
         if (!this.writeConnectionPromise) {
             this.writeConnectionPromise =
-                this.sqliteLibray.createDatabaseConnection()
+                this.sqliteLibrary.createDatabaseConnection()
         }
 
         const dbConnection = await this.writeConnectionPromise
@@ -166,7 +166,7 @@ export class SqliteWriteConnection
         }
 
         this.writeConnectionPromise =
-            this.sqliteLibray.createDatabaseConnection()
+            this.sqliteLibrary.createDatabaseConnection()
         return this.writeConnectionPromise
     }
 
