@@ -76,8 +76,11 @@ export class MigrationExecutor {
             await this.createMetadataTableIfNotExist(queryRunner)
 
             await queryRunner.beforeMigration()
-            await (migration.instance as any).up(queryRunner)
-            await queryRunner.afterMigration()
+            try {
+                await (migration.instance as any).up(queryRunner)
+            } finally {
+                await queryRunner.afterMigration()
+            }
             await this.insertExecutedMigration(queryRunner, migration)
 
             return migration
