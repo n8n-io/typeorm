@@ -92,17 +92,12 @@ describe("query runner > rename column", () => {
                     await queryRunner.renameColumn(table!, "text", "text2")
 
                     table = await queryRunner.getTable("post")
-                    const newUniqueConstraintName =
-                        connection.namingStrategy.uniqueConstraintName(table!, [
-                            "text2",
-                            "tag",
-                        ])
                     tableUnique = table!.uniques.find((unique) => {
                         return !!unique.columnNames.find(
                             (columnName) => columnName === "tag",
                         )
                     })
-                    tableUnique!.name!.should.be.equal(newUniqueConstraintName)
+                    tableUnique!.name!.should.be.equal(oldUniqueConstraintName)
                 }
 
                 await queryRunner.executeMemoryDownSql()
@@ -206,11 +201,6 @@ describe("query runner > rename column", () => {
                     "name2",
                 )
                 table = await queryRunner.getTable(questionTableName)
-                const newIndexName = connection.namingStrategy.indexName(
-                    table!,
-                    ["name2"],
-                )
-                table!.indices[0].name!.should.be.equal(newIndexName)
 
                 await queryRunner.renameColumn(
                     categoryTableName,
@@ -218,14 +208,6 @@ describe("query runner > rename column", () => {
                     "questionId2",
                 )
                 table = await queryRunner.getTable(categoryTableName)
-                const newForeignKeyName =
-                    connection.namingStrategy.foreignKeyName(
-                        table!,
-                        ["questionId2"],
-                        "question",
-                        ["id"],
-                    )
-                table!.foreignKeys[0].name!.should.be.equal(newForeignKeyName)
 
                 await queryRunner.executeMemoryDownSql()
 

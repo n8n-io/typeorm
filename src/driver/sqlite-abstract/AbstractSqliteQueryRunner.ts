@@ -546,7 +546,7 @@ export abstract class AbstractSqliteQueryRunner
                 `Column "${oldTableColumnOrName}" was not found in the "${table.name}" table.`,
             )
 
-        let newColumn: TableColumn | undefined = undefined
+        let newColumn: TableColumn
         if (InstanceChecker.isTableColumn(newTableColumnOrName)) {
             newColumn = newTableColumnOrName
         } else {
@@ -554,7 +554,29 @@ export abstract class AbstractSqliteQueryRunner
             newColumn.name = newTableColumnOrName
         }
 
-        return this.changeColumn(table, oldColumn, newColumn)
+        if (oldColumn.name === newColumn.name) return
+
+        const tableName = this.escapePath(table.name)
+        const upQueries: Query[] = [
+            new Query(
+                `ALTER TABLE ${tableName} RENAME COLUMN "${oldColumn.name}" TO "${newColumn.name}"`,
+            ),
+        ]
+        const downQueries: Query[] = [
+            new Query(
+                `ALTER TABLE ${tableName} RENAME COLUMN "${newColumn.name}" TO "${oldColumn.name}"`,
+            ),
+        ]
+
+        await this.executeQueries(upQueries, downQueries)
+
+        // Update column name in the in-memory table object
+        const tableColumn = table.columns.find(
+            (column) => column.name === oldColumn.name,
+        )
+        if (tableColumn) {
+            tableColumn.name = newColumn.name
+        }
     }
 
     /**
