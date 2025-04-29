@@ -751,32 +751,100 @@ export abstract class AbstractSqliteQueryRunner
             ? tableOrName
             : await this.getCachedTable(tableOrName)
 
-        // clone original table and remove column and its constraints from cloned table
-        const changedTable = table.clone()
-        columns.forEach((column: TableColumn | string) => {
-            const columnInstance = InstanceChecker.isTableColumn(column)
-                ? column
-                : table.findColumnByName(column)
-            if (!columnInstance)
+        const tableColumns = columns.map((columnOrName) => {
+            const columnName = InstanceChecker.isTableColumn(columnOrName)
+                ? columnOrName.name
+                : columnOrName
+            const column = table.findColumnByName(columnName)
+            if (!column) {
                 throw new Error(
-                    `Column "${column}" was not found in table "${table.name}"`,
+                    `Column "${columnName}" was not found in table "${table.name}"`,
                 )
-
-            changedTable.removeColumn(columnInstance)
-            changedTable
-                .findColumnUniques(columnInstance)
-                .forEach((unique) =>
-                    changedTable.removeUniqueConstraint(unique),
-                )
-            changedTable
-                .findColumnIndices(columnInstance)
-                .forEach((index) => changedTable.removeIndex(index))
-            changedTable
-                .findColumnForeignKeys(columnInstance)
-                .forEach((fk) => changedTable.removeForeignKey(fk))
+            }
+            return column
         })
 
-        await this.recreateTable(changedTable, table)
+        // Determine if we can use the native DROP COLUMN syntax or need to recreate the table
+        const shouldRecreateTable = tableColumns.some((column) => {
+            // If column is part of a primary key, we need to recreate the table
+            if (column.isPrimary) {
+                return true
+            }
+
+            // If column is referenced by foreign keys, we need to recreate the table
+            const referencingForeignKeys = table.foreignKeys.filter(
+                (foreignKey) => foreignKey.columnNames.includes(column.name),
+            )
+            if (referencingForeignKeys.length > 0) {
+                return true
+            }
+
+            // If column is part of a unique constraint, we need to recreate the table
+            const uniqueConstraints = table.uniques.filter((unique) =>
+                unique.columnNames.includes(column.name),
+            )
+            if (uniqueConstraints.length > 0) {
+                return true
+            }
+
+            // Check if it's a generated column
+            if (column.generatedType && column.asExpression) {
+                return true
+            }
+
+            return false
+        })
+
+        if (shouldRecreateTable) {
+            // Fall back to recreating the table if we need to handle constraints
+            const changedTable = table.clone()
+            tableColumns.forEach((column) => {
+                changedTable
+                    .findColumnUniques(column)
+                    .forEach((unique) =>
+                        changedTable.removeUniqueConstraint(unique),
+                    )
+                changedTable
+                    .findColumnIndices(column)
+                    .forEach((index) => changedTable.removeIndex(index))
+                changedTable
+                    .findColumnForeignKeys(column)
+                    .forEach((fk) => changedTable.removeForeignKey(fk))
+                changedTable.removeColumn(column)
+            })
+            await this.recreateTable(changedTable, table)
+        } else {
+            // Use native DROP COLUMN if it's a simple column drop
+            const upQueries: Query[] = []
+            const downQueries: Query[] = []
+            const tableName = this.escapePath(table.name)
+
+            for (const column of tableColumns) {
+                // Drop column
+                upQueries.push(
+                    new Query(
+                        `ALTER TABLE ${tableName} DROP COLUMN "${column.name}"`,
+                    ),
+                )
+                downQueries.push(
+                    new Query(
+                        `ALTER TABLE ${tableName} ADD ${this.buildCreateColumnSql(
+                            column,
+                        )}`,
+                    ),
+                )
+
+                // Remove column from the in-memory table
+                const columnIndex = table.columns.findIndex(
+                    (tableColumn) => tableColumn.name === column.name,
+                )
+                if (columnIndex !== -1) {
+                    table.columns.splice(columnIndex, 1)
+                }
+            }
+
+            await this.executeQueries(upQueries, downQueries)
+        }
     }
 
     /**
