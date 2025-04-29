@@ -73,12 +73,7 @@ export class MigrationExecutor {
     public async executeMigration(migration: Migration): Promise<Migration> {
         return this.withQueryRunner(async (queryRunner) => {
             await this.createMigrationsTableIfNotExist(queryRunner)
-
-            // create typeorm_metadata table if it's not created yet
-            const schemaBuilder = this.connection.driver.createSchemaBuilder()
-            if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-                await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-            }
+            await this.createMetadataTableIfNotExist(queryRunner)
 
             await queryRunner.beforeMigration()
             await (migration.instance as any).up(queryRunner)
@@ -149,7 +144,6 @@ export class MigrationExecutor {
         let hasUnappliedMigrations = false
         const queryRunner =
             this.queryRunner || this.connection.createQueryRunner()
-        // create migrations table if its not created yet
         await this.createMigrationsTableIfNotExist(queryRunner)
 
         // get all migrations that are executed and saved in the database
@@ -191,14 +185,8 @@ export class MigrationExecutor {
     async executePendingMigrations(): Promise<Migration[]> {
         const queryRunner =
             this.queryRunner || this.connection.createQueryRunner()
-        // create migrations table if it's not created yet
         await this.createMigrationsTableIfNotExist(queryRunner)
-
-        // create the typeorm_metadata table if it's not created yet
-        const schemaBuilder = this.connection.driver.createSchemaBuilder()
-        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-        }
+        await this.createMetadataTableIfNotExist(queryRunner)
 
         // get all migrations that are executed and saved in the database
         const executedMigrations = await this.loadExecutedMigrations(
@@ -394,14 +382,8 @@ export class MigrationExecutor {
         const queryRunner =
             this.queryRunner || this.connection.createQueryRunner()
 
-        // create migrations table if it's not created yet
         await this.createMigrationsTableIfNotExist(queryRunner)
-
-        // create typeorm_metadata table if it's not created yet
-        const schemaBuilder = this.connection.driver.createSchemaBuilder()
-        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-        }
+        await this.createMetadataTableIfNotExist(queryRunner)
 
         // get all migrations that are executed and saved in the database
         const executedMigrations = await this.loadExecutedMigrations(
@@ -539,6 +521,16 @@ export class MigrationExecutor {
                     ],
                 }),
             )
+        }
+    }
+
+    /**
+     * Create the "typeorm_metadata" table if it's not created yet
+     */
+    private async createMetadataTableIfNotExist(queryRunner: QueryRunner) {
+        const schemaBuilder = this.connection.driver.createSchemaBuilder()
+        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
+            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
         }
     }
 
