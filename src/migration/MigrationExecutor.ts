@@ -325,32 +325,32 @@ export class MigrationExecutor {
                 }
 
                 try {
-                    await migration.instance!.up(queryRunner);
+                    await migration.instance!.up(queryRunner)
 
                     // Now when migration is executed we need to insert record about it into the database
-                    await this.insertExecutedMigration(queryRunner, migration);
+                    await this.insertExecutedMigration(queryRunner, migration)
 
                     // Commit transaction if we started it
                     if (migration.transaction && transactionStartedByUs) {
-                        await queryRunner.commitTransaction();
+                        await queryRunner.commitTransaction()
                     }
 
                     // Log success and track the successful migration
-                    successMigrations.push(migration);
+                    successMigrations.push(migration)
                     this.connection.logger.logSchemaBuild(
                         `Migration ${migration.name} has been ${
                             this.fake ? "(fake)" : ""
-                        } executed successfully.`
-                    );
+                        } executed successfully.`,
+                    )
                 } catch (error) {
                     // Informative log about migration failure
                     this.connection.logger.logMigration(
-                        `Migration "${migration.name}" failed, error: ${error?.message}`
-                    );
-                    throw error;
+                        `Migration "${migration.name}" failed, error: ${error?.message}`,
+                    )
+                    throw error
                 } finally {
                     if (migration.transaction && transactionStartedByUs) {
-                        await queryRunner.afterMigration();
+                        await queryRunner.afterMigration()
                     }
                 }
             }
