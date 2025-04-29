@@ -474,7 +474,7 @@ export abstract class AbstractSqliteQueryRunner
         const table = InstanceChecker.isTable(tableOrName)
             ? tableOrName
             : await this.getCachedTable(tableOrName)
-        return this.addColumns(table!, [column])
+        return this.addColumns(table, [column])
     }
 
     /**
@@ -487,9 +487,44 @@ export abstract class AbstractSqliteQueryRunner
         const table = InstanceChecker.isTable(tableOrName)
             ? tableOrName
             : await this.getCachedTable(tableOrName)
-        const changedTable = table.clone()
-        columns.forEach((column) => changedTable.addColumn(column))
-        await this.recreateTable(changedTable, table)
+
+        // Determine if we can use the native ADD COLUMN syntax or need to recreate the table
+        const shouldRecreateTable = columns.some(
+            (column) =>
+                column.isPrimary ||
+                (column.generatedType && column.asExpression),
+        )
+        if (shouldRecreateTable) {
+            const changedTable = table.clone()
+            columns.forEach((column) => changedTable.addColumn(column))
+            await this.recreateTable(changedTable, table)
+            return
+        }
+
+        const tableName = this.escapePath(table.name)
+        const upQueries: Query[] = []
+        const downQueries: Query[] = []
+        for (const column of columns) {
+            upQueries.push(
+                new Query(
+                    `ALTER TABLE ${tableName} ADD ${this.buildCreateColumnSql(
+                        column,
+                    )}`,
+                ),
+            )
+
+            downQueries.push(
+                new Query(
+                    `ALTER TABLE ${tableName} DROP COLUMN "${column.name}"`,
+                ),
+            )
+
+            table.addColumn(column)
+        }
+
+        if (upQueries.length > 0) {
+            await this.executeQueries(upQueries, downQueries)
+        }
     }
 
     /**
