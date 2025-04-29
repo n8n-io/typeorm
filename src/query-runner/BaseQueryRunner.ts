@@ -255,6 +255,10 @@ export abstract class BaseQueryRunner {
         }
     }
 
+    protected async clearCachedTable(tableName: string) {
+        delete this.cachedTablePaths[tableName]
+    }
+
     /**
      * Gets table from previously loaded tables, otherwise loads it from database.
      */

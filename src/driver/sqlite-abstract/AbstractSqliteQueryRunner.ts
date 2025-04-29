@@ -443,90 +443,25 @@ export abstract class AbstractSqliteQueryRunner
      * Renames the given table.
      */
     async renameTable(
-        oldTableOrName: Table | string,
+        tableOrName: Table | string,
         newTableName: string,
     ): Promise<void> {
-        const oldTable = InstanceChecker.isTable(oldTableOrName)
-            ? oldTableOrName
-            : await this.getCachedTable(oldTableOrName)
-        const newTable = oldTable.clone()
+        const table = InstanceChecker.isTable(tableOrName)
+            ? tableOrName
+            : await this.getCachedTable(tableOrName)
+        const oldName = this.escapePath(table.name)
+        const newName = this.escapePath(newTableName)
 
-        newTable.name = newTableName
+        // Generate rename table queries
+        const up = new Query(`ALTER TABLE ${oldName} RENAME TO ${newName}`)
+        const down = new Query(`ALTER TABLE ${newName} RENAME TO ${oldName}`)
 
-        // rename table
-        const up = new Query(
-            `ALTER TABLE ${this.escapePath(
-                oldTable.name,
-            )} RENAME TO ${this.escapePath(newTableName)}`,
-        )
-        const down = new Query(
-            `ALTER TABLE ${this.escapePath(
-                newTableName,
-            )} RENAME TO ${this.escapePath(oldTable.name)}`,
-        )
+        // Execute the rename
         await this.executeQueries(up, down)
 
-        // rename unique constraints
-        newTable.uniques.forEach((unique) => {
-            const oldUniqueName =
-                this.connection.namingStrategy.uniqueConstraintName(
-                    oldTable,
-                    unique.columnNames,
-                )
-
-            // Skip renaming if Unique has user defined constraint name
-            if (unique.name !== oldUniqueName) return
-
-            unique.name = this.connection.namingStrategy.uniqueConstraintName(
-                newTable,
-                unique.columnNames,
-            )
-        })
-
-        // rename foreign key constraints
-        newTable.foreignKeys.forEach((foreignKey) => {
-            const oldForeignKeyName =
-                this.connection.namingStrategy.foreignKeyName(
-                    oldTable,
-                    foreignKey.columnNames,
-                    this.getTablePath(foreignKey),
-                    foreignKey.referencedColumnNames,
-                )
-
-            // Skip renaming if foreign key has user defined constraint name
-            if (foreignKey.name !== oldForeignKeyName) return
-
-            foreignKey.name = this.connection.namingStrategy.foreignKeyName(
-                newTable,
-                foreignKey.columnNames,
-                this.getTablePath(foreignKey),
-                foreignKey.referencedColumnNames,
-            )
-        })
-
-        // rename indices
-        newTable.indices.forEach((index) => {
-            const oldIndexName = this.connection.namingStrategy.indexName(
-                oldTable,
-                index.columnNames,
-                index.where,
-            )
-
-            // Skip renaming if Index has user defined constraint name
-            if (index.name !== oldIndexName) return
-
-            index.name = this.connection.namingStrategy.indexName(
-                newTable,
-                index.columnNames,
-                index.where,
-            )
-        })
-
-        // rename old table;
-        oldTable.name = newTable.name
-
-        // recreate table with new constraint names
-        await this.recreateTable(newTable, oldTable)
+        // Clear the table cache and update the in-memory table name
+        this.clearCachedTable(table.name)
+        table.name = newTableName
     }
 
     /**

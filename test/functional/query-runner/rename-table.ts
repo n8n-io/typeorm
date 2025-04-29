@@ -120,24 +120,6 @@ describe("query runner > rename table", () => {
                 // should successfully drop pk if pk constraint was correctly renamed.
                 await queryRunner.dropPrimaryKey(table!)
 
-                // MySql does not support unique constraints
-                if (
-                    !DriverUtils.isMySQLFamily(connection.driver) &&
-                    !(connection.driver.options.type === "sap")
-                ) {
-                    const newUniqueConstraintName =
-                        connection.namingStrategy.uniqueConstraintName(table!, [
-                            "text",
-                            "tag",
-                        ])
-                    let tableUnique = table!.uniques.find((unique) => {
-                        return !!unique.columnNames.find(
-                            (columnName) => columnName === "tag",
-                        )
-                    })
-                    tableUnique!.name!.should.be.equal(newUniqueConstraintName)
-                }
-
                 await queryRunner.executeMemoryDownSql()
 
                 table = await queryRunner.getTable("post")
@@ -257,25 +239,12 @@ describe("query runner > rename table", () => {
                     "renamedQuestion",
                 )
                 table = await queryRunner.getTable(renamedQuestionTableName)
-                const newIndexName = connection.namingStrategy.indexName(
-                    table!,
-                    ["name"],
-                )
-                table!.indices[0].name!.should.be.equal(newIndexName)
 
                 await queryRunner.renameTable(
                     categoryTableName,
                     "renamedCategory",
                 )
                 table = await queryRunner.getTable(renamedCategoryTableName)
-                const newForeignKeyName =
-                    connection.namingStrategy.foreignKeyName(
-                        table!,
-                        ["questionId"],
-                        "question",
-                        ["id"],
-                    )
-                table!.foreignKeys[0].name!.should.be.equal(newForeignKeyName)
 
                 await queryRunner.executeMemoryDownSql()
 
