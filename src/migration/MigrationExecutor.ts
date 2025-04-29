@@ -333,7 +333,6 @@ export class MigrationExecutor {
                     // Commit transaction if we started it
                     if (migration.transaction && transactionStartedByUs) {
                         await queryRunner.commitTransaction();
-                        await queryRunner.afterMigration();
                     }
 
                     // Log success and track the successful migration
@@ -349,13 +348,16 @@ export class MigrationExecutor {
                         `Migration "${migration.name}" failed, error: ${error?.message}`
                     );
                     throw error;
+                } finally {
+                    if (migration.transaction && transactionStartedByUs) {
+                        await queryRunner.afterMigration();
+                    }
                 }
             }
 
             // commit transaction if we started it
             if (this.transaction === "all" && transactionStartedByUs) {
                 await queryRunner.commitTransaction()
-                await queryRunner.afterMigration()
             }
         } catch (err) {
             // rollback transaction if we started it
@@ -368,6 +370,9 @@ export class MigrationExecutor {
 
             throw err
         } finally {
+            if (this.transaction === "all" && transactionStartedByUs) {
+                await queryRunner.afterMigration()
+            }
             // if query runner was created by us then release it
             if (!this.queryRunner) await queryRunner.release()
         }
