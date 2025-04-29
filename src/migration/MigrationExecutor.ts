@@ -439,8 +439,11 @@ export class MigrationExecutor {
         try {
             if (!this.fake) {
                 await queryRunner.beforeMigration()
-                await migrationToRevert.instance!.down(queryRunner)
-                await queryRunner.afterMigration()
+                try {
+                    await migrationToRevert.instance!.down(queryRunner)
+                } finally {
+                    await queryRunner.afterMigration()
+                }
             }
 
             await this.deleteExecutedMigration(queryRunner, migrationToRevert)
