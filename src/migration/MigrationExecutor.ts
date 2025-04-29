@@ -73,17 +73,15 @@ export class MigrationExecutor {
     public async executeMigration(migration: Migration): Promise<Migration> {
         return this.withQueryRunner(async (queryRunner) => {
             await this.createMigrationsTableIfNotExist(queryRunner)
+            await this.createMetadataTableIfNotExist(queryRunner)
 
-            // create typeorm_metadata table if it's not created yet
-            const schemaBuilder = this.connection.driver.createSchemaBuilder()
-            if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-                await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-            }
-
-            await queryRunner.beforeMigration()
-            await (migration.instance as any).up(queryRunner)
-            await queryRunner.afterMigration()
-            await this.insertExecutedMigration(queryRunner, migration)
+            await this.withMigrationLifecycle(queryRunner, async () => {
+                await this.executeSingleMigration(
+                    queryRunner,
+                    migration,
+                    this.fake,
+                )
+            })
 
             return migration
         })
@@ -189,65 +187,205 @@ export class MigrationExecutor {
      * thus not saved in the database.
      */
     async executePendingMigrations(): Promise<Migration[]> {
-        const queryRunner =
-            this.queryRunner || this.connection.createQueryRunner()
-        // create migrations table if it's not created yet
-        await this.createMigrationsTableIfNotExist(queryRunner)
+        return this.withQueryRunner(async (queryRunner) => {
+            await this.createMigrationsTableIfNotExist(queryRunner)
+            await this.createMetadataTableIfNotExist(queryRunner)
 
-        // create the typeorm_metadata table if it's not created yet
-        const schemaBuilder = this.connection.driver.createSchemaBuilder()
-        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-        }
-
-        // get all migrations that are executed and saved in the database
-        const executedMigrations = await this.loadExecutedMigrations(
-            queryRunner,
-        )
-
-        // get the time when last migration was executed
-        let lastTimeExecutedMigration =
-            this.getLatestTimestampMigration(executedMigrations)
-
-        // get all user's migrations in the source code
-        const allMigrations = this.getMigrations()
-
-        // variable to store all migrations we did successfully
-        const successMigrations: Migration[] = []
-
-        // find all migrations that needs to be executed
-        const pendingMigrations = allMigrations.filter((migration) => {
-            // check if we already have executed migration
-            const executedMigration = executedMigrations.find(
-                (executedMigration) =>
-                    executedMigration.name === migration.name,
+            const executedMigrations = await this.loadExecutedMigrations(
+                queryRunner,
             )
-            if (executedMigration) return false
+            const allMigrations = this.getMigrations()
+            const pendingMigrations = allMigrations.filter(
+                (migration) =>
+                    !executedMigrations.find(
+                        (executed) => executed.name === migration.name,
+                    ),
+            )
 
-            // migration is new and not executed. now check if its timestamp is correct
-            // if (lastTimeExecutedMigration && migration.timestamp < lastTimeExecutedMigration.timestamp)
-            //     throw new TypeORMError(`New migration found: ${migration.name}, however this migration's timestamp is not valid. Migration's timestamp should not be older then migrations already executed in the database.`);
+            if (!pendingMigrations.length) {
+                this.connection.logger.logSchemaBuild(
+                    `No migrations are pending`,
+                )
+                return []
+            }
 
-            // every check is passed means that migration was not run yet and we need to run it
-            return true
+            this.connection.logger.logSchemaBuild(
+                `${executedMigrations.length} migrations are already loaded in the database.`,
+            )
+            this.connection.logger.logSchemaBuild(
+                `${allMigrations.length} migrations were found in the source code.`,
+            )
+
+            const lastTimeExecutedMigration =
+                this.getLatestTimestampMigration(executedMigrations)
+            if (lastTimeExecutedMigration) {
+                this.connection.logger.logSchemaBuild(
+                    `${
+                        lastTimeExecutedMigration.name
+                    } is the last executed migration. It was executed on ${new Date(
+                        lastTimeExecutedMigration.timestamp,
+                    ).toString()}.`,
+                )
+            }
+
+            this.connection.logger.logSchemaBuild(
+                `${pendingMigrations.length} migrations are new migrations that must be executed.`,
+            )
+
+            if (this.transaction === "all") {
+                const migrationsOverridingTransactionMode =
+                    pendingMigrations.filter(
+                        (migration) =>
+                            !(migration.instance?.transaction === undefined),
+                    )
+
+                if (migrationsOverridingTransactionMode.length > 0) {
+                    throw new ForbiddenTransactionModeOverrideError(
+                        migrationsOverridingTransactionMode,
+                    )
+                }
+            }
+
+            const txModeDefault = {
+                each: true,
+                none: false,
+                all: false,
+            }[this.transaction]
+
+            for (const migration of pendingMigrations) {
+                if (migration.instance) {
+                    const instanceTx = migration.instance.transaction
+                    migration.transaction =
+                        instanceTx === undefined ? txModeDefault : instanceTx
+                }
+            }
+
+            const successMigrations: Migration[] = []
+
+            if (this.transaction === "all") {
+                const shouldStartTransaction = !queryRunner.isTransactionActive
+
+                if (shouldStartTransaction) {
+                    await queryRunner.startTransaction()
+                }
+
+                try {
+                    await this.withMigrationLifecycle(queryRunner, async () => {
+                        for (const migration of pendingMigrations) {
+                            if (this.fake) {
+                                await this.insertExecutedMigration(
+                                    queryRunner,
+                                    migration,
+                                )
+                            } else {
+                                await migration.instance!.up(queryRunner)
+                                await this.insertExecutedMigration(
+                                    queryRunner,
+                                    migration,
+                                )
+                            }
+
+                            successMigrations.push(migration)
+                            this.connection.logger.logSchemaBuild(
+                                `Migration ${migration.name} has been ${
+                                    this.fake ? "(fake)" : ""
+                                } executed successfully.`,
+                            )
+                        }
+                    })
+
+                    if (shouldStartTransaction) {
+                        await queryRunner.commitTransaction()
+                    }
+                } catch (error) {
+                    if (shouldStartTransaction) {
+                        try {
+                            await queryRunner.rollbackTransaction()
+                        } catch (rollbackError) {
+                            this.connection.logger.logMigration(
+                                `Error during transaction rollback: ${rollbackError?.message}`,
+                            )
+                        }
+                    }
+                    throw error
+                }
+            } else {
+                for (const migration of pendingMigrations) {
+                    if (this.fake) {
+                        await this.withMigrationLifecycle(
+                            queryRunner,
+                            async () => {
+                                await this.insertExecutedMigration(
+                                    queryRunner,
+                                    migration,
+                                )
+                            },
+                        )
+
+                        successMigrations.push(migration)
+                        this.connection.logger.logSchemaBuild(
+                            `Migration ${migration.name} has been (fake) executed successfully.`,
+                        )
+                    } else {
+                        try {
+                            await this.withMigrationLifecycle(
+                                queryRunner,
+                                async () => {
+                                    await this.executeSingleMigration(
+                                        queryRunner,
+                                        migration,
+                                    )
+                                },
+                            )
+
+                            successMigrations.push(migration)
+                        } catch (error) {
+                            break
+                        }
+                    }
+                }
+            }
+
+            return successMigrations
         })
+    }
 
-        // if no migrations are pending then nothing to do here
-        if (!pendingMigrations.length) {
-            this.connection.logger.logSchemaBuild(`No migrations are pending`)
-            // if query runner was created by us then release it
-            if (!this.queryRunner) await queryRunner.release()
-            return []
-        }
+    /**
+     * Reverts last migration that were run.
+     */
+    async undoLastMigration(): Promise<void> {
+        return this.withQueryRunner(async (queryRunner) => {
+            await this.createMigrationsTableIfNotExist(queryRunner)
+            await this.createMetadataTableIfNotExist(queryRunner)
 
-        // log information about migration execution
-        this.connection.logger.logSchemaBuild(
-            `${executedMigrations.length} migrations are already loaded in the database.`,
-        )
-        this.connection.logger.logSchemaBuild(
-            `${allMigrations.length} migrations were found in the source code.`,
-        )
-        if (lastTimeExecutedMigration)
+            const executedMigrations = await this.loadExecutedMigrations(
+                queryRunner,
+            )
+            const lastTimeExecutedMigration =
+                this.getLatestExecutedMigration(executedMigrations)
+
+            if (!lastTimeExecutedMigration) {
+                this.connection.logger.logSchemaBuild(
+                    `No migrations were found in the database. Nothing to revert!`,
+                )
+                return
+            }
+
+            const allMigrations = this.getMigrations()
+            const migrationToRevert = allMigrations.find(
+                (migration) =>
+                    migration.name === lastTimeExecutedMigration.name,
+            )
+
+            if (!migrationToRevert) {
+                throw new TypeORMError(
+                    `No migration ${lastTimeExecutedMigration.name} was found in the source code. Make sure you have this migration in your codebase and it's included in the connection options.`,
+                )
+            }
+
+            this.connection.logger.logSchemaBuild(
+                `${executedMigrations.length} migrations are already loaded in the database.`,
+            )
             this.connection.logger.logSchemaBuild(
                 `${
                     lastTimeExecutedMigration.name
@@ -255,235 +393,49 @@ export class MigrationExecutor {
                     lastTimeExecutedMigration.timestamp,
                 ).toString()}.`,
             )
-        this.connection.logger.logSchemaBuild(
-            `${pendingMigrations.length} migrations are new migrations must be executed.`,
-        )
+            this.connection.logger.logSchemaBuild(`Now reverting it...`)
 
-        if (this.transaction === "all") {
-            // If we desire to run all migrations in a single transaction
-            // but there is a migration that explicitly overrides the transaction mode
-            // then we have to fail since we cannot properly resolve that intent
-            // In theory we could support overrides that are set to `true`,
-            // however to keep the interface more rigid, we fail those too
-            const migrationsOverridingTransactionMode =
-                pendingMigrations.filter(
-                    (migration) =>
-                        !(migration.instance?.transaction === undefined),
+            const shouldUseTransaction = this.transaction !== "none"
+            const shouldStartTransaction =
+                shouldUseTransaction && !queryRunner.isTransactionActive
+
+            if (shouldStartTransaction) {
+                await queryRunner.startTransaction()
+            }
+
+            try {
+                await this.withMigrationLifecycle(queryRunner, async () => {
+                    if (!this.fake) {
+                        await migrationToRevert.instance!.down(queryRunner)
+                    }
+                    await this.deleteExecutedMigration(
+                        queryRunner,
+                        migrationToRevert,
+                    )
+                })
+
+                this.connection.logger.logSchemaBuild(
+                    `Migration ${migrationToRevert.name} has been ${
+                        this.fake ? "(fake)" : ""
+                    } reverted successfully.`,
                 )
 
-            if (migrationsOverridingTransactionMode.length > 0) {
-                const error = new ForbiddenTransactionModeOverrideError(
-                    migrationsOverridingTransactionMode,
-                )
-                this.connection.logger.logMigration(
-                    `Migrations failed, error: ${error.message}`,
-                )
+                if (shouldStartTransaction) {
+                    await queryRunner.commitTransaction()
+                }
+            } catch (error) {
+                if (shouldStartTransaction) {
+                    try {
+                        await queryRunner.rollbackTransaction()
+                    } catch (rollbackError) {
+                        this.connection.logger.logMigration(
+                            `Error during transaction rollback: ${rollbackError?.message}`,
+                        )
+                    }
+                }
                 throw error
             }
-        }
-
-        // Set the per-migration defaults for the transaction mode
-        // so that we have one centralized place that controls this behavior
-
-        // When transaction mode is `each` the default is to run in a transaction
-        // When transaction mode is `none` the default is to not run in a transaction
-        // When transaction mode is `all` the default is to not run in a transaction
-        // since all the migrations are already running in one single transaction
-
-        const txModeDefault = {
-            each: true,
-            none: false,
-            all: false,
-        }[this.transaction]
-
-        for (const migration of pendingMigrations) {
-            if (migration.instance) {
-                const instanceTx = migration.instance.transaction
-
-                if (instanceTx === undefined) {
-                    migration.transaction = txModeDefault
-                } else {
-                    migration.transaction = instanceTx
-                }
-            }
-        }
-
-        // start transaction if its not started yet
-        let transactionStartedByUs = false
-        if (this.transaction === "all" && !queryRunner.isTransactionActive) {
-            await queryRunner.beforeMigration()
-            await queryRunner.startTransaction()
-            transactionStartedByUs = true
-        }
-
-        // run all pending migrations in a sequence
-        try {
-            for (const migration of pendingMigrations) {
-                if (this.fake) {
-                    // directly insert migration record into the database if it is fake
-                    await this.insertExecutedMigration(queryRunner, migration)
-
-                    // nothing else needs to be done, continue to next migration
-                    continue
-                }
-
-                if (migration.transaction && !queryRunner.isTransactionActive) {
-                    await queryRunner.beforeMigration()
-                    await queryRunner.startTransaction()
-                    transactionStartedByUs = true
-                }
-
-                await migration
-                    .instance!.up(queryRunner)
-                    .catch((error) => {
-                        // informative log about migration failure
-                        this.connection.logger.logMigration(
-                            `Migration "${migration.name}" failed, error: ${error?.message}`,
-                        )
-                        throw error
-                    })
-                    .then(async () => {
-                        // now when migration is executed we need to insert record about it into the database
-                        await this.insertExecutedMigration(
-                            queryRunner,
-                            migration,
-                        )
-                        // commit transaction if we started it
-                        if (migration.transaction && transactionStartedByUs) {
-                            await queryRunner.commitTransaction()
-                            await queryRunner.afterMigration()
-                        }
-                    })
-                    .then(() => {
-                        // informative log about migration success
-                        successMigrations.push(migration)
-                        this.connection.logger.logSchemaBuild(
-                            `Migration ${migration.name} has been ${
-                                this.fake ? "(fake)" : ""
-                            } executed successfully.`,
-                        )
-                    })
-            }
-
-            // commit transaction if we started it
-            if (this.transaction === "all" && transactionStartedByUs) {
-                await queryRunner.commitTransaction()
-                await queryRunner.afterMigration()
-            }
-        } catch (err) {
-            // rollback transaction if we started it
-            if (transactionStartedByUs) {
-                try {
-                    // we throw original error even if rollback thrown an error
-                    await queryRunner.rollbackTransaction()
-                } catch (rollbackError) {}
-            }
-
-            throw err
-        } finally {
-            // if query runner was created by us then release it
-            if (!this.queryRunner) await queryRunner.release()
-        }
-        return successMigrations
-    }
-
-    /**
-     * Reverts last migration that were run.
-     */
-    async undoLastMigration(): Promise<void> {
-        const queryRunner =
-            this.queryRunner || this.connection.createQueryRunner()
-
-        // create migrations table if it's not created yet
-        await this.createMigrationsTableIfNotExist(queryRunner)
-
-        // create typeorm_metadata table if it's not created yet
-        const schemaBuilder = this.connection.driver.createSchemaBuilder()
-        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
-            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
-        }
-
-        // get all migrations that are executed and saved in the database
-        const executedMigrations = await this.loadExecutedMigrations(
-            queryRunner,
-        )
-
-        // get the time when last migration was executed
-        let lastTimeExecutedMigration =
-            this.getLatestExecutedMigration(executedMigrations)
-
-        // if no migrations found in the database then nothing to revert
-        if (!lastTimeExecutedMigration) {
-            this.connection.logger.logSchemaBuild(
-                `No migrations were found in the database. Nothing to revert!`,
-            )
-            return
-        }
-
-        // get all user's migrations in the source code
-        const allMigrations = this.getMigrations()
-
-        // find the instance of the migration we need to remove
-        const migrationToRevert = allMigrations.find(
-            (migration) => migration.name === lastTimeExecutedMigration!.name,
-        )
-
-        // if no migrations found in the database then nothing to revert
-        if (!migrationToRevert)
-            throw new TypeORMError(
-                `No migration ${lastTimeExecutedMigration.name} was found in the source code. Make sure you have this migration in your codebase and its included in the connection options.`,
-            )
-
-        // log information about migration execution
-        this.connection.logger.logSchemaBuild(
-            `${executedMigrations.length} migrations are already loaded in the database.`,
-        )
-        this.connection.logger.logSchemaBuild(
-            `${
-                lastTimeExecutedMigration.name
-            } is the last executed migration. It was executed on ${new Date(
-                lastTimeExecutedMigration.timestamp,
-            ).toString()}.`,
-        )
-        this.connection.logger.logSchemaBuild(`Now reverting it...`)
-
-        // start transaction if its not started yet
-        let transactionStartedByUs = false
-        if (this.transaction !== "none" && !queryRunner.isTransactionActive) {
-            await queryRunner.startTransaction()
-            transactionStartedByUs = true
-        }
-
-        try {
-            if (!this.fake) {
-                await queryRunner.beforeMigration()
-                await migrationToRevert.instance!.down(queryRunner)
-                await queryRunner.afterMigration()
-            }
-
-            await this.deleteExecutedMigration(queryRunner, migrationToRevert)
-            this.connection.logger.logSchemaBuild(
-                `Migration ${migrationToRevert.name} has been ${
-                    this.fake ? "(fake)" : ""
-                } reverted successfully.`,
-            )
-
-            // commit transaction if we started it
-            if (transactionStartedByUs) await queryRunner.commitTransaction()
-        } catch (err) {
-            // rollback transaction if we started it
-            if (transactionStartedByUs) {
-                try {
-                    // we throw original error even if rollback thrown an error
-                    await queryRunner.rollbackTransaction()
-                } catch (rollbackError) {}
-            }
-
-            throw err
-        } finally {
-            // if query runner was created by us then release it
-            if (!this.queryRunner) await queryRunner.release()
-        }
+        })
     }
 
     // -------------------------------------------------------------------------
@@ -539,6 +491,13 @@ export class MigrationExecutor {
                     ],
                 }),
             )
+        }
+    }
+
+    private async createMetadataTableIfNotExist(queryRunner: QueryRunner) {
+        const schemaBuilder = this.connection.driver.createSchemaBuilder()
+        if (InstanceChecker.isRdbmsSchemaBuilder(schemaBuilder)) {
+            await schemaBuilder.createMetadataTableIfNecessary(queryRunner)
         }
     }
 
@@ -738,6 +697,64 @@ export class MigrationExecutor {
             if (!this.queryRunner) {
                 await queryRunner.release()
             }
+        }
+    }
+
+    protected async withMigrationLifecycle<T>(
+        queryRunner: QueryRunner,
+        operation: () => Promise<T>,
+    ): Promise<T> {
+        await queryRunner.beforeMigration()
+        try {
+            return await operation()
+        } finally {
+            await queryRunner.afterMigration()
+        }
+    }
+
+    protected async executeSingleMigration(
+        queryRunner: QueryRunner,
+        migration: Migration,
+        fake: boolean = false,
+    ): Promise<void> {
+        const shouldStartTransaction =
+            migration.transaction && !queryRunner.isTransactionActive
+
+        if (shouldStartTransaction) {
+            await queryRunner.startTransaction()
+        }
+
+        try {
+            if (!fake) {
+                await migration.instance!.up(queryRunner)
+            }
+
+            await this.insertExecutedMigration(queryRunner, migration)
+
+            if (shouldStartTransaction) {
+                await queryRunner.commitTransaction()
+            }
+
+            this.connection.logger.logSchemaBuild(
+                `Migration ${migration.name} has been ${
+                    fake ? "(fake)" : ""
+                } executed successfully.`,
+            )
+        } catch (error) {
+            if (shouldStartTransaction) {
+                try {
+                    await queryRunner.rollbackTransaction()
+                } catch (rollbackError) {
+                    this.connection.logger.logMigration(
+                        `Error during transaction rollback: ${rollbackError?.message}`,
+                    )
+                }
+            }
+
+            this.connection.logger.logMigration(
+                `Migration "${migration.name}" failed, error: ${error?.message}`,
+            )
+            throw error
         }
     }
 }
