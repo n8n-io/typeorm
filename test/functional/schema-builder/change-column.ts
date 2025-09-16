@@ -70,12 +70,7 @@ describe("schema builder > change column", () => {
                     .findColumnByName("text")!
                     .length.should.be.equal("300")
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     postTable!.indices.length.should.be.equal(2)
                 } else {
                     postTable!.uniques.length.should.be.equal(2)
@@ -93,19 +88,13 @@ describe("schema builder > change column", () => {
                 const postMetadata = connection.getMetadata(Post)
                 const versionColumn =
                     postMetadata.findColumnWithPropertyName("version")!
-                versionColumn.type =
-                    connection.driver.options.type === "spanner"
-                        ? "int64"
-                        : "int"
+                versionColumn.type = "int"
 
                 // in test we must manually change referenced column too, but in real sync, it changes automatically
                 const postVersionMetadata = connection.getMetadata(PostVersion)
                 const postVersionColumn =
                     postVersionMetadata.findColumnWithPropertyName("post")!
-                postVersionColumn.type =
-                    connection.driver.options.type === "spanner"
-                        ? "int64"
-                        : "int"
+                postVersionColumn.type = "int"
 
                 await connection.synchronize()
 
@@ -118,25 +107,14 @@ describe("schema builder > change column", () => {
                 postVersionTable!.foreignKeys.length.should.be.equal(1)
 
                 // revert changes
-                if (connection.driver.options.type === "spanner") {
-                    versionColumn.type = "string"
-                    postVersionColumn.type = "string"
-                } else if (connection.driver.options.type === "sap") {
-                    versionColumn.type = "nvarchar"
-                    postVersionColumn.type = "nvarchar"
-                } else {
-                    versionColumn.type = "varchar"
-                    postVersionColumn.type = "varchar"
-                }
+                versionColumn.type = "varchar"
+                postVersionColumn.type = "varchar"
             }),
         ))
 
     it("should correctly change column default value", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // Spanner does not support DEFAULT
-                if (connection.driver.options.type === "spanner") return
-
                 const postMetadata = connection.getMetadata(Post)
                 const nameColumn =
                     postMetadata.findColumnWithPropertyName("name")!
@@ -159,13 +137,6 @@ describe("schema builder > change column", () => {
     it("should correctly make column primary and generated", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB does not allow changing PK
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const postMetadata = connection.getMetadata(Post)
                 const idColumn = postMetadata.findColumnWithPropertyName("id")!
                 const versionColumn =
@@ -175,10 +146,7 @@ describe("schema builder > change column", () => {
 
                 // SQLite does not support AUTOINCREMENT with composite primary keys
                 // Oracle does not support both unique and primary attributes on such column
-                if (
-                    !DriverUtils.isSQLiteFamily(connection.driver) &&
-                    !(connection.driver.options.type === "oracle")
-                )
+                if (!DriverUtils.isSQLiteFamily(connection.driver))
                     versionColumn.isPrimary = true
 
                 await connection.synchronize()
@@ -193,10 +161,7 @@ describe("schema builder > change column", () => {
                     .generationStrategy!.should.be.equal("increment")
 
                 // SQLite does not support AUTOINCREMENT with composite primary keys
-                if (
-                    !DriverUtils.isSQLiteFamily(connection.driver) &&
-                    !(connection.driver.options.type === "oracle")
-                )
+                if (!DriverUtils.isSQLiteFamily(connection.driver))
                     postTable!.findColumnByName("version")!.isPrimary.should.be
                         .true
 
@@ -236,13 +201,6 @@ describe("schema builder > change column", () => {
     it("should correctly change non-generated column on to uuid-generated column", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not allow changing PK
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const queryRunner = connection.createQueryRunner()
 
                 if (connection.driver.options.type === "postgres")
@@ -258,10 +216,6 @@ describe("schema builder > change column", () => {
                 // depending on driver, we must change column and referenced column types
                 if (connection.driver.options.type === "postgres") {
                     idColumn.type = "uuid"
-                } else if (connection.driver.options.type === "mssql") {
-                    idColumn.type = "uniqueidentifier"
-                } else if (connection.driver.options.type === "sap") {
-                    idColumn.type = "nvarchar"
                 } else {
                     idColumn.type = "varchar"
                 }
@@ -271,10 +225,7 @@ describe("schema builder > change column", () => {
                 const postTable = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    connection.driver.options.type === "mssql"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     postTable!.findColumnByName("id")!.isGenerated.should.be
                         .true
                     postTable!
@@ -304,13 +255,6 @@ describe("schema builder > change column", () => {
     it("should correctly change generated column generation strategy", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not allow changing PK
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const teacherMetadata = connection.getMetadata("teacher")
                 const studentMetadata = connection.getMetadata("student")
                 const idColumn =
@@ -323,12 +267,6 @@ describe("schema builder > change column", () => {
                 if (connection.driver.options.type === "postgres") {
                     idColumn.type = "uuid"
                     teacherColumn.type = "uuid"
-                } else if (connection.driver.options.type === "mssql") {
-                    idColumn.type = "uniqueidentifier"
-                    teacherColumn.type = "uniqueidentifier"
-                } else if (connection.driver.options.type === "sap") {
-                    idColumn.type = "nvarchar"
-                    teacherColumn.type = "nvarchar"
                 } else {
                     idColumn.type = "varchar"
                     teacherColumn.type = "varchar"
@@ -340,10 +278,7 @@ describe("schema builder > change column", () => {
                 const teacherTable = await queryRunner.getTable("teacher")
                 await queryRunner.release()
 
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    connection.driver.options.type === "mssql"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     teacherTable!.findColumnByName("id")!.isGenerated.should.be
                         .true
                     teacherTable!
@@ -373,9 +308,7 @@ describe("schema builder > change column", () => {
                 // Skip the contents of this test if not one of the drivers that support comments
                 if (
                     !(
-                        connection.driver.options.type === "cockroachdb" ||
                         connection.driver.options.type === "postgres" ||
-                        connection.driver.options.type === "sap" ||
                         DriverUtils.isMySQLFamily(connection.driver)
                     )
                 ) {

@@ -392,10 +392,7 @@ describe("repository > basic methods", () => {
                 connections
                     .filter(
                         (c) =>
-                            c.name === "sqlite" ||
-                            c.name === "sqlite-pooled" ||
-                            c.name === "better-sqlite3" ||
-                            c.name === "libsql",
+                            c.name === "sqlite" || c.name === "sqlite-pooled",
                     )
                     .map(async (connection) => {
                         if (
@@ -854,8 +851,6 @@ describe("repository > basic methods", () => {
         it("should throw if using indexPredicate with an unsupported driver", () =>
             Promise.all(
                 connections.map(async (connection) => {
-                    // does not throw for cockroachdb, just returns a result
-                    if (connection.driver.options.type === "cockroachdb") return
                     if (
                         !connection.driver.supportedUpsertTypes.includes(
                             "on-conflict-do-update",

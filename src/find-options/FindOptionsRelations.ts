@@ -1,5 +1,3 @@
-import { ObjectId } from "../driver/mongodb/typings"
-
 /**
  * A single property handler for FindOptionsRelations.
  */
@@ -20,8 +18,6 @@ export type FindOptionsRelationsProperty<Property> = Property extends Promise<
     : Property extends Buffer
     ? never
     : Property extends Date
-    ? never
-    : Property extends ObjectId
     ? never
     : Property extends object
     ? FindOptionsRelations<Property> | boolean

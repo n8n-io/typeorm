@@ -72,9 +72,6 @@ describe("github issues > #5691 RelationId is too slow", () => {
     it("should be as fast as separate queries", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // skip test for oracle for now
-                if (connection.driver.options.type === "oracle") return
-
                 const child21 = new Child2()
                 const child22 = new Child2()
                 const child23 = new Child2()

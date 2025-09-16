@@ -26,6 +26,7 @@ describe("sqlite driver > write connection acquire timeout", () => {
 
     it("should timeout if acquire with trx takes too long", async () => {
         const connection = connections[0]
+        if (!connection) return
 
         const qr1 = connection.createQueryRunner()
         const qr2 = connection.createQueryRunner()
@@ -54,6 +55,8 @@ describe("sqlite driver > write connection acquire timeout", () => {
 
     it("should timeout if acquire without trx takes too long", async () => {
         const connection = connections[0]
+        if (!connection) return
+
         const qr1 = connection.createQueryRunner()
         const qr2 = connection.createQueryRunner()
 

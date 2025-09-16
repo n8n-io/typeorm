@@ -18,17 +18,11 @@ describe("github issues > #9272 Fix select on deeply nested embedded entities, u
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "better-sqlite3",
-                    "cockroachdb",
                     "mariadb",
-                    "mssql",
                     "mysql",
-                    "oracle",
                     "postgres",
-                    "spanner",
                     "sqlite",
                     "sqlite-pooled",
-                    "libsql",
                 ],
             })),
     )

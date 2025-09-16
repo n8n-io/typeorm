@@ -4,11 +4,8 @@ import { Post } from "./entity/Post"
 import { PostDetails } from "./entity/PostDetails"
 
 const options: DataSourceOptions = {
-    type: "mssql",
-    host: "192.168.1.10",
-    username: "sa",
-    password: "admin12345",
-    database: "test",
+    type: "sqlite",
+    database: "./temp/sqlitedb.db",
     logging: ["query", "error"],
     synchronize: true,
     entities: [__dirname + "/entity/*"],

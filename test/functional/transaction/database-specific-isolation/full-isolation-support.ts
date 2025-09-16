@@ -15,7 +15,7 @@ describe("transaction > transaction with full isolation support", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "mssql", "postgres", "sap"], // todo: for some reasons mariadb tests are not passing here
+                enabledDrivers: ["mysql", "postgres"], // todo: for some reasons mariadb tests are not passing here
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
@@ -24,9 +24,6 @@ describe("transaction > transaction with full isolation support", () => {
     it("should execute all operations in a single transaction with READ UNCOMMITTED isolation level", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // SAP does not support READ UNCOMMITTED isolation level
-                if (connection.driver.options.type === "sap") return
-
                 let postId: number | undefined = undefined,
                     categoryId: number | undefined = undefined
 

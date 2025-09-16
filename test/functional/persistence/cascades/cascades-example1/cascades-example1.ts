@@ -25,9 +25,6 @@ describe("persistence > cascades > example 1", () => {
             connections.map(async (connection) => {
                 const photo = new Photo()
                 photo.id = 1
-                if (connection.driver.options.type === "spanner")
-                    photo.name = "My photo"
-
                 const profile = new Profile()
                 profile.id = 1
                 profile.photo = photo

@@ -27,14 +27,9 @@ describe("query runner > create index", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
                 let stringType = "varchar"
-                if (connection.driver.options.type === "spanner") {
-                    stringType = "string"
-                }
 
                 const queryRunner = connection.createQueryRunner()
                 await queryRunner.createTable(
@@ -75,13 +70,7 @@ describe("query runner > create index", () => {
 
                 let table = await queryRunner.getTable("question")
 
-                // CockroachDB stores unique indices as UNIQUE constraints
-                if (connection.driver.options.type === "cockroachdb") {
-                    table!.indices.length.should.be.equal(1)
-                    table!.uniques.length.should.be.equal(1)
-                } else {
-                    table!.indices.length.should.be.equal(2)
-                }
+                table!.indices.length.should.be.equal(2)
 
                 await queryRunner.executeMemoryDownSql()
 

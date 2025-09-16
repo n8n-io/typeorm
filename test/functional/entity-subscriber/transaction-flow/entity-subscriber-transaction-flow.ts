@@ -68,43 +68,14 @@ describe("entity subscriber > transaction flow", () => {
 
     it("transactionStart", async () => {
         for (let connection of connections) {
-            if (
-                connection.driver.options.type === "mssql" ||
-                connection.driver.options.type === "spanner"
-            ) {
-                continue
-            }
-
             beforeTransactionStart.resetHistory()
             afterTransactionStart.resetHistory()
 
             let isolationLevel: any = undefined
-            if (
-                connection.driver.options.type === "sap" ||
-                connection.driver.options.type === "oracle"
-            ) {
-                isolationLevel = "READ COMMITTED"
-            }
 
             const queryRunner = connection.createQueryRunner()
 
-            if (
-                connection.driver.options.type === "aurora-postgres" ||
-                connection.driver.options.type === "aurora-mysql"
-            ) {
-                const startTransactionFn = sinon.spy(
-                    queryRunner.startTransaction,
-                )
-                await queryRunner.startTransaction()
-
-                expect(beforeTransactionStart.calledBefore(startTransactionFn))
-                    .to.be.true
-                expect(afterTransactionStart.calledAfter(startTransactionFn)).to
-                    .be.true
-
-                startTransactionFn.restore()
-                await queryRunner.commitTransaction()
-            } else if (connection.driver.options.type === "sqlite-pooled") {
+            if (connection.driver.options.type === "sqlite-pooled") {
                 const startTransactionFn = sinon.spy(
                     queryRunner as SqliteReadWriteQueryRunner,
                     "runQueryWithinConnection",
@@ -193,36 +164,13 @@ describe("entity subscriber > transaction flow", () => {
 
     it("transactionCommit", async () => {
         for (let connection of connections) {
-            if (
-                connection.driver.options.type === "mssql" ||
-                connection.driver.options.type === "spanner"
-            ) {
-                continue
-            }
-
             beforeTransactionCommit.resetHistory()
             afterTransactionCommit.resetHistory()
 
             const queryRunner = connection.createQueryRunner()
             await queryRunner.startTransaction()
 
-            if (
-                connection.driver.options.type === "aurora-postgres" ||
-                connection.driver.options.type === "aurora-mysql"
-            ) {
-                const commitTransactionFn = sinon.spy(
-                    queryRunner.commitTransaction,
-                )
-                await queryRunner.commitTransaction()
-
-                expect(
-                    beforeTransactionCommit.calledBefore(commitTransactionFn),
-                ).to.be.true
-                expect(afterTransactionCommit.calledAfter(commitTransactionFn))
-                    .to.be.true
-
-                commitTransactionFn.restore()
-            } else if (connection.driver.options.type === "sqlite-pooled") {
+            if (connection.driver.options.type === "sqlite-pooled") {
                 const commitTransactionFn = sinon.spy(
                     queryRunner as SqliteReadWriteQueryRunner,
                     "runQueryWithinConnection",
@@ -297,39 +245,13 @@ describe("entity subscriber > transaction flow", () => {
 
     it("transactionRollback", async () => {
         for (let connection of connections) {
-            if (
-                connection.driver.options.type === "mssql" ||
-                connection.driver.options.type === "spanner"
-            ) {
-                continue
-            }
-
             beforeTransactionRollback.resetHistory()
             afterTransactionRollback.resetHistory()
 
             const queryRunner = connection.createQueryRunner()
             await queryRunner.startTransaction()
 
-            if (
-                connection.driver.options.type === "aurora-postgres" ||
-                connection.driver.options.type === "aurora-mysql"
-            ) {
-                const rollbackTransactionFn = sinon.spy(
-                    queryRunner.rollbackTransaction,
-                )
-                await queryRunner.rollbackTransaction()
-
-                expect(
-                    beforeTransactionRollback.calledBefore(
-                        rollbackTransactionFn,
-                    ),
-                ).to.be.true
-                expect(
-                    afterTransactionRollback.calledAfter(rollbackTransactionFn),
-                ).to.be.true
-
-                rollbackTransactionFn.restore()
-            } else if (connection.driver.options.type === "sqlite-pooled") {
+            if (connection.driver.options.type === "sqlite-pooled") {
                 const rollbackTransactionFn = sinon.spy(
                     queryRunner as SqliteReadWriteQueryRunner,
                     "runQueryWithinConnection",

@@ -180,7 +180,7 @@ describe("repository > increment method", () => {
             async () =>
                 (connections = await createTestingConnections({
                     entities: [PostBigInt],
-                    enabledDrivers: ["mysql", "mariadb", "postgres", "sap"],
+                    enabledDrivers: ["mysql", "mariadb", "postgres"],
                     // logging: true
                 })),
         )

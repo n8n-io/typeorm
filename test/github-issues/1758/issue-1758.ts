@@ -11,29 +11,8 @@ describe("github issues > #1758 Synchronization bug in PostgreSQL bug occurs whe
         before(async () => {
             connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["postgres", "cockroachdb"],
+                enabledDrivers: ["postgres"],
                 schema: "public",
-                schemaCreate: true,
-                dropSchema: true,
-            })
-        })
-        after(() => closeTestingConnections(connections))
-
-        it("should correctly synchronize schema when we explicitly state the default schema as 'public'", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    await connection.synchronize()
-                }),
-            ))
-    })
-
-    describe("mssql", () => {
-        let connections: DataSource[]
-        before(async () => {
-            connections = await createTestingConnections({
-                entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mssql"],
-                schema: "dbo",
                 schemaCreate: true,
                 dropSchema: true,
             })

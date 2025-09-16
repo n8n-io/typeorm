@@ -16,12 +16,7 @@ describe("github issues > #513 Incorrect time/datetime types for SQLite", () => 
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "sqlite",
-                    "sqlite-pooled",
-                    "better-sqlite3",
-                    "libsql",
-                ],
+                enabledDrivers: ["sqlite", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

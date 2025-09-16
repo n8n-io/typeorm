@@ -24,13 +24,6 @@ describe("query runner > change column", () => {
     it("should correctly change column and revert change", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not allow changing primary columns and renaming constraints
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const queryRunner = connection.createQueryRunner()
                 let table = await queryRunner.getTable("post")
 
@@ -107,13 +100,6 @@ describe("query runner > change column", () => {
     it("should correctly change column 'isGenerated' property and revert change", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not allow changing generated columns in existent tables
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const queryRunner = connection.createQueryRunner()
                 let table = await queryRunner.getTable("post")
                 let idColumn = table!.findColumnByName("id")!
@@ -186,12 +172,10 @@ describe("query runner > change column", () => {
         Promise.all(
             connections.map(async (connection) => {
                 const isPostgres = connection.driver.options.type === "postgres"
-                const isSpanner = connection.driver.options.type === "spanner"
                 const shouldRun =
-                    (isPostgres &&
-                        (connection.driver as PostgresDriver)
-                            .isGeneratedColumnsSupported) ||
-                    isSpanner
+                    isPostgres &&
+                    (connection.driver as PostgresDriver)
+                        .isGeneratedColumnsSupported
                 if (!shouldRun) return
 
                 const queryRunner = connection.createQueryRunner()
@@ -207,7 +191,7 @@ describe("query runner > change column", () => {
 
                 let generatedColumn = new TableColumn({
                     name: "generated",
-                    type: isSpanner ? "string" : "varchar",
+                    type: "varchar",
                     generatedType: "STORED",
                     asExpression: "text || tag",
                 })

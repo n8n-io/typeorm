@@ -86,12 +86,7 @@ describe("schema builder > change index", () => {
                 const queryRunner = connection.createQueryRunner()
                 const studentTable = await queryRunner.getTable("student")
                 await queryRunner.release()
-                // CockroachDB also stores indices for relation columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    studentTable!.indices.length.should.be.equal(2)
-                } else {
-                    studentTable!.indices.length.should.be.equal(0)
-                }
+                studentTable!.indices.length.should.be.equal(0)
             }),
         ))
 
@@ -112,30 +107,14 @@ describe("schema builder > change index", () => {
                 await queryRunner.createIndex(teacherTable!, index)
 
                 teacherTable = await queryRunner.getTable("teacher")
-                // CockroachDB stores unique indices as UNIQUE constraints
-                if (connection.driver.options.type === "cockroachdb") {
-                    teacherTable!.indices.length.should.be.equal(0)
-                    teacherTable!.uniques.length.should.be.equal(1)
-                    teacherTable!.findColumnByName("name")!.isUnique.should.be
-                        .true
-                } else {
-                    teacherTable!.indices.length.should.be.equal(1)
-                    teacherTable!.indices[0].isUnique!.should.be.true
-                }
+                teacherTable!.indices.length.should.be.equal(1)
+                teacherTable!.indices[0].isUnique!.should.be.true
 
                 await connection.synchronize()
 
                 teacherTable = await queryRunner.getTable("teacher")
-                // CockroachDB stores unique indices as UNIQUE constraints
-                if (connection.driver.options.type === "cockroachdb") {
-                    teacherTable!.indices.length.should.be.equal(0)
-                    teacherTable!.uniques.length.should.be.equal(0)
-                    teacherTable!.findColumnByName("name")!.isUnique.should.be
-                        .false
-                } else {
-                    teacherTable!.indices.length.should.be.equal(1)
-                    teacherTable!.indices[0].isUnique!.should.be.true
-                }
+                teacherTable!.indices.length.should.be.equal(1)
+                teacherTable!.indices[0].isUnique!.should.be.true
 
                 await queryRunner.release()
             }),
