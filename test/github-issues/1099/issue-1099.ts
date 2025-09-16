@@ -37,12 +37,7 @@ describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () 
                     .orderBy("a.id")
                     .skip(1)
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     await qb
                         .getManyAndCount()
                         .should.be.rejectedWith(

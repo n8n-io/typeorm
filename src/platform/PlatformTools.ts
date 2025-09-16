@@ -36,30 +36,6 @@ export class PlatformTools {
             // switch case to explicit require statements for webpack compatibility.
             switch (name) {
                 /**
-                 * spanner
-                 */
-                case "spanner":
-                    return require("@google-cloud/spanner")
-
-                /**
-                 * mongodb
-                 */
-                case "mongodb":
-                    return require("mongodb")
-
-                /**
-                 * hana
-                 */
-                case "@sap/hana-client":
-                    return require("@sap/hana-client")
-
-                case "@sap/hana-client/extension/Stream":
-                    return require("@sap/hana-client/extension/Stream")
-
-                case "hdb-pool":
-                    return require("hdb-pool")
-
-                /**
                  * mysql
                  */
                 case "mysql":
@@ -67,12 +43,6 @@ export class PlatformTools {
 
                 case "mysql2":
                     return require("mysql2")
-
-                /**
-                 * oracle
-                 */
-                case "oracledb":
-                    return require("oracledb")
 
                 /**
                  * postgres
@@ -86,9 +56,6 @@ export class PlatformTools {
                 case "pg-query-stream":
                     return require("pg-query-stream")
 
-                case "typeorm-aurora-data-api-driver":
-                    return require("typeorm-aurora-data-api-driver")
-
                 /**
                  * redis
                  */
@@ -99,40 +66,10 @@ export class PlatformTools {
                     return require("ioredis")
 
                 /**
-                 * better-sqlite3
-                 */
-                case "better-sqlite3":
-                    return require("better-sqlite3")
-
-                /**
-                 * libSQL
-                 */
-                case "libsql":
-                    return require("@libsql/client")
-
-                /**
                  * sqlite
                  */
                 case "sqlite3":
                     return require("sqlite3")
-
-                /**
-                 * sql.js
-                 */
-                case "sql.js":
-                    return require("sql.js")
-
-                /**
-                 * sqlserver
-                 */
-                case "mssql":
-                    return require("mssql")
-
-                /**
-                 * react-native-sqlite
-                 */
-                case "react-native-sqlite-storage":
-                    return require("react-native-sqlite-storage")
             }
         } catch (err) {
             return require(path.resolve(

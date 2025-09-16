@@ -187,13 +187,6 @@ workflows:
           databases: "postgres"
           node-version: "16.20.0"
       - test:
-          name: test (cockroachdb) - Node v16
-          requires:
-            - lint
-            - build
-          databases: "cockroachdb"
-          node-version: "16.20.0"
-      - test:
           name: test (mysql mariadb) - Node v16
           requires:
             - lint
@@ -201,30 +194,9 @@ workflows:
           databases: "mysql mariadb"
           node-version: "16.20.0"
       - test:
-          name: test (mssql) - Node v16
+          name: test (sqlite sqlite-pooled) - Node v16
           requires:
             - lint
             - build
-          databases: "mssql"
-          node-version: "16.20.0"
-      - test:
-          name: test (oracle) - Node v16
-          requires:
-            - lint
-            - build
-          databases: "oracle"
-          node-version: "16.20.0"
-      - test:
-          name: test (sqlite better-sqlite3 sqljs libsql) - Node v16
-          requires:
-            - lint
-            - build
-          databases: "sqlite better-sqlite3 sqljs libsql"
-          node-version: "16.20.0"
-      - test:
-          name: test (mongodb) - Node v16
-          requires:
-            - lint
-            - build
-          databases: "mongodb"
+          databases: "sqlite sqlite-pooled"
           node-version: "16.20.0"

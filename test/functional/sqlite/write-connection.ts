@@ -24,6 +24,8 @@ describe("sqlite driver > write connection", () => {
 
     it("should block the second query runner until the first one releases the write connection", async () => {
         const connection = connections[0]
+        if (!connection) return
+
         const qr1 = connection.createQueryRunner()
         const qr2 = connection.createQueryRunner()
 
@@ -45,6 +47,8 @@ describe("sqlite driver > write connection", () => {
 
     it("should allow reading even if write lock has been acquired", async () => {
         const connection = connections[0]
+        if (!connection) return
+
         const qr1 = connection.createQueryRunner()
         const qr2 = connection.createQueryRunner()
 

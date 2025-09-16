@@ -93,14 +93,12 @@ describe("view entity > general", () => {
                 )
                 postCategories.length.should.be.equal(2)
 
-                const postId1 =
-                    connection.driver.options.type === "cockroachdb" ? "1" : 1
+                const postId1 = 1
                 postCategories[0].id.should.be.equal(postId1)
                 postCategories[0].name.should.be.equal("About BMW")
                 postCategories[0].categoryName.should.be.equal("Cars")
 
-                const postId2 =
-                    connection.driver.options.type === "cockroachdb" ? "2" : 2
+                const postId2 = 2
                 postCategories[1].id.should.be.equal(postId2)
                 postCategories[1].name.should.be.equal("About Boeing")
                 postCategories[1].categoryName.should.be.equal("Airplanes")
@@ -110,22 +108,19 @@ describe("view entity > general", () => {
                 )
                 photoAlbumCategories.length.should.be.equal(2)
 
-                const photoId1 =
-                    connection.driver.options.type === "cockroachdb" ? "1" : 1
+                const photoId1 = 1
                 photoAlbumCategories[0].id.should.be.equal(photoId1)
                 photoAlbumCategories[0].name.should.be.equal("BMW E39")
                 photoAlbumCategories[0].albumName.should.be.equal("BMW photos")
                 photoAlbumCategories[0].categoryName.should.be.equal("Cars")
 
-                const photoId2 =
-                    connection.driver.options.type === "cockroachdb" ? "2" : 2
+                const photoId2 = 2
                 photoAlbumCategories[1].id.should.be.equal(photoId2)
                 photoAlbumCategories[1].name.should.be.equal("BMW E60")
                 photoAlbumCategories[1].albumName.should.be.equal("BMW photos")
                 photoAlbumCategories[1].categoryName.should.be.equal("Cars")
 
-                const albumId =
-                    connection.driver.options.type === "cockroachdb" ? "1" : 1
+                const albumId = 1
                 const photoAlbumCategory = await connection.manager.findOneBy(
                     PhotoAlbumCategory,
                     { id: 1 },
@@ -137,8 +132,7 @@ describe("view entity > general", () => {
                 photoAlbumCategory!.photoAlbumId.should.be.equal(albumId)
 
                 const photoAlbums = await connection.manager.find(PhotoAlbum)
-                const photoId3 =
-                    connection.driver.options.type === "cockroachdb" ? "3" : 3
+                const photoId3 = 3
                 photoAlbums[0].id.should.be.equal(photoId3)
                 photoAlbums[0].name.should.be.equal("boeing737")
                 photoAlbums[0].albumName.should.be.equal("BOEING PHOTOS")

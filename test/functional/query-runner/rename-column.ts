@@ -64,19 +64,12 @@ describe("query runner > rename column", () => {
                 await queryRunner.renameColumn(table!, idColumn, "id2")
 
                 // should successfully drop pk if pk constraint was correctly renamed.
-                // CockroachDB does not allow to drop PK
-                if (!(connection.driver.options.type === "cockroachdb"))
-                    await queryRunner.dropPrimaryKey(table!)
-
                 table = await queryRunner.getTable("post")
                 expect(table!.findColumnByName("id")).to.be.undefined
                 table!.findColumnByName("id2")!.should.be.exist
 
                 // MySql and SAP does not support unique constraints
-                if (
-                    !DriverUtils.isMySQLFamily(connection.driver) &&
-                    !(connection.driver.options.type === "sap")
-                ) {
+                if (!DriverUtils.isMySQLFamily(connection.driver)) {
                     const oldUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
@@ -125,12 +118,7 @@ describe("query runner > rename column", () => {
                 let categoryTableName: string = "category"
 
                 // create different names to test renaming with custom schema and database.
-                if (connection.driver.options.type === "mssql") {
-                    questionTableName = "testDB.testSchema.question"
-                    categoryTableName = "testDB.testSchema.category"
-                    await queryRunner.createDatabase("testDB", true)
-                    await queryRunner.createSchema("testDB.testSchema", true)
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     questionTableName = "testSchema.question"
                     categoryTableName = "testSchema.category"
                     await queryRunner.createSchema("testSchema", true)

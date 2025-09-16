@@ -13,15 +13,7 @@ describe("query runner > stream", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [Book],
-            enabledDrivers: [
-                "cockroachdb",
-                "mssql",
-                "mysql",
-                "oracle",
-                "postgres",
-                "sap",
-                "spanner",
-            ],
+            enabledDrivers: ["mysql", "postgres"],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))
@@ -44,9 +36,6 @@ describe("query runner > stream", () => {
                     .getQuery()
 
                 const readStream = await queryRunner.stream(query)
-
-                if (!(connection.driver.options.type === "spanner"))
-                    await new Promise((ok) => readStream.once("readable", ok))
 
                 const data: any[] = []
 

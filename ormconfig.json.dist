@@ -41,24 +41,10 @@
     "skip": false,
     "name": "sqlite-pooled",
     "type": "sqlite-pooled",
-    "database": "./temp/sqlitedb-2.db",
+    "database": "./temp/sqlitedb-pooled.db",
     "logging": false,
     "relationLoadStrategy": "query",
     "poolSize": 4
-  },
-  {
-    "skip": false,
-    "name": "better-sqlite3",
-    "type": "better-sqlite3",
-    "database": "temp/better-sqlite3db.db",
-    "logging": false
-  },
-  {
-    "skip": false,
-    "name": "libsql",
-    "type": "libsql",
-    "database": "temp/libsqldb.db",
-    "logging": false
   },
   {
     "skip": false,
@@ -69,87 +55,6 @@
     "username": "test",
     "password": "test",
     "database": "test",
-    "logging": false
-  },
-  {
-    "skip": true,
-    "name": "mssql",
-    "type": "mssql",
-    "host": "localhost",
-    "username": "sa",
-    "password": "Admin12345",
-    "database": "tempdb",
-    "logging": false,
-    "extra": {
-      "trustServerCertificate": true
-    }
-  },
-  {
-    "skip": false,
-    "name": "oracle",
-    "type": "oracle",
-    "host": "localhost",
-    "username": "typeorm",
-    "password": "oracle",
-    "port": 1521,
-    "serviceName": "XEPDB1",
-    "logging": false
-  },
-  {
-    "skip": false,
-    "name": "cockroachdb",
-    "type": "cockroachdb",
-    "host": "localhost",
-    "port": 26257,
-    "username": "root",
-    "password": "",
-    "database": "defaultdb"
-  },
-  {
-    "skip": false,
-    "name": "sap",
-    "type": "sap",
-    "host": "192.168.56.102",
-    "port": 39015,
-    "username": "SYSTEM",
-    "password": "MySuperHanaPwd123!",
-    "database": "HXE",
-    "logging": false
-  },
-  {
-    "skip": false,
-    "disabledIfNotEnabledImplicitly": true,
-    "name": "mongodb",
-    "type": "mongodb",
-    "database": "test",
-    "logging": false,
-    "useNewUrlParser": true,
-    "useUnifiedTopology": true
-  },
-  {
-    "skip": true,
-    "name": "aurora-mysql",
-    "type": "aurora-mysql",
-    "region": "us-east-1",
-    "secretArn": "mysecret",
-    "resourceArn": "app-dbcluster",
-    "database": "app-dbcluster-mine",
-    "serviceConfigOptions": {
-      "maxRetries": 3
-    },
-    "logging": false
-  },
-  {
-    "skip": true,
-    "name": "aurora-postgres",
-    "type": "aurora-postgres",
-    "region": "us-east-1",
-    "secretArn": "mysecret",
-    "resourceArn": "app-dbcluster",
-    "database": "app-dbcluster-mine",
-    "serviceConfigOptions": {
-      "maxRetries": 3
-    },
     "logging": false
   }
 ]

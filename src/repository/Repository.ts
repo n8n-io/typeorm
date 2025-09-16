@@ -11,7 +11,6 @@ import { DeleteResult } from "../query-builder/result/DeleteResult"
 import { UpdateResult } from "../query-builder/result/UpdateResult"
 import { InsertResult } from "../query-builder/result/InsertResult"
 import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity"
-import { ObjectId } from "../driver/mongodb/typings"
 import { FindOptionsWhere } from "../find-options/FindOptionsWhere"
 import { UpsertOptions } from "./UpsertOptions"
 import { EntityTarget } from "../common/EntityTarget"
@@ -353,8 +352,6 @@ export class Repository<Entity extends ObjectLiteral> {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<Entity>,
         partialEntity: QueryDeepPartialEntity<Entity>,
     ): Promise<UpdateResult> {
@@ -397,8 +394,6 @@ export class Repository<Entity extends ObjectLiteral> {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<Entity>,
     ): Promise<DeleteResult> {
         return this.manager.delete(this.metadata.target as any, criteria as any)
@@ -418,8 +413,6 @@ export class Repository<Entity extends ObjectLiteral> {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<Entity>,
     ): Promise<UpdateResult> {
         return this.manager.softDelete(
@@ -442,8 +435,6 @@ export class Repository<Entity extends ObjectLiteral> {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<Entity>,
     ): Promise<UpdateResult> {
         return this.manager.restore(
@@ -617,9 +608,7 @@ export class Repository<Entity extends ObjectLiteral> {
      *     id: 1 // where "id" is your primary column name
      * })
      */
-    async findOneById(
-        id: number | string | Date | ObjectId,
-    ): Promise<Entity | null> {
+    async findOneById(id: number | string | Date): Promise<Entity | null> {
         return this.manager.findOneById(this.metadata.target, id)
     }
 

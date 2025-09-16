@@ -23,17 +23,11 @@ describe("github issues > #10494 Custom discriminator values when using Single T
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "better-sqlite3",
-                    "cockroachdb",
                     "mariadb",
-                    "mssql",
                     "mysql",
-                    "oracle",
                     "postgres",
-                    "spanner",
                     "sqlite",
                     "sqlite-pooled",
-                    "libsql",
                 ],
             })),
     )

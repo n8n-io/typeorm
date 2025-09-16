@@ -18,13 +18,7 @@ describe("github issues > #6815 RelationId() on nullable relation returns 'null'
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "cockroachdb",
-                    "mariadb",
-                    "mssql",
-                    "mysql",
-                    "postgres",
-                ],
+                enabledDrivers: ["mariadb", "mysql", "postgres"],
             })),
     )
 

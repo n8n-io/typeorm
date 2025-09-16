@@ -500,13 +500,7 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
                 this.getMainTableName(),
             )} SET ${updateColumnAndValues.join(", ")}${whereExpression}` // todo: how do we replace aliases in where to nothing?
         }
-        if (this.connection.driver.options.type === "mssql") {
-            return `UPDATE ${this.getTableName(
-                this.getMainTableName(),
-            )} SET ${updateColumnAndValues.join(
-                ", ",
-            )} OUTPUT ${returningExpression}${whereExpression}`
-        }
+
         return `UPDATE ${this.getTableName(
             this.getMainTableName(),
         )} SET ${updateColumnAndValues.join(

@@ -73,10 +73,7 @@ describe("query builder > update", () => {
                     .createQueryBuilder()
                     .update(User)
                     .set({
-                        name: () =>
-                            connection.driver.options.type === "mssql"
-                                ? "SUBSTRING('Dima Zotov', 1, 4)"
-                                : "SUBSTR('Dima Zotov', 1, 4)",
+                        name: () => "SUBSTR('Dima Zotov', 1, 4)",
                     })
                     .where("name = :name", {
                         name: "Alex Messer",
