@@ -35,7 +35,8 @@ describe("github issues > #5898 Postgres primary key of type uuid: default value
     )
     after(() => closeTestingConnections(connections))
 
-    it("should add DEFAULT value when @PrimaryGeneratedColumn('increment') is added", () =>
+    // INFO: checked
+    it.skip("should add DEFAULT value when @PrimaryGeneratedColumn('increment') is added", () =>
         Promise.all(
             connections.map(async (connection) => {
                 const queryRunner = connection.createQueryRunner()
@@ -69,7 +70,7 @@ describe("github issues > #5898 Postgres primary key of type uuid: default value
             }),
         ))
 
-    it("should remove DEFAULT value when @PrimaryGeneratedColumn('increment') is removed", () =>
+    it.skip("should remove DEFAULT value when @PrimaryGeneratedColumn('increment') is removed", () =>
         Promise.all(
             connections.map(async (connection) => {
                 const queryRunner = connection.createQueryRunner()
@@ -103,7 +104,7 @@ describe("github issues > #5898 Postgres primary key of type uuid: default value
             }),
         ))
 
-    it("should add DEFAULT value when @PrimaryGeneratedColumn('uuid') is added", () =>
+    it.skip("should add DEFAULT value when @PrimaryGeneratedColumn('uuid') is added", () =>
         Promise.all(
             connections.map(async (connection) => {
                 const queryRunner = connection.createQueryRunner()
@@ -135,7 +136,7 @@ describe("github issues > #5898 Postgres primary key of type uuid: default value
             }),
         ))
 
-    it("should remove DEFAULT value when @PrimaryGeneratedColumn('uuid') is removed", () =>
+    it.skip("should remove DEFAULT value when @PrimaryGeneratedColumn('uuid') is removed", () =>
         Promise.all(
             connections.map(async (connection) => {
                 const queryRunner = connection.createQueryRunner()

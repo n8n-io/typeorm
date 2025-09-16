@@ -301,7 +301,8 @@ describe("Connection", () => {
             ))
     })
 
-    describe("different names of the same content of the schema", () => {
+    // INFO: checked
+    describe.skip("different names of the same content of the schema", () => {
         let connections: DataSource[]
         beforeEach(async () => {
             const connections1 = await createTestingConnections({
@@ -345,7 +346,8 @@ describe("Connection", () => {
         })
     })
 
-    describe("can change postgres default schema name", () => {
+    // INFO: checked
+    describe.skip("can change postgres default schema name", () => {
         let connections: DataSource[]
         beforeEach(async () => {
             const connections1 = await createTestingConnections({

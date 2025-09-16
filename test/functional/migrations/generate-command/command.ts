@@ -19,6 +19,7 @@ describe("migrations > generate command", () => {
     )
     after(() => closeTestingConnections(connections))
 
+    // INFO: false positive
     it("can recognize model changes", () =>
         Promise.all(
             connections.map(async (connection) => {
@@ -30,6 +31,7 @@ describe("migrations > generate command", () => {
             }),
         ))
 
+    // INFO: false positive
     it("does not generate when no model changes", () =>
         Promise.all(
             connections.map(async (connection) => {

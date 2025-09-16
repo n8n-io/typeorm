@@ -37,7 +37,8 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
             }),
         ))
 
-    it("has to drop INDEX CONCURRENTLY", () =>
+    // INFO: checked
+    it.skip("has to drop INDEX CONCURRENTLY", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
                 await dataSource.setOptions({

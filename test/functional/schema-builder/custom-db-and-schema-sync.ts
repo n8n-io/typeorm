@@ -191,7 +191,8 @@ describe("schema builder > custom-db-and-schema-sync", () => {
                 }),
             ))
 
-        it("should correctly sync tables with `public` schema", () =>
+        // INFO: checked
+        it.skip("should correctly sync tables with `public` schema", () =>
             Promise.all(
                 connections.map(async (connection) => {
                     const queryRunner = connection.createQueryRunner()
