@@ -8,21 +8,13 @@ import {
 } from "../../utils/test-utils"
 import { Bar } from "./entity/Bar"
 
-describe("github issues > #2199 - Inserting value for @PrimaryGeneratedColumn() for mysql, sqlite and mssql", () => {
+describe("github issues > #2199 - Inserting value for @PrimaryGeneratedColumn() for mysql, sqlite", () => {
     let connections: DataSource[]
     before(
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "mysql",
-                    "mariadb",
-                    "sqlite",
-                    "sqlite-pooled",
-                    "better-sqlite3",
-                    "mssql",
-                    "libsql",
-                ],
+                enabledDrivers: ["mysql", "mariadb", "sqlite", "sqlite-pooled"],
                 schemaCreate: true,
                 dropSchema: true,
             })),
@@ -59,37 +51,5 @@ describe("github issues > #2199 - Inserting value for @PrimaryGeneratedColumn() 
                 const thirdBar = await connection.manager.save(thirdBarQuery)
                 expect(thirdBar.id).to.eql(5)
             }),
-        ))
-
-    it("should reset mssql's INSERT_IDENTITY flag correctly after failed queries", () =>
-        Promise.all(
-            connections
-                .filter(
-                    (connection) => connection.driver.options.type === "mssql",
-                )
-                .map(async (connection) => {
-                    // Run a query that failes at the database level
-                    await expect(
-                        connection
-                            .createQueryBuilder()
-                            .insert()
-                            .into(Bar)
-                            .values({
-                                id: 20,
-                                description: () => "NONEXISTINGFUNCTION()",
-                            })
-                            .execute(),
-                    ).to.be.rejectedWith(
-                        "Error: 'NONEXISTINGFUNCTION' is not a recognized built-in function name.",
-                    )
-                    // And now check that IDENTITY_INSERT is disabled by inserting something without an ID value and see if that works
-                    const successfulBarQuery = connection.manager.create(Bar, {
-                        description: "default id value",
-                    })
-                    const bar = await connection.manager.save(
-                        successfulBarQuery,
-                    )
-                    expect(bar.id).to.be.a("number")
-                }),
         ))
 })

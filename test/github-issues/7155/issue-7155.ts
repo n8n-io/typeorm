@@ -20,13 +20,6 @@ import {
     SingleIdMaterialized,
     SingleIdNested,
 } from "./entity/RemainingTreeEntities"
-import {
-    SqlServerMultiIdMaterialized,
-    SqlServerMultiIdNested,
-    SqlServerSingleIdClosure,
-    SqlServerSingleIdMaterialized,
-    SqlServerSingleIdNested,
-} from "./entity/SqlServerTreeEntities"
 
 describe("github issues > #7155", () => {
     let connections: DataSource[]
@@ -298,11 +291,6 @@ describe("github issues > #7155", () => {
     it("(Closure/SingleID/Remove) Remove branch with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "single_closure")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -336,11 +324,6 @@ describe("github issues > #7155", () => {
     it("(Closure/SingleID/Remove) Remove multiple branches with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "single_closure")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -703,11 +686,6 @@ describe("github issues > #7155", () => {
     it("(Nested/SingleID/Remove) Remove branch with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const expectedResults = [
                     { id: 1, left: 1, right: 6 },
                     { id: 2, left: 2, right: 3 },
@@ -758,11 +736,6 @@ describe("github issues > #7155", () => {
     it("(Nested/SingleID/Remove) Remove multiple branches with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const expectedResults = [
                     { id: 1, left: 1, right: 6 },
                     { id: 4, left: 2, right: 5 },
@@ -1046,11 +1019,6 @@ describe("github issues > #7155", () => {
     it("(Materialized/SingleID/Remove) Remove branch with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "single_materialized")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -1084,11 +1052,6 @@ describe("github issues > #7155", () => {
     it("(Materialized/SingleID/Remove) Remove multiple branches with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "single_materialized")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -1510,11 +1473,6 @@ describe("github issues > #7155", () => {
     it("(Nested/MultiID/Remove) Remove branch with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const expectedResults = [
                     { column: "A", row: 1, left: 1, right: 6 },
                     { column: "A", row: 2, left: 2, right: 3 },
@@ -1575,11 +1533,6 @@ describe("github issues > #7155", () => {
     it("(Nested/MultiID/Remove) Remove multiple branches with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const expectedResults = [
                     { column: "A", row: 1, left: 1, right: 6 },
                     { column: "A", row: 3, left: 2, right: 5 },
@@ -1931,11 +1884,6 @@ describe("github issues > #7155", () => {
     it("(Materialized/MultiID/Remove) Remove branch with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "multi_materialized")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -1979,11 +1927,6 @@ describe("github issues > #7155", () => {
     it("(Materialized/MultiID/Remove) Remove multiple branches with single root", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "mssql") {
-                    // This test will not working on sql server
-                    return
-                }
-
                 const Entity = getEntity(connection, "multi_materialized")
                 const repo = connection.getTreeRepository(Entity)
 
@@ -2040,7 +1983,7 @@ describe("github issues > #7155 > tree relations", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/RelationEntities{.js,.ts}"],
-                enabledDrivers: ["mysql", "postgres", "mssql"],
+                enabledDrivers: ["mysql", "postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
@@ -2187,10 +2130,6 @@ async function generateConnections(): Promise<DataSource[]> {
             entities: [__dirname + "/entity/Remaining*{.js,.ts}"],
             enabledDrivers: ["mysql", "postgres"],
         }),
-        createTestingConnections({
-            entities: [__dirname + "/entity/SqlServer*{.js,.ts}"],
-            enabledDrivers: ["mssql"],
-        }),
     ])
 
     let result: DataSource[] = []
@@ -2202,9 +2141,6 @@ async function generateConnections(): Promise<DataSource[]> {
 }
 
 function getEntity(connection: DataSource, type: EntityType): any {
-    if (connection.driver.options.type === "mssql") {
-        return entityMap[type]["mssql"]
-    }
     return entityMap[type]["other"]
 }
 
@@ -2217,23 +2153,18 @@ type EntityType =
 
 const entityMap = {
     single_closure: {
-        mssql: SqlServerSingleIdClosure,
         other: SingleIdClosure,
     },
     single_nested: {
-        mssql: SqlServerSingleIdNested,
         other: SingleIdNested,
     },
     single_materialized: {
-        mssql: SqlServerSingleIdMaterialized,
         other: SingleIdMaterialized,
     },
     multi_nested: {
-        mssql: SqlServerMultiIdNested,
         other: MultiIdNested,
     },
     multi_materialized: {
-        mssql: SqlServerMultiIdMaterialized,
         other: MultiIdMaterialized,
     },
 }

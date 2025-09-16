@@ -29,10 +29,7 @@ describe("github issues > #4452 InsertQueryBuilder fails on some SQL Expressions
                     .into(User)
                     .values({
                         name: "Ben Dover",
-                        created_at:
-                            connection.driver.options.type === "oracle"
-                                ? () => "SYSDATE"
-                                : () => "current_timestamp",
+                        created_at: () => "current_timestamp",
                     })
                     .execute()
 

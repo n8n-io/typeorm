@@ -6,12 +6,7 @@ import { MysqlDriver } from "../../../src/driver/mysql/MysqlDriver"
 import { PrimaryGeneratedColumn } from "../../../src/decorator/columns/PrimaryGeneratedColumn"
 import { Column } from "../../../src/decorator/columns/Column"
 import { Entity } from "../../../src/decorator/entity/Entity"
-
-// Uncomment when testing the aurora data API driver
-// import {AuroraMysqlDriver} from "../../../src/driver/aurora-mysql/AuroraMysqlDriver";
-// import {AuroraDataApiConnectionOptions} from "../../../src/driver/aurora-mysql/AuroraDataApiConnectionOptions";
-// import {AuroraPostgresDriver} from "../../../src/driver/postgres/PostgresDriver";
-// import {AuroraPostgresConnectionOptions} from "../../../src/driver/aurora-postgres/AuroraPostgresConnectionOptions";
+import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
 
 describe("ConnectionManager", () => {
     @Entity()
@@ -29,7 +24,7 @@ describe("ConnectionManager", () => {
     }
 
     describe("create", function () {
-        it("should create a mysql connection when mysql driver is specified", () => {
+        it("should create a mysql connection when mysql driver is specified", async () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "default",
                 entities: [],
@@ -38,21 +33,35 @@ describe("ConnectionManager", () => {
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
             connection.name.should.be.equal("default")
-            connection.driver.should.be.instanceOf(MysqlDriver)
             connection.isInitialized.should.be.false
+            expect(connection.driver).to.be.undefined
+
+            await connection.initialize()
+            connection.driver.should.be.instanceOf(MysqlDriver)
+            connection.isInitialized.should.be.true
+
+            await connection.destroy()
         })
 
-        /* it("should create a postgres connection when postgres driver is specified", () => {
-            const options: ConnectionOptions = {
-                name: "myPostgresConnection",
-                driver: createTestingConnectionOptions("postgres")
-            };
-            const connectionManager = new ConnectionManager();
-            const connection = connectionManager.create(options);
-            connection.name.should.be.equal("myPostgresConnection");
-            connection.driver.should.be.instanceOf(PostgresDriver);
-            connection.isConnected.should.be.false;
-        });*/
+        it("should create a postgres connection when postgres driver is specified", async () => {
+            const options = setupSingleTestingConnection("postgres", {
+                name: "default",
+                entities: [],
+            })
+            if (!options) return
+
+            const connectionManager = new ConnectionManager()
+            const connection = connectionManager.create(options)
+            connection.name.should.be.equal("default")
+            connection.isInitialized.should.be.false
+            expect(connection.driver).to.be.undefined
+
+            await connection.initialize()
+            connection.isInitialized.should.be.true
+            connection.driver.should.be.instanceOf(PostgresDriver)
+
+            await connection.destroy()
+        })
     })
 
     /*describe("createAndConnect", function() {
@@ -68,42 +77,6 @@ describe("ConnectionManager", () => {
             connection.driver.should.be.instanceOf(MysqlDriver);
             connection.isConnected.should.be.true;
             await connection.close();
-
-        it("should create a aurora connection when aurora-data-api driver is specified", async () => {
-            const options = setupSingleTestingConnection("aurora-mysql", {
-                name: "aurora-mysql",
-                dropSchema: false,
-                schemaCreate: false,
-                enabledDrivers: ["aurora-mysql"]
-            });
-            const connectionManager = new ConnectionManager();
-            const connection = connectionManager.create(options!);
-            await connection.connect();
-            connection.name.should.contain("aurora-mysql");
-            connection.driver.should.be.instanceOf(AuroraMysqlDriver);
-            connection.isConnected.should.be.true;
-            const serviceConfigOptions = (connection.options as AuroraDataApiConnectionOptions).serviceConfigOptions;
-            expect(serviceConfigOptions).to.include({ maxRetries: 3, region: "us-east-1" });
-            await connection.close();
-        });
-
-        it("should create a aurora connection when aurora-postgres driver is specified", async () => {
-            const options = setupSingleTestingConnection("aurora-postgres", {
-                name: "aurora-postgres",
-                dropSchema: false,
-                schemaCreate: false,
-                enabledDrivers: ["aurora-postgres"]
-            });
-            const connectionManager = new ConnectionManager();
-            const connection = connectionManager.create(options!);
-            await connection.connect();
-            connection.name.should.contain("aurora-postgres");
-            connection.driver.should.be.instanceOf(AuroraPostgresDriver);
-            connection.isConnected.should.be.true;
-            const serviceConfigOptions = (connection.options as AuroraPostgresConnectionOptions).serviceConfigOptions;
-            expect(serviceConfigOptions).to.include({ maxRetries: 3, region: "us-east-1" });
-            await connection.close();
-        });
 
     /!*    it("should create a postgres connection when postgres driver is specified AND connect to it", async () => {
             const options: ConnectionOptions = {
@@ -129,7 +102,7 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             connectionManager
                 .get("myMysqlConnection")
                 .should.be.equal(connection)
@@ -143,7 +116,7 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             expect(() =>
                 connectionManager.get("myPostgresConnection"),
             ).to.throw(Error)

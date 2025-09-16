@@ -27,14 +27,9 @@ describe("query runner > add column", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
-                let stringType = "varchar"
-                if (connection.driver.options.type === "spanner") {
-                    stringType = "string"
-                }
+                const stringType = "varchar"
 
                 const queryRunner = connection.createQueryRunner()
 
@@ -43,26 +38,14 @@ describe("query runner > add column", () => {
                     name: "secondId",
                     type: numericType,
                     isUnique: true,
-                    isNullable: connection.driver.options.type === "spanner",
+                    isNullable: false,
                 })
 
-                // CockroachDB and Spanner does not support altering primary key constraint
-                if (
-                    !(
-                        connection.driver.options.type === "cockroachdb" ||
-                        connection.driver.options.type === "spanner"
-                    )
-                )
-                    column1.isPrimary = true
-
-                // MySql, CockroachDB and Sqlite does not supports autoincrement composite primary keys.
-                // Spanner does not support autoincrement.
+                // MySql, Sqlite does not supports autoincrement composite primary keys.
                 if (
                     !(
                         DriverUtils.isMySQLFamily(connection.driver) ||
-                        DriverUtils.isSQLiteFamily(connection.driver) ||
-                        connection.driver.options.type === "cockroachdb" ||
-                        connection.driver.options.type === "spanner"
+                        DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
                     column1.isGenerated = true
@@ -74,7 +57,7 @@ describe("query runner > add column", () => {
                     type: stringType,
                     length: "100",
                     default: "'this is description'",
-                    isNullable: connection.driver.options.type === "spanner",
+                    isNullable: false,
                 })
 
                 let column3 = new TableColumn({
@@ -83,7 +66,7 @@ describe("query runner > add column", () => {
                     length: "200",
                     generatedType: "STORED",
                     asExpression: "text || tag",
-                    isNullable: connection.driver.options.type === "spanner",
+                    isNullable: false,
                 })
 
                 let column4 = new TableColumn({
@@ -92,7 +75,7 @@ describe("query runner > add column", () => {
                     length: "200",
                     generatedType: "VIRTUAL",
                     asExpression: "text || tag",
-                    isNullable: connection.driver.options.type === "spanner",
+                    isNullable: false,
                 })
 
                 await queryRunner.addColumn(table!, column1)
@@ -102,29 +85,14 @@ describe("query runner > add column", () => {
                 column1 = table!.findColumnByName("secondId")!
                 column1!.should.be.exist
                 column1!.isUnique.should.be.true
-                if (connection.driver.options.type === "spanner") {
-                    column1!.isNullable.should.be.true
-                } else {
-                    column1!.isNullable.should.be.false
-                }
+                column1!.isNullable.should.be.false
 
-                // CockroachDB and Spanner does not support altering primary key constraint
-                if (
-                    !(
-                        connection.driver.options.type === "cockroachdb" ||
-                        connection.driver.options.type === "spanner"
-                    )
-                )
-                    column1!.isPrimary.should.be.true
-
-                // MySql, CockroachDB and Sqlite does not supports autoincrement composite primary keys.
+                // MySql, Sqlite does not supports autoincrement composite primary keys.
                 // Spanner does not support autoincrement.
                 if (
                     !(
                         DriverUtils.isMySQLFamily(connection.driver) ||
-                        DriverUtils.isSQLiteFamily(connection.driver) ||
-                        connection.driver.options.type === "cockroachdb" ||
-                        connection.driver.options.type === "spanner"
+                        DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
                     column1!.isGenerated.should.be.true
@@ -135,19 +103,11 @@ describe("query runner > add column", () => {
                 column2.should.be.exist
                 column2.length.should.be.equal("100")
 
-                // Spanner does not support DEFAULT
-                if (!(connection.driver.options.type === "spanner")) {
-                    column2!.default!.should.be.equal("'this is description'")
-                }
-
                 if (
                     DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "postgres" ||
-                    connection.driver.options.type === "spanner"
+                    connection.driver.options.type === "postgres"
                 ) {
                     const isMySQL = connection.options.type === "mysql"
-                    const isSpanner =
-                        connection.driver.options.type === "spanner"
                     let postgresSupported = false
 
                     if (connection.driver.options.type === "postgres") {
@@ -156,7 +116,7 @@ describe("query runner > add column", () => {
                         ).isGeneratedColumnsSupported
                     }
 
-                    if (isMySQL || isSpanner || postgresSupported) {
+                    if (isMySQL || postgresSupported) {
                         // create typeorm_metadata table manually
                         await createTypeormMetadataTable(
                             connection.driver,

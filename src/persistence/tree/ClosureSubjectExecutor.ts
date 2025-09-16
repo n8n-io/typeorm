@@ -321,11 +321,6 @@ export class ClosureSubjectExecutor {
      * Executes operations when subject is being removed.
      */
     async remove(subjects: Subject | Subject[]): Promise<void> {
-        // Only mssql need to execute deletes for the juntion table as it doesn't support multi cascade paths.
-        if (!(this.queryRunner.connection.driver.options.type === "mssql")) {
-            return
-        }
-
         if (!Array.isArray(subjects)) subjects = [subjects]
 
         const escape = (alias: string) =>

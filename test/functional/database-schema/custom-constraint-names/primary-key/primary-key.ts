@@ -16,7 +16,7 @@ describe("database schema > custom constraint names > primary key", () => {
         async () =>
             (dataSources = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["postgres", "cockroachdb", "mssql", "oracle"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))

@@ -20,13 +20,7 @@ describe("github issues > #2499 Postgres DELETE query result is useless", () => 
                 // sqljs -- the same
                 // mongodb requires another test and it is also doesn't return correct number
                 // of removed documents (possibly a bug with mongodb itself)
-                enabledDrivers: [
-                    "mysql",
-                    "mariadb",
-                    "mssql",
-                    "postgres",
-                    "aurora-mysql",
-                ],
+                enabledDrivers: ["mysql", "mariadb", "postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

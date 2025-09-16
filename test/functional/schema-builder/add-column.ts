@@ -28,16 +28,9 @@ describe("schema builder > add column", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
                 let stringType = "varchar"
-                if (connection.driver.options.type === "sap") {
-                    stringType = "nvarchar"
-                } else if (connection.driver.options.type === "spanner") {
-                    stringType = "string"
-                }
 
                 const columnMetadata1 = new ColumnMetadata({
                     connection: connection,
@@ -49,10 +42,7 @@ describe("schema builder > add column", () => {
                         options: {
                             type: numericType,
                             name: "secondId",
-                            nullable:
-                                connection.driver.options.type === "spanner"
-                                    ? true
-                                    : false,
+                            nullable: false,
                         },
                     },
                 })
@@ -69,10 +59,7 @@ describe("schema builder > add column", () => {
                             type: stringType,
                             name: "description",
                             length: 100,
-                            nullable:
-                                connection.driver.options.type === "spanner"
-                                    ? true
-                                    : false,
+                            nullable: false,
                         },
                     },
                 })
@@ -86,11 +73,7 @@ describe("schema builder > add column", () => {
                 const table = await queryRunner.getTable("post")
                 const column1 = table!.findColumnByName("secondId")!
                 column1.should.be.exist
-                if (connection.driver.options.type === "spanner") {
-                    column1.isNullable.should.be.true
-                } else {
-                    column1.isNullable.should.be.false
-                }
+                column1.isNullable.should.be.false
 
                 const column2 = table!.findColumnByName("description")!
                 column2.should.be.exist

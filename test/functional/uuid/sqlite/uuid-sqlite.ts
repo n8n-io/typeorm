@@ -14,12 +14,7 @@ describe("uuid-sqlite", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: [
-                "sqlite",
-                "sqlite-pooled",
-                "better-sqlite3",
-                "libsql",
-            ],
+            enabledDrivers: ["sqlite", "sqlite-pooled"],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))

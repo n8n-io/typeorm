@@ -61,13 +61,7 @@ describe("github issues > #4980 (Postgres) onUpdate: 'CASCADE' doesn't work on m
                 )
                 expect(booksFk).not.to.be.undefined
                 expect(booksFk!.onDelete).to.be.equal("NO ACTION")
-
-                // Oracle does not support ON UPDATE clause
-                if (connection.driver.options.type === "oracle") {
-                    expect(booksFk!.onUpdate).to.be.equal("NO ACTION")
-                } else {
-                    expect(booksFk!.onUpdate).to.be.equal("CASCADE")
-                }
+                expect(booksFk!.onUpdate).to.be.equal("CASCADE")
             }),
         ))
 
@@ -85,13 +79,7 @@ describe("github issues > #4980 (Postgres) onUpdate: 'CASCADE' doesn't work on m
                 )
                 expect(authorsFk).not.to.be.undefined
                 expect(authorsFk!.onDelete).to.be.equal("CASCADE")
-
-                // Oracle does not support ON UPDATE clause
-                if (connection.driver.options.type === "oracle") {
-                    expect(authorsFk!.onUpdate).to.be.equal("NO ACTION")
-                } else {
-                    expect(authorsFk!.onUpdate).to.be.equal("CASCADE")
-                }
+                expect(authorsFk!.onUpdate).to.be.equal("CASCADE")
             }),
         ))
 })

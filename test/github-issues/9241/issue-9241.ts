@@ -16,12 +16,7 @@ describe("github issues > #9241 Incorrect insert order when cascade inserting pa
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "sqlite",
-                    "sqlite-pooled",
-                    "better-sqlite3",
-                    "libsql",
-                ],
+                enabledDrivers: ["sqlite", "sqlite-pooled"],
                 schemaCreate: true,
                 dropSchema: true,
             })),

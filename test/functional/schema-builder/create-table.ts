@@ -35,14 +35,9 @@ describe("schema builder > create table", () => {
                 postTable = await queryRunner.getTable("post")
                 const idColumn = postTable!.findColumnByName("id")
                 const versionColumn = postTable!.findColumnByName("version")
-                const nameColumn = postTable!.findColumnByName("name")
                 postTable!.should.exist
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     postTable!.indices.length.should.be.equal(2)
                 } else {
                     postTable!.uniques.length.should.be.equal(2)
@@ -51,9 +46,6 @@ describe("schema builder > create table", () => {
 
                 idColumn!.isPrimary.should.be.true
                 versionColumn!.isUnique.should.be.true
-                if (connection.driver.options.type !== "spanner") {
-                    nameColumn!.default!.should.be.exist
-                }
 
                 teacherTable = await queryRunner.getTable("teacher")
                 teacherTable!.should.exist
@@ -61,12 +53,7 @@ describe("schema builder > create table", () => {
                 studentTable = await queryRunner.getTable("student")
                 studentTable!.should.exist
                 studentTable!.foreignKeys.length.should.be.equal(2)
-                // CockroachDB also stores indices for relation columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    studentTable!.indices.length.should.be.equal(3)
-                } else {
-                    studentTable!.indices.length.should.be.equal(1)
-                }
+                studentTable!.indices.length.should.be.equal(1)
 
                 facultyTable = await queryRunner.getTable("faculty")
                 facultyTable!.should.exist

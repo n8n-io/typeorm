@@ -14,7 +14,6 @@ import {
 } from "../../src"
 import { QueryResultCache } from "../../src/cache/QueryResultCache"
 import path from "path"
-import { ObjectUtils } from "../../src/util/ObjectUtils"
 import { EntitySubscriberMetadataArgs } from "../../src/metadata-args/EntitySubscriberMetadataArgs"
 
 /**
@@ -369,27 +368,6 @@ getMetadataArgsStorage().entitySubscribers.push({
 } as EntitySubscriberMetadataArgs)
 
 export function createDataSource(options: DataSourceOptions): DataSource {
-    if (options.type === "spanner") {
-        process.env.SPANNER_EMULATOR_HOST = "localhost:9010"
-        // process.env.GOOGLE_APPLICATION_CREDENTIALS =
-        //     "/Users/messer/Documents/google/typeorm-spanner-3b57e071cbf0.json"
-        if (Array.isArray(options.subscribers)) {
-            options.subscribers.push(
-                GeneratedColumnReplacerSubscriber as Function,
-            )
-        } else if (ObjectUtils.isObject(options.subscribers)) {
-            options.subscribers["GeneratedColumnReplacer"] =
-                GeneratedColumnReplacerSubscriber
-        } else {
-            options = {
-                ...options,
-                subscribers: {
-                    GeneratedColumnReplacer: GeneratedColumnReplacerSubscriber,
-                },
-            }
-        }
-    }
-
     return new DataSource(options)
 }
 
@@ -424,36 +402,6 @@ export async function createTestingConnections(
 
             for (const database of databases) {
                 await queryRunner.createDatabase(database, true)
-            }
-
-            if (connection.driver.options.type === "cockroachdb") {
-                await queryRunner.query(
-                    `ALTER RANGE default CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `ALTER DATABASE system CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `ALTER TABLE system.public.jobs CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `ALTER RANGE meta CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `ALTER RANGE system CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `ALTER RANGE liveness CONFIGURE ZONE USING num_replicas = 1, gc.ttlseconds = 60;`,
-                )
-                await queryRunner.query(
-                    `SET CLUSTER SETTING jobs.retention_time = '180s';`,
-                )
-                await queryRunner.query(
-                    `SET CLUSTER SETTING kv.range_merge.queue_interval = '200ms'`,
-                )
-                await queryRunner.query(
-                    `SET CLUSTER SETTING sql.defaults.experimental_temporary_tables.enabled = 'true';`,
-                )
             }
 
             // create new schemas

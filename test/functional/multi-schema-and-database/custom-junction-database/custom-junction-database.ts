@@ -24,48 +24,27 @@ describe("multi-schema-and-database > custom-junction-database", () => {
         Promise.all(
             connections.map(async (connection) => {
                 const queryRunner = connection.createQueryRunner()
-                if (connection.driver.options.type === "mssql") {
-                    const postTable = await queryRunner.getTable("yoman..post")
-                    const categoryTable = await queryRunner.getTable(
-                        "yoman..category",
-                    )
-                    const junctionMetadata = connection.getManyToManyMetadata(
-                        Post,
-                        "categories",
-                    )!
-                    const junctionTable = await queryRunner.getTable(
-                        "yoman.." + junctionMetadata.tableName,
-                    )
-                    expect(postTable).not.to.be.undefined
-                    postTable!.name!.should.be.equal("yoman..post")
-                    expect(categoryTable).not.to.be.undefined
-                    categoryTable!.name!.should.be.equal("yoman..category")
-                    expect(junctionTable).not.to.be.undefined
-                    junctionTable!.name!.should.be.equal(
-                        "yoman.." + junctionMetadata.tableName,
-                    )
-                } else {
-                    // mysql
-                    const postTable = await queryRunner.getTable("yoman.post")
-                    const categoryTable = await queryRunner.getTable(
-                        "yoman.category",
-                    )
-                    const junctionMetadata = connection.getManyToManyMetadata(
-                        Post,
-                        "categories",
-                    )!
-                    const junctionTable = await queryRunner.getTable(
-                        "yoman." + junctionMetadata.tableName,
-                    )
-                    expect(postTable).not.to.be.undefined
-                    postTable!.name!.should.be.equal("yoman.post")
-                    expect(categoryTable).not.to.be.undefined
-                    categoryTable!.name!.should.be.equal("yoman.category")
-                    expect(junctionTable).not.to.be.undefined
-                    junctionTable!.name!.should.be.equal(
-                        "yoman." + junctionMetadata.tableName,
-                    )
-                }
+
+                // mysql
+                const postTable = await queryRunner.getTable("yoman.post")
+                const categoryTable = await queryRunner.getTable(
+                    "yoman.category",
+                )
+                const junctionMetadata = connection.getManyToManyMetadata(
+                    Post,
+                    "categories",
+                )!
+                const junctionTable = await queryRunner.getTable(
+                    "yoman." + junctionMetadata.tableName,
+                )
+                expect(postTable).not.to.be.undefined
+                postTable!.name!.should.be.equal("yoman.post")
+                expect(categoryTable).not.to.be.undefined
+                categoryTable!.name!.should.be.equal("yoman.category")
+                expect(junctionTable).not.to.be.undefined
+                junctionTable!.name!.should.be.equal(
+                    "yoman." + junctionMetadata.tableName,
+                )
                 await queryRunner.release()
             }),
         ))

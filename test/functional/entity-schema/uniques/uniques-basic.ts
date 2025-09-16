@@ -27,11 +27,7 @@ describe("entity-schema > uniques", () => {
                 const table = await queryRunner.getTable("person")
                 await queryRunner.release()
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     expect(table!.indices.length).to.be.equal(1)
                     expect(table!.indices[0].name).to.be.equal("UNIQUE_TEST")
                     expect(table!.indices[0].isUnique).to.be.true

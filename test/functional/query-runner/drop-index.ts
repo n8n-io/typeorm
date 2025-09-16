@@ -24,32 +24,17 @@ describe("query runner > drop index", () => {
                 const queryRunner = connection.createQueryRunner()
 
                 let table = await queryRunner.getTable("student")
-                // CockroachDB also stores indices for relation columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    table!.indices.length.should.be.equal(3)
-                } else {
-                    table!.indices.length.should.be.equal(1)
-                }
+                table!.indices.length.should.be.equal(1)
 
                 await queryRunner.dropIndex(table!, table!.indices[0])
 
                 table = await queryRunner.getTable("student")
-                // CockroachDB also stores indices for relation columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    table!.indices.length.should.be.equal(2)
-                } else {
-                    table!.indices.length.should.be.equal(0)
-                }
+                table!.indices.length.should.be.equal(0)
 
                 await queryRunner.executeMemoryDownSql()
 
                 table = await queryRunner.getTable("student")
-                // CockroachDB also stores indices for relation columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    table!.indices.length.should.be.equal(3)
-                } else {
-                    table!.indices.length.should.be.equal(1)
-                }
+                table!.indices.length.should.be.equal(1)
 
                 await queryRunner.release()
             }),

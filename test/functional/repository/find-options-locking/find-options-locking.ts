@@ -35,26 +35,7 @@ describe("repository > find options > locking", () => {
     it("should throw error if pessimistic lock used without transaction", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    DriverUtils.isSQLiteFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
-                if (connection.driver.options.type === "cockroachdb") {
-                    return Promise.all([
-                        connection
-                            .getRepository(PostWithVersion)
-                            .findOne({
-                                where: { id: 1 },
-                                lock: { mode: "pessimistic_write" },
-                            })
-                            .should.be.rejectedWith(
-                                PessimisticLockTransactionRequiredError,
-                            ),
-                    ])
-                }
+                if (DriverUtils.isSQLiteFamily(connection.driver)) return
 
                 return Promise.all([
                     connection
@@ -83,25 +64,7 @@ describe("repository > find options > locking", () => {
     it("should not throw error if pessimistic lock used with transaction", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    DriverUtils.isSQLiteFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
-                if (connection.driver.options.type === "cockroachdb") {
-                    return connection.manager.transaction((entityManager) => {
-                        return Promise.all([
-                            entityManager
-                                .getRepository(PostWithVersion)
-                                .findOne({
-                                    where: { id: 1 },
-                                    lock: { mode: "pessimistic_write" },
-                                }).should.not.be.rejected,
-                        ])
-                    })
-                }
+                if (DriverUtils.isSQLiteFamily(connection.driver)) return
 
                 return connection.manager.transaction((entityManager) => {
                     return Promise.all([
@@ -122,13 +85,7 @@ describe("repository > find options > locking", () => {
     it("should attach pessimistic read lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    DriverUtils.isSQLiteFamily(connection.driver) ||
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
+                if (DriverUtils.isSQLiteFamily(connection.driver)) return
 
                 const executedSql: string[] = []
 
@@ -155,14 +112,6 @@ describe("repository > find options > locking", () => {
                 } else if (connection.driver.options.type === "postgres") {
                     expect(executedSql[0].indexOf("FOR SHARE") !== -1).to.be
                         .true
-                } else if (connection.driver.options.type === "oracle") {
-                    expect(executedSql[0].indexOf("FOR UPDATE") !== -1).to.be
-                        .true
-                } else if (connection.driver.options.type === "mssql") {
-                    expect(
-                        executedSql[0].indexOf("WITH (HOLDLOCK, ROWLOCK)") !==
-                            -1,
-                    ).to.be.true
                 }
             }),
         ))
@@ -320,12 +269,7 @@ describe("repository > find options > locking", () => {
     it("should attach pessimistic write lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    DriverUtils.isSQLiteFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
+                if (DriverUtils.isSQLiteFamily(connection.driver)) return
 
                 const executedSql: string[] = []
 
@@ -348,48 +292,11 @@ describe("repository > find options > locking", () => {
 
                 if (
                     DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "postgres" ||
-                    connection.driver.options.type === "oracle"
+                    connection.driver.options.type === "postgres"
                 ) {
                     expect(executedSql[0].indexOf("FOR UPDATE") !== -1).to.be
                         .true
-                } else if (connection.driver.options.type === "mssql") {
-                    expect(
-                        executedSql[0].indexOf("WITH (UPDLOCK, ROWLOCK)") !==
-                            -1,
-                    ).to.be.true
                 }
-            }),
-        ))
-
-    it("should attach dirty read lock statement on query if locking enabled", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                if (!(connection.driver.options.type === "mssql")) return
-
-                const executedSql: string[] = []
-
-                await connection.manager.transaction((entityManager) => {
-                    const originalQuery = entityManager.queryRunner!.query.bind(
-                        entityManager.queryRunner,
-                    )
-                    entityManager.queryRunner!.query = (
-                        ...args: Parameters<QueryRunner["query"]>
-                    ) => {
-                        executedSql.push(args[0])
-                        return originalQuery(...args)
-                    }
-
-                    return entityManager
-                        .getRepository(PostWithVersion)
-                        .findOne({
-                            where: { id: 1 },
-                            lock: { mode: "dirty_read" },
-                        })
-                })
-
-                expect(executedSql[0].indexOf("WITH (NOLOCK)") !== -1).to.be
-                    .true
             }),
         ))
 
@@ -464,9 +371,6 @@ describe("repository > find options > locking", () => {
     it("should throw error if actual updated date does not equal expected updated date", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // skipped because inserted milliseconds are not always equal to what we say it to insert, unskip when needed
-                if (connection.driver.options.type === "mssql") return
-
                 const post = new PostWithUpdateDate()
                 post.title = "New post"
                 await connection.manager.save(post)
@@ -487,9 +391,6 @@ describe("repository > find options > locking", () => {
     it("should not throw error if actual updated date and expected updated date are equal", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // skipped because inserted milliseconds are not always equal to what we say it to insert, unskip when needed
-                if (connection.driver.options.type === "mssql") return
-
                 const post = new PostWithUpdateDate()
                 post.title = "New post"
                 await connection.manager.save(post)
@@ -504,9 +405,6 @@ describe("repository > find options > locking", () => {
     it("should work if both version and update date columns applied", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // skipped because inserted milliseconds are not always equal to what we say it to insert, unskip when needed
-                if (connection.driver.options.type === "mssql") return
-
                 const post = new PostWithVersionAndUpdatedDate()
                 post.title = "New post"
                 await connection.manager.save(post)
@@ -534,10 +432,7 @@ describe("repository > find options > locking", () => {
     it("should throw error if pessimistic locking not supported by given driver", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    DriverUtils.isSQLiteFamily(connection.driver) ||
-                    connection.driver.options.type === "sap"
-                )
+                if (DriverUtils.isSQLiteFamily(connection.driver))
                     return connection.manager.transaction((entityManager) => {
                         return Promise.all([
                             entityManager
@@ -569,13 +464,7 @@ describe("repository > find options > locking", () => {
     it("should not allow empty array for lockTables", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        connection.driver.options.type === "cockroachdb"
-                    )
-                )
-                    return
+                if (!(connection.driver.options.type === "postgres")) return
 
                 return connection.manager.transaction((entityManager) => {
                     return Promise.all([
@@ -596,13 +485,7 @@ describe("repository > find options > locking", () => {
     it("should throw error when specifying a table that is not part of the query", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        connection.driver.options.type === "cockroachdb"
-                    )
-                )
-                    return
+                if (!(connection.driver.options.type === "postgres")) return
 
                 return connection.manager.transaction((entityManager) => {
                     return Promise.all([
@@ -627,26 +510,6 @@ describe("repository > find options > locking", () => {
     it("should allow on a left join", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "cockroachdb") {
-                    return connection.manager.transaction((entityManager) => {
-                        return Promise.all([
-                            entityManager.getRepository(Post).findOne({
-                                where: { id: 1 },
-                                relations: { author: true },
-                                lock: {
-                                    mode: "pessimistic_write",
-                                    tables: ["post"],
-                                },
-                            }),
-                            entityManager.getRepository(Post).findOne({
-                                where: { id: 1 },
-                                relations: { author: true },
-                                lock: { mode: "pessimistic_write" },
-                            }),
-                        ])
-                    })
-                }
-
                 if (connection.driver.options.type === "postgres") {
                     return connection.manager.transaction((entityManager) => {
                         return Promise.all([
@@ -739,13 +602,7 @@ describe("repository > find options > locking", () => {
     it("should allow locking a relation of a relation", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        connection.driver.options.type === "cockroachdb"
-                    )
-                )
-                    return
+                if (!(connection.driver.options.type === "postgres")) return
 
                 return connection.manager.transaction((entityManager) => {
                     return Promise.all([

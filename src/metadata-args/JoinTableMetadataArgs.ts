@@ -32,13 +32,13 @@ export interface JoinTableMetadataArgs {
 
     /**
      * Database where join table will be created.
-     * Works only in some databases (like mysql and mssql).
+     * Works only in some databases (like mysql).
      */
     readonly database?: string
 
     /**
      * Schema where join table will be created.
-     * Works only in some databases (like postgres and mssql).
+     * Works only in some databases (like postgres).
      */
     readonly schema?: string
 

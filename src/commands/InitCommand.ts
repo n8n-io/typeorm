@@ -3,7 +3,6 @@ import * as path from "path"
 import * as yargs from "yargs"
 import chalk from "chalk"
 import { exec } from "child_process"
-import { TypeORMError } from "../error"
 import { PlatformTools } from "../platform/PlatformTools"
 
 /**
@@ -195,14 +194,6 @@ export class InitCommand implements yargs.CommandModule {
                 dbSettings = `type: "sqlite",
     database: "database.sqlite",`
                 break
-            case "better-sqlite3":
-                dbSettings = `type: "better-sqlite3",
-    database: "database.sqlite",`
-                break
-            case "libsql":
-                dbSettings = `type: "libsql",
-    database: "database.sqlite",`
-                break
             case "postgres":
                 dbSettings = `type: "postgres",
     host: "localhost",
@@ -210,39 +201,6 @@ export class InitCommand implements yargs.CommandModule {
     username: "test",
     password: "test",
     database: "test",`
-                break
-            case "cockroachdb":
-                dbSettings = `type: "cockroachdb",
-    host: "localhost",
-    port: 26257,
-    username: "root",
-    password: "",
-    database: "defaultdb",`
-                break
-            case "mssql":
-                dbSettings = `type: "mssql",
-    host: "localhost",
-    username: "sa",
-    password: "Admin12345",
-    database: "tempdb",`
-                break
-            case "oracle":
-                dbSettings = `type: "oracle",
-host: "localhost",
-username: "system",
-password: "oracle",
-port: 1521,
-sid: "xe.oracle.docker",`
-                break
-            case "mongodb":
-                dbSettings = `type: "mongodb",
-    database: "test",`
-                break
-            case "spanner":
-                dbSettings = `type: "spanner",
-    projectId: "test",
-    instanceId: "test",
-    databaseId: "test",`
                 break
         }
         return `import "reflect-metadata"
@@ -597,62 +555,10 @@ services:
       POSTGRES_DB: "test"
 
 `
-            case "cockroachdb":
-                return `version: '3'
-services:
 
-  cockroachdb:
-    image: "cockroachdb/cockroach:v22.1.6"
-    command: start --insecure
-    ports:
-      - "26257:26257"
-
-`
             case "sqlite":
-            case "better-sqlite3":
-            case "libsql":
                 return `version: '3'
 services:
-`
-            case "oracle":
-                throw new TypeORMError(
-                    `You cannot initialize a project with docker for Oracle driver yet.`,
-                ) // todo: implement for oracle as well
-
-            case "mssql":
-                return `version: '3'
-services:
-
-  mssql:
-    image: "microsoft/mssql-server-linux:rc2"
-    ports:
-      - "1433:1433"
-    environment:
-      SA_PASSWORD: "Admin12345"
-      ACCEPT_EULA: "Y"
-
-`
-            case "mongodb":
-                return `version: '3'
-services:
-
-  mongodb:
-    image: "mongo:5.0.12"
-    container_name: "typeorm-mongodb"
-    ports:
-      - "27017:27017"
-
-`
-            case "spanner":
-                return `version: '3'
-services:
-
-  spanner:
-    image: gcr.io/cloud-spanner-emulator/emulator:1.4.1
-    ports:
-      - "9010:9010"
-      - "9020:9020"
-
 `
         }
         return ""
@@ -715,29 +621,10 @@ Steps to run this project:
                 packageJson.dependencies["mysql"] = "^2.14.1"
                 break
             case "postgres":
-            case "cockroachdb":
                 packageJson.dependencies["pg"] = "^8.4.0"
                 break
             case "sqlite":
                 packageJson.dependencies["sqlite3"] = "^5.0.2"
-                break
-            case "better-sqlite3":
-                packageJson.dependencies["better-sqlite3"] = "^7.0.0"
-                break
-            case "libsql":
-                packageJson.dependencies["@libsql/client"] = "^0.4.0"
-                break
-            case "oracle":
-                packageJson.dependencies["oracledb"] = "^5.1.0"
-                break
-            case "mssql":
-                packageJson.dependencies["mssql"] = "^9.1.1"
-                break
-            case "mongodb":
-                packageJson.dependencies["mongodb"] = "^5.2.0"
-                break
-            case "spanner":
-                packageJson.dependencies["@google-cloud/spanner"] = "^5.18.0"
                 break
         }
 

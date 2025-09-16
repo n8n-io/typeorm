@@ -98,12 +98,10 @@ export class SubjectChangedColumnsComputer {
                             break
 
                         case "datetime":
-                        case "datetime2":
                         case Date:
                         case "timestamp":
                         case "timestamp without time zone":
                         case "timestamp with time zone":
-                        case "timestamp with local time zone":
                         case "timestamptz":
                             normalizedValue =
                                 DateUtils.mixedDateToUtcDatetimeString(

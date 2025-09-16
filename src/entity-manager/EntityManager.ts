@@ -9,7 +9,6 @@ import { DeepPartial } from "../common/DeepPartial"
 import { RemoveOptions } from "../repository/RemoveOptions"
 import { SaveOptions } from "../repository/SaveOptions"
 import { NoNeedToReleaseEntityManagerError } from "../error/NoNeedToReleaseEntityManagerError"
-import { MongoRepository } from "../repository/MongoRepository"
 import { TreeRepository } from "../repository/TreeRepository"
 import { Repository } from "../repository/Repository"
 import { FindOptionsUtils } from "../find-options/FindOptionsUtils"
@@ -26,7 +25,6 @@ import { QueryRunner } from "../query-runner/QueryRunner"
 import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder"
 import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity"
 import { EntityPersistExecutor } from "../persistence/EntityPersistExecutor"
-import { ObjectId } from "../driver/mongodb/typings"
 import { InsertResult } from "../query-builder/result/InsertResult"
 import { UpdateResult } from "../query-builder/result/UpdateResult"
 import { DeleteResult } from "../query-builder/result/DeleteResult"
@@ -746,16 +744,7 @@ export class EntityManager {
      */
     update<Entity extends ObjectLiteral>(
         target: EntityTarget<Entity>,
-        criteria:
-            | string
-            | string[]
-            | number
-            | number[]
-            | Date
-            | Date[]
-            | ObjectId
-            | ObjectId[]
-            | any,
+        criteria: string | string[] | number | number[] | Date | Date[] | any,
         partialEntity: QueryDeepPartialEntity<Entity>,
     ): Promise<UpdateResult> {
         // if user passed empty criteria or empty list of criterias, then throw an error
@@ -801,16 +790,7 @@ export class EntityManager {
      */
     delete<Entity extends ObjectLiteral>(
         targetOrEntity: EntityTarget<Entity>,
-        criteria:
-            | string
-            | string[]
-            | number
-            | number[]
-            | Date
-            | Date[]
-            | ObjectId
-            | ObjectId[]
-            | any,
+        criteria: string | string[] | number | number[] | Date | Date[] | any,
     ): Promise<DeleteResult> {
         // if user passed empty criteria or empty list of criterias, then throw an error
         if (
@@ -855,16 +835,7 @@ export class EntityManager {
      */
     softDelete<Entity extends ObjectLiteral>(
         targetOrEntity: EntityTarget<Entity>,
-        criteria:
-            | string
-            | string[]
-            | number
-            | number[]
-            | Date
-            | Date[]
-            | ObjectId
-            | ObjectId[]
-            | any,
+        criteria: string | string[] | number | number[] | Date | Date[] | any,
     ): Promise<UpdateResult> {
         // if user passed empty criteria or empty list of criterias, then throw an error
         if (
@@ -909,16 +880,7 @@ export class EntityManager {
      */
     restore<Entity extends ObjectLiteral>(
         targetOrEntity: EntityTarget<Entity>,
-        criteria:
-            | string
-            | string[]
-            | number
-            | number[]
-            | Date
-            | Date[]
-            | ObjectId
-            | ObjectId[]
-            | any,
+        criteria: string | string[] | number | number[] | Date | Date[] | any,
     ): Promise<UpdateResult> {
         // if user passed empty criteria or empty list of criterias, then throw an error
         if (
@@ -1246,7 +1208,7 @@ export class EntityManager {
      */
     async findOneById<Entity extends ObjectLiteral>(
         entityClass: EntityTarget<Entity>,
-        id: number | string | Date | ObjectId,
+        id: number | string | Date,
     ): Promise<Entity | null> {
         const metadata = this.connection.getMetadata(entityClass)
 
@@ -1404,23 +1366,13 @@ export class EntityManager {
         if (repoFromMap) return repoFromMap
 
         // if repository was not found then create it, store its instance and return it
-        if (this.connection.driver.options.type === "mongodb") {
-            const newRepository = new MongoRepository(
-                target,
-                this,
-                this.queryRunner,
-            )
-            this.repositories.set(target, newRepository)
-            return newRepository
-        } else {
-            const newRepository = new Repository<any>(
-                target,
-                this,
-                this.queryRunner,
-            )
-            this.repositories.set(target, newRepository)
-            return newRepository
-        }
+        const newRepository = new Repository<any>(
+            target,
+            this,
+            this.queryRunner,
+        )
+        this.repositories.set(target, newRepository)
+        return newRepository
     }
 
     /**
@@ -1446,15 +1398,6 @@ export class EntityManager {
         const newRepository = new TreeRepository(target, this, this.queryRunner)
         this.treeRepositories.push(newRepository)
         return newRepository
-    }
-
-    /**
-     * Gets mongodb repository for the given entity class.
-     */
-    getMongoRepository<Entity extends ObjectLiteral>(
-        target: EntityTarget<Entity>,
-    ): MongoRepository<Entity> {
-        return this.connection.getMongoRepository<Entity>(target)
     }
 
     /**
