@@ -20,6 +20,27 @@ describe("query runner > rename table", () => {
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
+    /*
+     * ISSUE: Test expects table renaming operations to work correctly with proper constraint and sequence handling.
+     *
+     * THEORIES FOR FAILURE:
+     * 1. Sequence Renaming Dependencies: When renaming tables with auto-increment primary keys, PostgreSQL
+     *    sequences associated with those tables need to be renamed as well. TypeORM may not be properly
+     *    handling the cascade renaming of dependent sequences, causing sequence name mismatches.
+     *
+     * 2. Constraint Name Preservation Issues: Primary key and foreign key constraints may have names
+     *    that reference the old table name. During table rename operations, these constraint names
+     *    may not be properly updated, leading to inconsistent metadata or constraint resolution failures.
+     *
+     * 3. Memory Down SQL Incomplete Reversal: The executeMemoryDownSql() operation may not properly
+     *    reverse all aspects of table renaming, particularly complex dependencies like sequences,
+     *    indexes, and constraints that were modified during the rename operation.
+     *
+     * POTENTIAL FIXES:
+     * - Implement proper cascade renaming for sequences and constraints during table rename
+     * - Fix constraint name updates to reflect new table names after rename operations
+     * - Enhance memory down SQL to completely reverse table rename operations with all dependencies
+     */
     // INFO: checked
     it.skip("should correctly rename table and revert rename", () =>
         Promise.all(

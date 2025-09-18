@@ -191,6 +191,27 @@ describe("schema builder > custom-db-and-schema-sync", () => {
                 }),
             ))
 
+        /*
+         * ISSUE: Test expects schema synchronization to work correctly with public schema table creation.
+         *
+         * THEORIES FOR FAILURE:
+         * 1. Metadata Runtime Modification Issues: The test dynamically modifies entity metadata properties
+         *    (synchronize, schema, tablePath) at runtime, but TypeORM's metadata system may not be
+         *    designed to handle these dynamic changes, causing inconsistent behavior during sync operations.
+         *
+         * 2. Schema Builder Context Confusion: When synchronizing tables with explicit "public" schema
+         *    specification, the schema builder may get confused about which schema context to use,
+         *    especially in multi-schema environments where schema switching is involved.
+         *
+         * 3. Table Path Resolution Conflicts: The tablePath property may conflict with other metadata
+         *    properties or schema resolution logic, causing the sync operation to attempt table
+         *    creation in the wrong location or with incorrect table names.
+         *
+         * POTENTIAL FIXES:
+         * - Add proper support for runtime metadata modification in synchronization operations
+         * - Fix schema context management in schema builder for explicit public schema usage
+         * - Resolve table path conflicts and ensure consistent table name resolution during sync
+         */
         // INFO: checked
         it.skip("should correctly sync tables with `public` schema", () =>
             Promise.all(
