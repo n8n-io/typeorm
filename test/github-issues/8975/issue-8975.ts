@@ -59,8 +59,7 @@ describe("cli init command", () => {
     })
 
     for (const databaseOption of databaseOptions) {
-        const testMethod = databaseOption === "better-sqlite3" ? it.skip : it
-        testMethod(`should work with ${databaseOption} option`, (done) => {
+        it(`should work with ${databaseOption} option`, (done) => {
             exec(
                 `${cliPath} init --name ${testProjectName} --database ${databaseOption}`,
                 (error, stdout, stderr) => {
