@@ -23,36 +23,42 @@ describe("sqlite driver > write connection", () => {
     after(() => closeTestingConnections(connections))
 
     it("should block the second query runner until the first one releases the write connection", async () => {
-        const connection = connections[0]
-        const qr1 = connection.createQueryRunner()
-        const qr2 = connection.createQueryRunner()
+        return await Promise.all(
+            connections.map(async (connection) => {
+                const qr1 = connection.createQueryRunner()
+                const qr2 = connection.createQueryRunner()
 
-        let trx2Started = null
-        await qr1.startTransaction() // Acquire lock on the connection
-        const trx2Promise = qr2.startTransaction().then(() => {
-            trx2Started = Date.now()
-        })
+                let trx2Started = null
+                await qr1.startTransaction() // Acquire lock on the connection
+                const trx2Promise = qr2.startTransaction().then(() => {
+                    trx2Started = Date.now()
+                })
 
-        await new Promise((resolve) => setTimeout(resolve, 100))
+                await new Promise((resolve) => setTimeout(resolve, 100))
 
-        expect(trx2Started).to.be.null
-        await qr1.rollbackTransaction()
+                expect(trx2Started).to.be.null
+                await qr1.rollbackTransaction()
 
-        await trx2Promise
-        expect(trx2Started).to.be.not.null
-        await qr2.rollbackTransaction()
+                await trx2Promise
+                expect(trx2Started).to.be.not.null
+                await qr2.rollbackTransaction()
+            }),
+        )
     })
 
     it("should allow reading even if write lock has been acquired", async () => {
-        const connection = connections[0]
-        const qr1 = connection.createQueryRunner()
-        const qr2 = connection.createQueryRunner()
+        return await Promise.all(
+            connections.map(async (connection) => {
+                const qr1 = connection.createQueryRunner()
+                const qr2 = connection.createQueryRunner()
 
-        await qr1.startTransaction() // Acquire lock on the connection
+                await qr1.startTransaction() // Acquire lock on the connection
 
-        await qr2.query("SELECT * FROM post")
-        await qr1.query("SELECT 1")
+                await qr2.query("SELECT * FROM post")
+                await qr1.query("SELECT 1")
 
-        await qr1.rollbackTransaction()
+                await qr1.rollbackTransaction()
+            }),
+        )
     })
 })
