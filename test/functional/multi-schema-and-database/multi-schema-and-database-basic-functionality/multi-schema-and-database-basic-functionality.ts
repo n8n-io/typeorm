@@ -72,7 +72,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
          * - Ensure query builder properly qualifies table names with schema prefixes
          * - Improve entity-to-table mapping resolution for multi-schema scenarios
          */
-        // INFO: checked
         it.skip("should correctly create tables when custom table schema used", () =>
             Promise.all(
                 connections.map(async (connection) => {

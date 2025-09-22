@@ -56,7 +56,6 @@ describe("github issues > #5898 Postgres primary key of type uuid: default value
      * - Add transaction error detection and reporting for failed column changes
      * - Ensure proper constraint dependency management when modifying primary keys
      */
-    // INFO: checked
     it.skip("should add DEFAULT value when @PrimaryGeneratedColumn('increment') is added", () =>
         Promise.all(
             connections.map(async (connection) => {

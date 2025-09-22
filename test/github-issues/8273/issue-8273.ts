@@ -52,7 +52,6 @@ describe("github issues > #8273 Adding @Generated('uuid') doesn't update column 
      * - Ensure schema differ properly detects generated column changes
      * - Add proper cleanup in memory down SQL operations for sequences
      */
-    // INFO: checked
     it.skip("should add DEFAULT value when @Generated('increment') is added", () =>
         Promise.all(
             connections.map(async (connection) => {
@@ -102,7 +101,6 @@ describe("github issues > #8273 Adding @Generated('uuid') doesn't update column 
      * - Fix column comparison logic to detect generated -> non-generated changes
      * - Ensure proper transaction handling in schema modification operations
      */
-    // INFO: checked
     it.skip("should remove DEFAULT value when @Generated('increment') is removed", () =>
         Promise.all(
             connections.map(async (connection) => {

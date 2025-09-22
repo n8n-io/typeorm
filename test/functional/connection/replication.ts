@@ -118,7 +118,6 @@ describe("Connection replication", () => {
          * - Fix query type detection and routing logic in TypeORM replication driver
          * - Verify application_name parameter setting for different connection types in PostgreSQL
          */
-        // INFO: checked
         it.skip("read queries should go to the slaves by default", async () => {
             if (!connection || connection.driver.options.type !== "postgres") {
                 return

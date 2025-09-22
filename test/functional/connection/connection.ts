@@ -322,7 +322,6 @@ describe("Connection", () => {
      * - Fix schema context isolation in connection pooling for multi-schema scenarios
      * - Add proper synchronization for concurrent schema creation/destruction operations
      */
-    // INFO: checked
     describe.skip("different names of the same content of the schema", () => {
         let connections: DataSource[]
         beforeEach(async () => {
@@ -388,7 +387,6 @@ describe("Connection", () => {
      * - Fix search_path management when using custom schemas in PostgreSQL driver
      * - Improve connection string encoding for schema parameters with special characters
      */
-    // INFO: checked
     describe.skip("can change postgres default schema name", () => {
         let connections: DataSource[]
         beforeEach(async () => {

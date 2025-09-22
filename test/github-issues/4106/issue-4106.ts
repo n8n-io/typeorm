@@ -59,7 +59,6 @@ describe("github issues > #4106 Specify enum type name in postgres", () => {
      * - Add proper synchronization waits for enum type creation completion
      * - Ensure enum types are created in the correct schema with proper visibility
      */
-    // INFO: checked
     it.skip("should create an enum with the name specified in column options -> enumName", () =>
         Promise.all(
             connections.map(async (connection) => {

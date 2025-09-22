@@ -62,7 +62,6 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
                      * - Ensure transaction mode settings are properly respected for concurrent operations
                      * - Improve index metadata schema context inheritance from parent tables
                      */
-                    // INFO: checked
                     return
                 }
                 await dataSource.setOptions({

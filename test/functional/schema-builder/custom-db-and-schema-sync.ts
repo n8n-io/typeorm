@@ -212,7 +212,6 @@ describe("schema builder > custom-db-and-schema-sync", () => {
          * - Fix schema context management in schema builder for explicit public schema usage
          * - Resolve table path conflicts and ensure consistent table name resolution during sync
          */
-        // INFO: checked
         it.skip("should correctly sync tables with `public` schema", () =>
             Promise.all(
                 connections.map(async (connection) => {
