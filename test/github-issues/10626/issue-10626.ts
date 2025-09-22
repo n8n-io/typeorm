@@ -37,8 +37,8 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
             }),
         ))
 
-    it("has to drop INDEX CONCURRENTLY", () =>
-        Promise.all(
+    it("has to drop INDEX CONCURRENTLY", function () {
+        return Promise.all(
             dataSources.map(async (dataSource) => {
                 if (dataSource.options.type === "postgres") {
                     /*
@@ -62,7 +62,7 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
                      * - Ensure transaction mode settings are properly respected for concurrent operations
                      * - Improve index metadata schema context inheritance from parent tables
                      */
-                    return
+                    this.skip()
                 }
                 await dataSource.setOptions({
                     ...dataSource.options,
@@ -82,5 +82,6 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
 
                 await queryRunner.release()
             }),
-        ))
+        )
+    })
 })
