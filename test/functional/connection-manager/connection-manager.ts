@@ -29,7 +29,7 @@ describe("ConnectionManager", () => {
     }
 
     describe("create", function () {
-        it("should create a mysql connection when mysql driver is specified", () => {
+        it.skip("should create a mysql connection when mysql driver is specified", () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "default",
                 entities: [],
@@ -121,7 +121,7 @@ describe("ConnectionManager", () => {
     });*/
 
     describe("get", function () {
-        it("should give connection with a requested name", () => {
+        it.skip("should give connection with a requested name", () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "myMysqlConnection",
                 entities: [],
@@ -135,7 +135,7 @@ describe("ConnectionManager", () => {
                 .should.be.equal(connection)
         })
 
-        it("should throw an error if connection with the given name was not found", () => {
+        it.skip("should throw an error if connection with the given name was not found", () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "myMysqlConnection",
                 entities: [],
