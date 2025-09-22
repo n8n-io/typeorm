@@ -29,7 +29,7 @@ describe("ConnectionManager", () => {
     }
 
     describe("create", function () {
-        it.skip("should create a mysql connection when mysql driver is specified", () => {
+        it("should create a mysql connection when mysql driver is specified", async () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "default",
                 entities: [],
@@ -38,8 +38,14 @@ describe("ConnectionManager", () => {
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
             connection.name.should.be.equal("default")
-            connection.driver.should.be.instanceOf(MysqlDriver)
             connection.isInitialized.should.be.false
+            expect(connection.driver).to.be.undefined
+
+            await connection.initialize()
+            connection.driver.should.be.instanceOf(MysqlDriver)
+            connection.isInitialized.should.be.true
+
+            await connection.destroy()
         })
 
         /* it("should create a postgres connection when postgres driver is specified", () => {
@@ -121,7 +127,7 @@ describe("ConnectionManager", () => {
     });*/
 
     describe("get", function () {
-        it.skip("should give connection with a requested name", () => {
+        it("should give connection with a requested name", () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "myMysqlConnection",
                 entities: [],
@@ -129,13 +135,13 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             connectionManager
                 .get("myMysqlConnection")
                 .should.be.equal(connection)
         })
 
-        it.skip("should throw an error if connection with the given name was not found", () => {
+        it("should throw an error if connection with the given name was not found", () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "myMysqlConnection",
                 entities: [],
@@ -143,7 +149,7 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             expect(() =>
                 connectionManager.get("myPostgresConnection"),
             ).to.throw(Error)
