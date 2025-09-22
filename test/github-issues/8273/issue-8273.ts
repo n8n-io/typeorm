@@ -159,9 +159,6 @@ describe("github issues > #8273 Adding @Generated('uuid') doesn't update column 
     it.skip("should add DEFAULT value when @Generated('uuid') is added", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.options.type === "postgres") {
-                    this.skip()
-                }
                 const queryRunner = connection.createQueryRunner()
                 let table = await queryRunner.getTable("user")
                 const column = table!.findColumnByName("uuid")!
