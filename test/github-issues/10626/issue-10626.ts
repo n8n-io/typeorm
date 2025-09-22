@@ -37,28 +37,7 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
             }),
         ))
 
-    /*
-     * ISSUE: Test expects PostgreSQL CONCURRENT index dropping to work correctly with proper schema qualification.
-     *
-     * THEORIES FOR FAILURE:
-     * 1. Schema Name Resolution for Concurrent Operations: The test expects "DROP INDEX CONCURRENTLY"
-     *    to use proper schema qualification ("public"."indexName"), but TypeORM may be generating
-     *    SQL with "undefined" schema prefix, causing PostgreSQL to reject the malformed SQL statement.
-     *
-     * 2. Migration Transaction Mode Conflicts: The test sets migrationsTransactionMode to "none" to
-     *    allow CONCURRENT operations (which cannot run in transactions), but other parts of TypeORM
-     *    may still try to wrap the operation in a transaction, causing PostgreSQL to error.
-     *
-     * 3. Index Metadata Schema Context Issues: When working with concurrent index operations, the
-     *    index metadata may not properly inherit or resolve the schema context from the parent table,
-     *    resulting in schema-less index references that PostgreSQL cannot resolve.
-     *
-     * POTENTIAL FIXES:
-     * - Fix schema qualification for concurrent index operations in PostgreSQL driver
-     * - Ensure transaction mode settings are properly respected for concurrent operations
-     * - Improve index metadata schema context inheritance from parent tables
-     */
-    it.skip("has to drop INDEX CONCURRENTLY", () =>
+    it("has to drop INDEX CONCURRENTLY", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
                 await dataSource.setOptions({
@@ -68,7 +47,7 @@ describe("github issues > #10626 Postgres CREATE INDEX CONCURRENTLY bug", () => 
                 await dataSource.synchronize()
 
                 const queryRunner = dataSource.createQueryRunner()
-                let table = await queryRunner.getTable("user")
+                const table = await queryRunner.getTable("user")
                 if (table) {
                     await queryRunner.dropIndex(table, table?.indices[0])
                 }
