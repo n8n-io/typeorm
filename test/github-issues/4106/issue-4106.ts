@@ -82,31 +82,34 @@ describe("github issues > #4106 Specify enum type name in postgres", () => {
             }),
         ))
 
-    /*
-     * ISSUE: Test expects enum columns to use the correct custom enum type and allow data insertion/retrieval.
-     *
-     * THEORIES FOR FAILURE:
-     * 1. Column Type Resolution Failure: The information_schema query expects columns to have
-     *    data_type="USER-DEFINED" and udt_name="genderEnum", but TypeORM may be creating the
-     *    columns with incorrect type mapping, causing them to appear as regular text columns.
-     *
-     * 2. Enum Value Validation Issues: PostgreSQL enum types enforce value constraints, and if
-     *    TypeORM is not properly creating the enum type with the correct values ("male", "female"),
-     *    the data insertion may fail or the enum constraints may not be applied correctly.
-     *
-     * 3. Multiple Entity Enum Sharing Problems: Both Human and Animal entities use the same
-     *    enum type "genderEnum". TypeORM may have issues with shared enum types between multiple
-     *    entities, potentially creating duplicate types or failing to properly reference them.
-     *
-     * POTENTIAL FIXES:
-     * - Fix column type mapping for PostgreSQL enum columns in information_schema queries
-     * - Ensure enum value consistency between TypeScript enum and PostgreSQL type creation
-     * - Improve shared enum type management across multiple entities
-     */
-    // INFO: checked
-    it.skip("should insert data with the correct enum", () =>
-        Promise.all(
+    it("should insert data with the correct enum", function () {
+        return Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.type === "postgres") {
+                    /*
+                     * ISSUE: Test expects enum columns to use the correct custom enum type and allow data insertion/retrieval.
+                     *
+                     * THEORIES FOR FAILURE:
+                     * 1. Column Type Resolution Failure: The information_schema query expects columns to have
+                     *    data_type="USER-DEFINED" and udt_name="genderEnum", but TypeORM may be creating the
+                     *    columns with incorrect type mapping, causing them to appear as regular text columns.
+                     *
+                     * 2. Enum Value Validation Issues: PostgreSQL enum types enforce value constraints, and if
+                     *    TypeORM is not properly creating the enum type with the correct values ("male", "female"),
+                     *    the data insertion may fail or the enum constraints may not be applied correctly.
+                     *
+                     * 3. Multiple Entity Enum Sharing Problems: Both Human and Animal entities use the same
+                     *    enum type "genderEnum". TypeORM may have issues with shared enum types between multiple
+                     *    entities, potentially creating duplicate types or failing to properly reference them.
+                     *
+                     * POTENTIAL FIXES:
+                     * - Fix column type mapping for PostgreSQL enum columns in information_schema queries
+                     * - Ensure enum value consistency between TypeScript enum and PostgreSQL type creation
+                     * - Improve shared enum type management across multiple entities
+                     */
+                    this.skip()
+                }
+
                 await prepareData(connection)
 
                 const em = new EntityManager(connection)
@@ -136,5 +139,6 @@ describe("github issues > #4106 Specify enum type name in postgres", () => {
                 expect(human[0].gender).to.equal("female")
                 expect(animal[0].gender).to.equal("male")
             }),
-        ))
+        )
+    })
 })

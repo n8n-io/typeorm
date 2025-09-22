@@ -20,51 +20,54 @@ describe("query runner > rename table", () => {
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    /*
-     * ISSUE: Test expects table renaming operations to work correctly with proper constraint and sequence handling.
-     *
-     * THEORIES FOR FAILURE:
-     * 1. Sequence Renaming Dependencies: When renaming tables with auto-increment primary keys, PostgreSQL
-     *    sequences associated with those tables need to be renamed as well. TypeORM may not be properly
-     *    handling the cascade renaming of dependent sequences, causing sequence name mismatches.
-     *
-     * 2. Constraint Name Preservation Issues: Primary key and foreign key constraints may have names
-     *    that reference the old table name. During table rename operations, these constraint names
-     *    may not be properly updated, leading to inconsistent metadata or constraint resolution failures.
-     *
-     * 3. Memory Down SQL Incomplete Reversal: The executeMemoryDownSql() operation may not properly
-     *    reverse all aspects of table renaming, particularly complex dependencies like sequences,
-     *    indexes, and constraints that were modified during the rename operation.
-     *
-     * POTENTIAL FIXES:
-     * - Implement proper cascade renaming for sequences and constraints during table rename
-     * - Fix constraint name updates to reflect new table names after rename operations
-     * - Enhance memory down SQL to completely reverse table rename operations with all dependencies
-     */
-    // INFO: checked
-    it.skip("should correctly rename table and revert rename", () =>
-        Promise.all(
+    it("should correctly rename table and revert rename", function () {
+        return Promise.all(
             connections.map(async (connection) => {
                 // CockroachDB and Spanner does not support renaming constraints and removing PK.
                 if (
                     connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
+                    connection.driver.options.type === "spanner" ||
+                    connection.driver.options.type === "postgres"
+                ) {
+                    /*
+                     * ISSUE: Test expects table renaming operations to work correctly with proper constraint and sequence handling.
+                     *
+                     * THEORIES FOR FAILURE:
+                     * 1. Sequence Renaming Dependencies: When renaming tables with auto-increment primary keys, PostgreSQL
+                     *    sequences associated with those tables need to be renamed as well. TypeORM may not be properly
+                     *    handling the cascade renaming of dependent sequences, causing sequence name mismatches.
+                     *
+                     * 2. Constraint Name Preservation Issues: Primary key and foreign key constraints may have names
+                     *    that reference the old table name. During table rename operations, these constraint names
+                     *    may not be properly updated, leading to inconsistent metadata or constraint resolution failures.
+                     *
+                     * 3. Memory Down SQL Incomplete Reversal: The executeMemoryDownSql() operation may not properly
+                     *    reverse all aspects of table renaming, particularly complex dependencies like sequences,
+                     *    indexes, and constraints that were modified during the rename operation.
+                     *
+                     * POTENTIAL FIXES:
+                     * - Implement proper cascade renaming for sequences and constraints during table rename
+                     * - Fix constraint name updates to reflect new table names after rename operations
+                     * - Enhance memory down SQL to completely reverse table rename operations with all dependencies
+                     */
+                    this.skip()
+                }
 
                 const queryRunner = connection.createQueryRunner()
 
-                const sequenceQuery = (name: string) => {
-                    return `SELECT COUNT(*) FROM information_schema.sequences WHERE sequence_schema = 'public' and sequence_name = '${name}'`
-                }
+                // TODO: uncomment when this test is not skipped for postgres anymore
+                // const sequenceQuery = (name: string) => {
+                //     return `SELECT COUNT(*) FROM information_schema.sequences WHERE sequence_schema = 'public' and sequence_name = '${name}'`
+                // }
 
                 // check if sequence "faculty_id_seq" exist
-                if (connection.driver.options.type === "postgres") {
-                    const facultySeq = await queryRunner.query(
-                        sequenceQuery("faculty_id_seq"),
-                    )
-                    facultySeq[0].count.should.be.equal("1")
-                }
+                // TODO: uncomment when this test is not skipped for postgres anymore
+                // if (connection.driver.options.type === "postgres") {
+                //     const facultySeq = await queryRunner.query(
+                //         sequenceQuery("faculty_id_seq"),
+                //     )
+                //     facultySeq[0].count.should.be.equal("1")
+                // }
 
                 let table = await queryRunner.getTable("faculty")
 
@@ -73,32 +76,34 @@ describe("query runner > rename table", () => {
                 table!.should.be.exist
 
                 // check if sequence "faculty_id_seq" was renamed to "question_id_seq"
-                if (connection.driver.options.type === "postgres") {
-                    const facultySeq = await queryRunner.query(
-                        sequenceQuery("faculty_id_seq"),
-                    )
-                    const questionSeq = await queryRunner.query(
-                        sequenceQuery("question_id_seq"),
-                    )
-                    facultySeq[0].count.should.be.equal("0")
-                    questionSeq[0].count.should.be.equal("1")
-                }
+                // TODO: uncomment when this test is not skipped for postgres anymore
+                // if (connection.driver.options.type === "postgres") {
+                //     const facultySeq = await queryRunner.query(
+                //         sequenceQuery("faculty_id_seq"),
+                //     )
+                //     const questionSeq = await queryRunner.query(
+                //         sequenceQuery("question_id_seq"),
+                //     )
+                //     facultySeq[0].count.should.be.equal("0")
+                //     questionSeq[0].count.should.be.equal("1")
+                // }
 
                 await queryRunner.renameTable("question", "answer")
                 table = await queryRunner.getTable("answer")
                 table!.should.be.exist
 
                 // check if sequence "question_id_seq" was renamed to "answer_id_seq"
-                if (connection.driver.options.type === "postgres") {
-                    const questionSeq = await queryRunner.query(
-                        sequenceQuery("question_id_seq"),
-                    )
-                    const answerSeq = await queryRunner.query(
-                        sequenceQuery("answer_id_seq"),
-                    )
-                    questionSeq[0].count.should.be.equal("0")
-                    answerSeq[0].count.should.be.equal("1")
-                }
+                // TODO: uncomment when this test is not skipped for postgres anymore
+                // if (connection.driver.options.type === "postgres") {
+                //     const questionSeq = await queryRunner.query(
+                //         sequenceQuery("question_id_seq"),
+                //     )
+                //     const answerSeq = await queryRunner.query(
+                //         sequenceQuery("answer_id_seq"),
+                //     )
+                //     questionSeq[0].count.should.be.equal("0")
+                //     answerSeq[0].count.should.be.equal("1")
+                // }
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -106,20 +111,22 @@ describe("query runner > rename table", () => {
                 table!.should.be.exist
 
                 // check if sequence "answer_id_seq" was renamed to "faculty_id_seq"
-                if (connection.driver.options.type === "postgres") {
-                    const answerSeq = await queryRunner.query(
-                        sequenceQuery("answer_id_seq"),
-                    )
-                    const facultySeq = await queryRunner.query(
-                        sequenceQuery("faculty_id_seq"),
-                    )
-                    answerSeq[0].count.should.be.equal("0")
-                    facultySeq[0].count.should.be.equal("1")
-                }
+                // TODO: uncomment when this test is not skipped for postgres anymore
+                // if (connection.driver.options.type === "postgres") {
+                //     const answerSeq = await queryRunner.query(
+                //         sequenceQuery("answer_id_seq"),
+                //     )
+                //     const facultySeq = await queryRunner.query(
+                //         sequenceQuery("faculty_id_seq"),
+                //     )
+                //     answerSeq[0].count.should.be.equal("0")
+                //     facultySeq[0].count.should.be.equal("1")
+                // }
 
                 await queryRunner.release()
             }),
-        ))
+        )
+    })
 
     it("should correctly rename table with all constraints depend to that table and revert rename", () =>
         Promise.all(
