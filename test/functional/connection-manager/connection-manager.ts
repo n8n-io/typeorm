@@ -29,7 +29,7 @@ describe("ConnectionManager", () => {
     }
 
     describe("create", function () {
-        it("should create a mysql connection when mysql driver is specified", () => {
+        it("should create a mysql connection when mysql driver is specified", async () => {
             const options = setupSingleTestingConnection("mysql", {
                 name: "default",
                 entities: [],
@@ -38,8 +38,14 @@ describe("ConnectionManager", () => {
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
             connection.name.should.be.equal("default")
-            connection.driver.should.be.instanceOf(MysqlDriver)
             connection.isInitialized.should.be.false
+            expect(connection.driver).to.be.undefined
+
+            await connection.initialize()
+            connection.driver.should.be.instanceOf(MysqlDriver)
+            connection.isInitialized.should.be.true
+
+            await connection.destroy()
         })
 
         /* it("should create a postgres connection when postgres driver is specified", () => {
@@ -129,7 +135,7 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             connectionManager
                 .get("myMysqlConnection")
                 .should.be.equal(connection)
@@ -143,7 +149,7 @@ describe("ConnectionManager", () => {
             if (!options) return
             const connectionManager = new ConnectionManager()
             const connection = connectionManager.create(options)
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            expect(connection.driver).to.be.undefined
             expect(() =>
                 connectionManager.get("myPostgresConnection"),
             ).to.throw(Error)
