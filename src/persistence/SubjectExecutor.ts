@@ -4,7 +4,6 @@ import { SubjectTopoligicalSorter } from "./SubjectTopoligicalSorter"
 import { SubjectChangedColumnsComputer } from "./SubjectChangedColumnsComputer"
 import { SubjectWithoutIdentifierError } from "../error/SubjectWithoutIdentifierError"
 import { SubjectRemovedAndUpdatedError } from "../error/SubjectRemovedAndUpdatedError"
-import { MongoEntityManager } from "../entity-manager/MongoEntityManager"
 import { ObjectLiteral } from "../common/ObjectLiteral"
 import { SaveOptions } from "../repository/SaveOptions"
 import { RemoveOptions } from "../repository/RemoveOptions"
@@ -12,10 +11,8 @@ import { BroadcasterResult } from "../subscriber/BroadcasterResult"
 import { NestedSetSubjectExecutor } from "./tree/NestedSetSubjectExecutor"
 import { ClosureSubjectExecutor } from "./tree/ClosureSubjectExecutor"
 import { MaterializedPathSubjectExecutor } from "./tree/MaterializedPathSubjectExecutor"
-import { OrmUtils } from "../util/OrmUtils"
 import { UpdateResult } from "../query-builder/result/UpdateResult"
 import { ObjectUtils } from "../util/ObjectUtils"
-import { InstanceChecker } from "../util/InstanceChecker"
 
 /**
  * Executes all database operations (inserts, updated, deletes) that must be executed
@@ -364,79 +361,64 @@ export class SubjectExecutor {
             const bulkInsertMaps: ObjectLiteral[] = []
             const bulkInsertSubjects: Subject[] = []
             const singleInsertSubjects: Subject[] = []
-            if (this.queryRunner.connection.driver.options.type === "mongodb") {
-                subjects.forEach((subject) => {
-                    if (subject.metadata.createDateColumn && subject.entity) {
-                        subject.entity[
-                            subject.metadata.createDateColumn.databaseName
-                        ] = new Date()
-                    }
 
-                    if (subject.metadata.updateDateColumn && subject.entity) {
-                        subject.entity[
-                            subject.metadata.updateDateColumn.databaseName
-                        ] = new Date()
-                    }
-
-                    subject.createValueSetAndPopChangeMap()
-
-                    bulkInsertSubjects.push(subject)
-                    bulkInsertMaps.push(subject.entity!)
-                })
-            } else if (
-                this.queryRunner.connection.driver.options.type === "oracle"
-            ) {
-                subjects.forEach((subject) => {
+            subjects.forEach((subject) => {
+                // we do not insert in bulk in following cases:
+                // - when there is no values in insert (only defaults are inserted), since we cannot use DEFAULT VALUES expression for multiple inserted rows
+                // - when entity is a tree table, since tree tables require extra operation per each inserted row
+                if (
+                    subject.changeMaps.length === 0 ||
+                    subject.metadata.treeType
+                ) {
                     singleInsertSubjects.push(subject)
-                })
-            } else {
-                subjects.forEach((subject) => {
-                    // we do not insert in bulk in following cases:
-                    // - when there is no values in insert (only defaults are inserted), since we cannot use DEFAULT VALUES expression for multiple inserted rows
-                    // - when entity is a tree table, since tree tables require extra operation per each inserted row
-                    // - when oracle is used, since oracle's bulk insertion is very bad
-                    if (
-                        subject.changeMaps.length === 0 ||
-                        subject.metadata.treeType ||
-                        this.queryRunner.connection.driver.options.type ===
-                            "oracle" ||
-                        this.queryRunner.connection.driver.options.type ===
-                            "sap"
-                    ) {
-                        singleInsertSubjects.push(subject)
-                    } else {
-                        bulkInsertSubjects.push(subject)
-                        bulkInsertMaps.push(
-                            subject.createValueSetAndPopChangeMap(),
-                        )
-                    }
-                })
-            }
+                } else {
+                    bulkInsertSubjects.push(subject)
+                    bulkInsertMaps.push(subject.createValueSetAndPopChangeMap())
+                }
+            })
 
-            // for mongodb we have a bit different insertion logic
-            if (
-                InstanceChecker.isMongoEntityManager(this.queryRunner.manager)
-            ) {
-                const insertResult = await this.queryRunner.manager.insert(
-                    subjects[0].metadata.target,
-                    bulkInsertMaps,
-                )
-                subjects.forEach((subject, index) => {
+            // here we execute our insertion query
+            // we need to enable entity updation because we DO need to have updated insertedMap
+            // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
+            // also, we disable listeners because we call them on our own in persistence layer
+            if (bulkInsertMaps.length > 0) {
+                const insertResult = await this.queryRunner.manager
+                    .createQueryBuilder()
+                    .insert()
+                    .into(subjects[0].metadata.target)
+                    .values(bulkInsertMaps)
+                    .updateEntity(
+                        this.options && this.options.reload === false
+                            ? false
+                            : true,
+                    )
+                    .callListeners(false)
+                    .execute()
+
+                bulkInsertSubjects.forEach((subject, index) => {
                     subject.identifier = insertResult.identifiers[index]
                     subject.generatedMap = insertResult.generatedMaps[index]
                     subject.insertedValueSet = bulkInsertMaps[index]
                 })
-            } else {
-                // here we execute our insertion query
-                // we need to enable entity updation because we DO need to have updated insertedMap
-                // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
-                // also, we disable listeners because we call them on our own in persistence layer
-                if (bulkInsertMaps.length > 0) {
-                    const insertResult = await this.queryRunner.manager
+            }
+
+            // insert subjects which must be inserted in separate requests (all default values)
+            if (singleInsertSubjects.length > 0) {
+                for (const subject of singleInsertSubjects) {
+                    subject.insertedValueSet =
+                        subject.createValueSetAndPopChangeMap() // important to have because query builder sets inserted values into it
+
+                    // for nested set we execute additional queries
+                    if (subject.metadata.treeType === "nested-set")
+                        await new NestedSetSubjectExecutor(
+                            this.queryRunner,
+                        ).insert(subject)
+
+                    await this.queryRunner.manager
                         .createQueryBuilder()
                         .insert()
-                        .into(subjects[0].metadata.target)
-                        .values(bulkInsertMaps)
+                        .into(subject.metadata.target)
+                        .values(subject.insertedValueSet)
                         .updateEntity(
                             this.options && this.options.reload === false
                                 ? false
@@ -444,56 +426,22 @@ export class SubjectExecutor {
                         )
                         .callListeners(false)
                         .execute()
+                        .then((insertResult) => {
+                            subject.identifier = insertResult.identifiers[0]
+                            subject.generatedMap = insertResult.generatedMaps[0]
+                        })
 
-                    bulkInsertSubjects.forEach((subject, index) => {
-                        subject.identifier = insertResult.identifiers[index]
-                        subject.generatedMap = insertResult.generatedMaps[index]
-                        subject.insertedValueSet = bulkInsertMaps[index]
-                    })
-                }
-
-                // insert subjects which must be inserted in separate requests (all default values)
-                if (singleInsertSubjects.length > 0) {
-                    for (const subject of singleInsertSubjects) {
-                        subject.insertedValueSet =
-                            subject.createValueSetAndPopChangeMap() // important to have because query builder sets inserted values into it
-
-                        // for nested set we execute additional queries
-                        if (subject.metadata.treeType === "nested-set")
-                            await new NestedSetSubjectExecutor(
-                                this.queryRunner,
-                            ).insert(subject)
-
-                        await this.queryRunner.manager
-                            .createQueryBuilder()
-                            .insert()
-                            .into(subject.metadata.target)
-                            .values(subject.insertedValueSet)
-                            .updateEntity(
-                                this.options && this.options.reload === false
-                                    ? false
-                                    : true,
-                            )
-                            .callListeners(false)
-                            .execute()
-                            .then((insertResult) => {
-                                subject.identifier = insertResult.identifiers[0]
-                                subject.generatedMap =
-                                    insertResult.generatedMaps[0]
-                            })
-
-                        // for tree tables we execute additional queries
-                        if (subject.metadata.treeType === "closure-table") {
-                            await new ClosureSubjectExecutor(
-                                this.queryRunner,
-                            ).insert(subject)
-                        } else if (
-                            subject.metadata.treeType === "materialized-path"
-                        ) {
-                            await new MaterializedPathSubjectExecutor(
-                                this.queryRunner,
-                            ).insert(subject)
-                        }
+                    // for tree tables we execute additional queries
+                    if (subject.metadata.treeType === "closure-table") {
+                        await new ClosureSubjectExecutor(
+                            this.queryRunner,
+                        ).insert(subject)
+                    } else if (
+                        subject.metadata.treeType === "materialized-path"
+                    ) {
+                        await new MaterializedPathSubjectExecutor(
+                            this.queryRunner,
+                        ).insert(subject)
                     }
                 }
             }
@@ -529,114 +477,73 @@ export class SubjectExecutor {
             if (!subject.identifier)
                 throw new SubjectWithoutIdentifierError(subject)
 
-            // for mongodb we have a bit different updation logic
-            if (
-                InstanceChecker.isMongoEntityManager(this.queryRunner.manager)
-            ) {
-                const partialEntity = this.cloneMongoSubjectEntity(subject)
-                if (
-                    subject.metadata.objectIdColumn &&
-                    subject.metadata.objectIdColumn.propertyName
-                ) {
-                    delete partialEntity[
-                        subject.metadata.objectIdColumn.propertyName
-                    ]
-                }
+            const updateMap: ObjectLiteral =
+                subject.createValueSetAndPopChangeMap()
 
-                if (
-                    subject.metadata.createDateColumn &&
-                    subject.metadata.createDateColumn.propertyName
-                ) {
-                    delete partialEntity[
-                        subject.metadata.createDateColumn.propertyName
-                    ]
-                }
-
-                if (
-                    subject.metadata.updateDateColumn &&
-                    subject.metadata.updateDateColumn.propertyName
-                ) {
-                    partialEntity[
-                        subject.metadata.updateDateColumn.propertyName
-                    ] = new Date()
-                }
-
-                const manager = this.queryRunner.manager as MongoEntityManager
-
-                await manager.update(
-                    subject.metadata.target,
-                    subject.identifier,
-                    partialEntity,
-                )
-            } else {
-                const updateMap: ObjectLiteral =
-                    subject.createValueSetAndPopChangeMap()
-
-                // for tree tables we execute additional queries
-                switch (subject.metadata.treeType) {
-                    case "nested-set":
-                        await new NestedSetSubjectExecutor(
-                            this.queryRunner,
-                        ).update(subject)
-                        break
-
-                    case "closure-table":
-                        await new ClosureSubjectExecutor(
-                            this.queryRunner,
-                        ).update(subject)
-                        break
-
-                    case "materialized-path":
-                        await new MaterializedPathSubjectExecutor(
-                            this.queryRunner,
-                        ).update(subject)
-                        break
-                }
-
-                // here we execute our updation query
-                // we need to enable entity updation because we update a subject identifier
-                // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
-                // also, we disable listeners because we call them on our own in persistence layer
-                const updateQueryBuilder = this.queryRunner.manager
-                    .createQueryBuilder()
-                    .update(subject.metadata.target)
-                    .set(updateMap)
-                    .updateEntity(
-                        this.options && this.options.reload === false
-                            ? false
-                            : true,
+            // for tree tables we execute additional queries
+            switch (subject.metadata.treeType) {
+                case "nested-set":
+                    await new NestedSetSubjectExecutor(this.queryRunner).update(
+                        subject,
                     )
-                    .callListeners(false)
+                    break
 
-                if (subject.entity) {
-                    updateQueryBuilder.whereEntity(subject.identifier)
-                } else {
-                    // in this case identifier is just conditions object to update by
-                    updateQueryBuilder.where(subject.identifier)
-                }
+                case "closure-table":
+                    await new ClosureSubjectExecutor(this.queryRunner).update(
+                        subject,
+                    )
+                    break
 
-                const updateResult = await updateQueryBuilder.execute()
-                let updateGeneratedMap = updateResult.generatedMaps[0]
-                if (updateGeneratedMap) {
-                    subject.metadata.columns.forEach((column) => {
-                        const value = column.getEntityValue(updateGeneratedMap!)
-                        if (value !== undefined && value !== null) {
-                            const preparedValue =
-                                this.queryRunner.connection.driver.prepareHydratedValue(
-                                    value,
-                                    column,
-                                )
-                            column.setEntityValue(
-                                updateGeneratedMap!,
-                                preparedValue,
+                case "materialized-path":
+                    await new MaterializedPathSubjectExecutor(
+                        this.queryRunner,
+                    ).update(subject)
+                    break
+            }
+
+            // here we execute our updation query
+            // we need to enable entity updation because we update a subject identifier
+            // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
+            // also, we disable listeners because we call them on our own in persistence layer
+            const updateQueryBuilder = this.queryRunner.manager
+                .createQueryBuilder()
+                .update(subject.metadata.target)
+                .set(updateMap)
+                .updateEntity(
+                    this.options && this.options.reload === false
+                        ? false
+                        : true,
+                )
+                .callListeners(false)
+
+            if (subject.entity) {
+                updateQueryBuilder.whereEntity(subject.identifier)
+            } else {
+                // in this case identifier is just conditions object to update by
+                updateQueryBuilder.where(subject.identifier)
+            }
+
+            const updateResult = await updateQueryBuilder.execute()
+            let updateGeneratedMap = updateResult.generatedMaps[0]
+            if (updateGeneratedMap) {
+                subject.metadata.columns.forEach((column) => {
+                    const value = column.getEntityValue(updateGeneratedMap!)
+                    if (value !== undefined && value !== null) {
+                        const preparedValue =
+                            this.queryRunner.connection.driver.prepareHydratedValue(
+                                value,
+                                column,
                             )
-                        }
-                    })
-                    if (!subject.generatedMap) {
-                        subject.generatedMap = {}
+                        column.setEntityValue(
+                            updateGeneratedMap!,
+                            preparedValue,
+                        )
                     }
-                    Object.assign(subject.generatedMap, updateGeneratedMap)
+                })
+                if (!subject.generatedMap) {
+                    subject.generatedMap = {}
                 }
+                Object.assign(subject.generatedMap, updateGeneratedMap)
             }
         }
 
@@ -691,56 +598,33 @@ export class SubjectExecutor {
                 return subject.identifier
             })
 
-            // for mongodb we have a bit different updation logic
-            if (
-                InstanceChecker.isMongoEntityManager(this.queryRunner.manager)
-            ) {
-                const manager = this.queryRunner.manager as MongoEntityManager
-                await manager.delete(subjects[0].metadata.target, deleteMaps)
-            } else {
-                // for tree tables we execute additional queries
-                switch (subjects[0].metadata.treeType) {
-                    case "nested-set":
-                        await new NestedSetSubjectExecutor(
-                            this.queryRunner,
-                        ).remove(subjects)
-                        break
+            // for tree tables we execute additional queries
+            switch (subjects[0].metadata.treeType) {
+                case "nested-set":
+                    await new NestedSetSubjectExecutor(this.queryRunner).remove(
+                        subjects,
+                    )
+                    break
 
-                    case "closure-table":
-                        await new ClosureSubjectExecutor(
-                            this.queryRunner,
-                        ).remove(subjects)
-                        break
-                }
-
-                // here we execute our deletion query
-                // we don't need to specify entities and set update entity to true since the only thing query builder
-                // will do for use is a primary keys deletion which is handled by us later once persistence is finished
-                // also, we disable listeners because we call them on our own in persistence layer
-                await this.queryRunner.manager
-                    .createQueryBuilder()
-                    .delete()
-                    .from(subjects[0].metadata.target)
-                    .where(deleteMaps)
-                    .callListeners(false)
-                    .execute()
+                case "closure-table":
+                    await new ClosureSubjectExecutor(this.queryRunner).remove(
+                        subjects,
+                    )
+                    break
             }
+
+            // here we execute our deletion query
+            // we don't need to specify entities and set update entity to true since the only thing query builder
+            // will do for use is a primary keys deletion which is handled by us later once persistence is finished
+            // also, we disable listeners because we call them on our own in persistence layer
+            await this.queryRunner.manager
+                .createQueryBuilder()
+                .delete()
+                .from(subjects[0].metadata.target)
+                .where(deleteMaps)
+                .callListeners(false)
+                .execute()
         }
-    }
-
-    private cloneMongoSubjectEntity(subject: Subject): ObjectLiteral {
-        const target: ObjectLiteral = {}
-
-        if (subject.entity) {
-            for (const column of subject.metadata.columns) {
-                OrmUtils.mergeDeep(
-                    target,
-                    column.getEntityValueMap(subject.entity),
-                )
-            }
-        }
-
-        return target
     }
 
     /**
@@ -754,82 +638,29 @@ export class SubjectExecutor {
 
                 let updateResult: UpdateResult
 
-                // for mongodb we have a bit different updation logic
-                if (
-                    InstanceChecker.isMongoEntityManager(
-                        this.queryRunner.manager,
+                // here we execute our soft-deletion query
+                // we need to enable entity soft-deletion because we update a subject identifier
+                // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
+                // also, we disable listeners because we call them on our own in persistence layer
+                const softDeleteQueryBuilder = this.queryRunner.manager
+                    .createQueryBuilder()
+                    .softDelete()
+                    .from(subject.metadata.target)
+                    .updateEntity(
+                        this.options && this.options.reload === false
+                            ? false
+                            : true,
                     )
-                ) {
-                    const partialEntity = this.cloneMongoSubjectEntity(subject)
-                    if (
-                        subject.metadata.objectIdColumn &&
-                        subject.metadata.objectIdColumn.propertyName
-                    ) {
-                        delete partialEntity[
-                            subject.metadata.objectIdColumn.propertyName
-                        ]
-                    }
+                    .callListeners(false)
 
-                    if (
-                        subject.metadata.createDateColumn &&
-                        subject.metadata.createDateColumn.propertyName
-                    ) {
-                        delete partialEntity[
-                            subject.metadata.createDateColumn.propertyName
-                        ]
-                    }
-
-                    if (
-                        subject.metadata.updateDateColumn &&
-                        subject.metadata.updateDateColumn.propertyName
-                    ) {
-                        partialEntity[
-                            subject.metadata.updateDateColumn.propertyName
-                        ] = new Date()
-                    }
-
-                    if (
-                        subject.metadata.deleteDateColumn &&
-                        subject.metadata.deleteDateColumn.propertyName
-                    ) {
-                        partialEntity[
-                            subject.metadata.deleteDateColumn.propertyName
-                        ] = new Date()
-                    }
-
-                    const manager = this.queryRunner
-                        .manager as MongoEntityManager
-
-                    updateResult = await manager.update(
-                        subject.metadata.target,
-                        subject.identifier,
-                        partialEntity,
-                    )
+                if (subject.entity) {
+                    softDeleteQueryBuilder.whereEntity(subject.identifier)
                 } else {
-                    // here we execute our soft-deletion query
-                    // we need to enable entity soft-deletion because we update a subject identifier
-                    // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
-                    // also, we disable listeners because we call them on our own in persistence layer
-                    const softDeleteQueryBuilder = this.queryRunner.manager
-                        .createQueryBuilder()
-                        .softDelete()
-                        .from(subject.metadata.target)
-                        .updateEntity(
-                            this.options && this.options.reload === false
-                                ? false
-                                : true,
-                        )
-                        .callListeners(false)
-
-                    if (subject.entity) {
-                        softDeleteQueryBuilder.whereEntity(subject.identifier)
-                    } else {
-                        // in this case identifier is just conditions object to update by
-                        softDeleteQueryBuilder.where(subject.identifier)
-                    }
-
-                    updateResult = await softDeleteQueryBuilder.execute()
+                    // in this case identifier is just conditions object to update by
+                    softDeleteQueryBuilder.where(subject.identifier)
                 }
+
+                updateResult = await softDeleteQueryBuilder.execute()
 
                 subject.generatedMap = updateResult.generatedMaps[0]
                 if (subject.generatedMap) {
@@ -877,82 +708,29 @@ export class SubjectExecutor {
 
                 let updateResult: UpdateResult
 
-                // for mongodb we have a bit different updation logic
-                if (
-                    InstanceChecker.isMongoEntityManager(
-                        this.queryRunner.manager,
+                // here we execute our restory query
+                // we need to enable entity restory because we update a subject identifier
+                // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
+                // also, we disable listeners because we call them on our own in persistence layer
+                const softDeleteQueryBuilder = this.queryRunner.manager
+                    .createQueryBuilder()
+                    .restore()
+                    .from(subject.metadata.target)
+                    .updateEntity(
+                        this.options && this.options.reload === false
+                            ? false
+                            : true,
                     )
-                ) {
-                    const partialEntity = this.cloneMongoSubjectEntity(subject)
-                    if (
-                        subject.metadata.objectIdColumn &&
-                        subject.metadata.objectIdColumn.propertyName
-                    ) {
-                        delete partialEntity[
-                            subject.metadata.objectIdColumn.propertyName
-                        ]
-                    }
+                    .callListeners(false)
 
-                    if (
-                        subject.metadata.createDateColumn &&
-                        subject.metadata.createDateColumn.propertyName
-                    ) {
-                        delete partialEntity[
-                            subject.metadata.createDateColumn.propertyName
-                        ]
-                    }
-
-                    if (
-                        subject.metadata.updateDateColumn &&
-                        subject.metadata.updateDateColumn.propertyName
-                    ) {
-                        partialEntity[
-                            subject.metadata.updateDateColumn.propertyName
-                        ] = new Date()
-                    }
-
-                    if (
-                        subject.metadata.deleteDateColumn &&
-                        subject.metadata.deleteDateColumn.propertyName
-                    ) {
-                        partialEntity[
-                            subject.metadata.deleteDateColumn.propertyName
-                        ] = null
-                    }
-
-                    const manager = this.queryRunner
-                        .manager as MongoEntityManager
-
-                    updateResult = await manager.update(
-                        subject.metadata.target,
-                        subject.identifier,
-                        partialEntity,
-                    )
+                if (subject.entity) {
+                    softDeleteQueryBuilder.whereEntity(subject.identifier)
                 } else {
-                    // here we execute our restory query
-                    // we need to enable entity restory because we update a subject identifier
-                    // which is not same object as our entity that's why we don't need to worry about our entity to get dirty
-                    // also, we disable listeners because we call them on our own in persistence layer
-                    const softDeleteQueryBuilder = this.queryRunner.manager
-                        .createQueryBuilder()
-                        .restore()
-                        .from(subject.metadata.target)
-                        .updateEntity(
-                            this.options && this.options.reload === false
-                                ? false
-                                : true,
-                        )
-                        .callListeners(false)
-
-                    if (subject.entity) {
-                        softDeleteQueryBuilder.whereEntity(subject.identifier)
-                    } else {
-                        // in this case identifier is just conditions object to update by
-                        softDeleteQueryBuilder.where(subject.identifier)
-                    }
-
-                    updateResult = await softDeleteQueryBuilder.execute()
+                    // in this case identifier is just conditions object to update by
+                    softDeleteQueryBuilder.where(subject.identifier)
                 }
+
+                updateResult = await softDeleteQueryBuilder.execute()
 
                 subject.generatedMap = updateResult.generatedMaps[0]
                 if (subject.generatedMap) {
@@ -1036,22 +814,6 @@ export class SubjectExecutor {
             subject.metadata.relationIds.forEach((relationId) => {
                 relationId.setValue(subject.entity!)
             })
-
-            // mongo _id remove
-            if (
-                InstanceChecker.isMongoEntityManager(this.queryRunner.manager)
-            ) {
-                if (
-                    subject.metadata.objectIdColumn &&
-                    subject.metadata.objectIdColumn.databaseName &&
-                    subject.metadata.objectIdColumn.databaseName !==
-                        subject.metadata.objectIdColumn.propertyName
-                ) {
-                    delete subject.entity[
-                        subject.metadata.objectIdColumn.databaseName
-                    ]
-                }
-            }
         })
     }
 

@@ -15,7 +15,6 @@ import { SelectQueryBuilderOption } from "./SelectQueryBuilderOption"
 import { TypeORMError } from "../error"
 import { WhereClause } from "./WhereClause"
 import { UpsertType } from "../driver/types/UpsertType"
-import { CockroachConnectionOptions } from "../driver/cockroachdb/CockroachConnectionOptions"
 
 /**
  * Contains all properties of the QueryBuilder that needs to be build a final query.
@@ -360,9 +359,7 @@ export class QueryExpressionMap {
             this.relationLoadStrategy = connection.options.relationLoadStrategy
         }
 
-        this.timeTravel =
-            (connection.options as CockroachConnectionOptions)
-                ?.timeTravelQueries || false
+        this.timeTravel = false
     }
 
     // -------------------------------------------------------------------------

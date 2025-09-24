@@ -988,12 +988,9 @@ export class ColumnMetadata {
     }
 
     protected buildDatabaseName(connection: DataSource): string {
-        let propertyNames = this.embeddedMetadata
+        const propertyNames = this.embeddedMetadata
             ? this.embeddedMetadata.parentPrefixes
             : []
-        if (connection.driver.options.type === "mongodb")
-            // we don't need to include embedded name for the mongodb column names
-            propertyNames = []
         return connection.namingStrategy.columnName(
             this.propertyName,
             this.givenDatabaseName,

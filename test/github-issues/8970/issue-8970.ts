@@ -14,13 +14,7 @@ describe("query builder order nulls first/last", async () => {
     before(async () => {
         dataSources = await createTestingConnections({
             entities: [__dirname + "/entities/*{.js,.ts}"],
-            enabledDrivers: [
-                "postgres",
-                "sqlite",
-                "sqlite-pooled",
-                "better-sqlite3",
-                "libsql",
-            ],
+            enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             schemaCreate: true,
             dropSchema: false,
         })

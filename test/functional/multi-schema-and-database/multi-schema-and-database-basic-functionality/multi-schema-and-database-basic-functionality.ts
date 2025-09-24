@@ -10,8 +10,6 @@ import { Post } from "./entity/Post"
 import { User } from "./entity/User"
 import { Category } from "./entity/Category"
 import { Person } from "./entity/Person"
-import { Question } from "./entity/Question"
-import { Answer } from "./entity/Answer"
 import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("multi-schema-and-database > basic-functionality", () => {
@@ -20,7 +18,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
         before(async () => {
             connections = await createTestingConnections({
                 entities: [Post, User, Category],
-                enabledDrivers: ["mssql", "postgres"],
+                enabledDrivers: ["postgres"],
                 schema: "custom",
             })
         })
@@ -93,11 +91,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                             `SELECT "post"."id" AS "post_id", "post"."name" AS "post_name" FROM "custom"."post" "post" WHERE "post"."id" = $1`,
                         )
 
-                    if (connection.driver.options.type === "mssql")
-                        sql.should.be.equal(
-                            `SELECT "post"."id" AS "post_id", "post"."name" AS "post_name" FROM "custom"."post" "post" WHERE "post"."id" = @0`,
-                        )
-
                     table!.name.should.be.equal("custom.post")
                 }),
             ))
@@ -121,11 +114,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                     if (connection.driver.options.type === "postgres")
                         sql.should.be.equal(
                             `SELECT "user"."id" AS "user_id", "user"."name" AS "user_name" FROM "userSchema"."user" "user" WHERE "user"."id" = $1`,
-                        )
-
-                    if (connection.driver.options.type === "mssql")
-                        sql.should.be.equal(
-                            `SELECT "user"."id" AS "user_id", "user"."name" AS "user_name" FROM "userSchema"."user" "user" WHERE "user"."id" = @0`,
                         )
 
                     table!.name.should.be.equal("userSchema.user")
@@ -171,13 +159,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                                 ` FROM "guest"."category" "category" INNER JOIN "custom"."post" "post" ON "post"."id"="category"."postId" WHERE "category"."id" = $1`,
                         )
 
-                    if (connection.driver.options.type === "mssql")
-                        sql.should.be.equal(
-                            `SELECT "category"."id" AS "category_id", "category"."name" AS "category_name",` +
-                                ` "category"."postId" AS "category_postId", "post"."id" AS "post_id", "post"."name" AS "post_name"` +
-                                ` FROM "guest"."category" "category" INNER JOIN "custom"."post" "post" ON "post"."id"="category"."postId" WHERE "category"."id" = @0`,
-                        )
-
                     table!.name.should.be.equal("guest.category")
                 }),
             ))
@@ -216,130 +197,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                                 `SELECT * FROM "guest"."category" "category", "userSchema"."user" "user",` +
                                     ` "custom"."post" "post" WHERE "category"."id" = $1 AND "post"."id" = "category"."postId"`,
                             )
-
-                    if (connection.driver.options.type === "mssql")
-                        query
-                            .getSql()
-                            .should.be.equal(
-                                `SELECT * FROM "guest"."category" "category", "userSchema"."user" "user",` +
-                                    ` "custom"."post" "post" WHERE "category"."id" = @0 AND "post"."id" = "category"."postId"`,
-                            )
-                }),
-            ))
-    })
-
-    describe("custom-table-schema-and-database", () => {
-        let connections: DataSource[]
-        before(async () => {
-            connections = await createTestingConnections({
-                entities: [Question, Answer],
-                enabledDrivers: ["mssql"],
-            })
-        })
-        beforeEach(() => reloadTestingDatabases(connections))
-        after(() => closeTestingConnections(connections))
-
-        it("should set the table database / schema", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const table = (await queryRunner.getTable(
-                        "testDB.questions.question",
-                    ))!
-                    await queryRunner.release()
-
-                    expect(table.database).to.be.equal("testDB")
-                    expect(table.schema).to.be.equal("questions")
-                    expect(table.name).to.be.equal("testDB.questions.question")
-                }),
-            ))
-
-        it("should correctly get the table primary keys when custom table schema used", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const table = (await queryRunner.getTable(
-                        "testDB.questions.question",
-                    ))!
-                    await queryRunner.release()
-
-                    expect(table.primaryColumns).to.have.length(1)
-                    expect(table.findColumnByName("id")?.isGenerated).to.be.true
-                }),
-            ))
-
-        it("should correctly create tables when custom database and custom schema used in Entity decorator", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const table = await queryRunner.getTable(
-                        "testDB.questions.question",
-                    )
-                    await queryRunner.release()
-
-                    const question = new Question()
-                    question.name = "Question #1"
-                    await connection.getRepository(Question).save(question)
-
-                    const sql = connection
-                        .createQueryBuilder(Question, "question")
-                        .where("question.id = :id", { id: 1 })
-                        .getSql()
-
-                    sql.should.be.equal(
-                        `SELECT "question"."id" AS "question_id", "question"."name" AS "question_name" FROM "testDB"."questions"."question" "question" WHERE "question"."id" = @0`,
-                    )
-                    table!.name.should.be.equal("testDB.questions.question")
-                }),
-            ))
-
-        it("should correctly work with cross-schema and cross-database queries in QueryBuilder", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const questionTable = await queryRunner.getTable(
-                        "testDB.questions.question",
-                    )
-                    const answerTable = await queryRunner.getTable(
-                        "secondDB.answers.answer",
-                    )
-                    await queryRunner.release()
-
-                    const question = new Question()
-                    question.name = "Question #1"
-                    await connection.getRepository(Question).save(question)
-
-                    const answer1 = new Answer()
-                    answer1.text = "answer 1"
-                    answer1.questionId = question.id
-                    await connection.getRepository(Answer).save(answer1)
-
-                    const answer2 = new Answer()
-                    answer2.text = "answer 2"
-                    answer2.questionId = question.id
-                    await connection.getRepository(Answer).save(answer2)
-
-                    const query = connection
-                        .createQueryBuilder()
-                        .select()
-                        .from(Question, "question")
-                        .addFrom(Answer, "answer")
-                        .where("question.id = :id", { id: 1 })
-                        .andWhere("answer.questionId = question.id")
-
-                    expect(await query.getRawOne()).to.be.not.empty
-
-                    query
-                        .getSql()
-                        .should.be.equal(
-                            `SELECT * FROM "testDB"."questions"."question" "question", "secondDB"."answers"."answer"` +
-                                ` "answer" WHERE "question"."id" = @0 AND "answer"."questionId" = "question"."id"`,
-                        )
-
-                    questionTable!.name.should.be.equal(
-                        "testDB.questions.question",
-                    )
-                    answerTable!.name.should.be.equal("secondDB.answers.answer")
                 }),
             ))
     })
@@ -349,7 +206,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
         before(async () => {
             connections = await createTestingConnections({
                 entities: [Person],
-                enabledDrivers: ["mssql", "mysql"],
+                enabledDrivers: ["mysql"],
             })
         })
         beforeEach(() => reloadTestingDatabases(connections))
@@ -359,10 +216,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
             Promise.all(
                 connections.map(async (connection) => {
                     const queryRunner = connection.createQueryRunner()
-                    const tablePath =
-                        connection.driver.options.type === "mssql"
-                            ? "secondDB..person"
-                            : "secondDB.person"
+                    const tablePath = "secondDB.person"
                     const table = await queryRunner.getTable(tablePath)
                     await queryRunner.release()
 
@@ -374,11 +228,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                         .createQueryBuilder(Person, "person")
                         .where("person.id = :id", { id: 1 })
                         .getSql()
-
-                    if (connection.driver.options.type === "mssql")
-                        sql.should.be.equal(
-                            `SELECT "person"."id" AS "person_id", "person"."name" AS "person_name" FROM "secondDB".."person" "person" WHERE "person"."id" = @0`,
-                        )
 
                     if (DriverUtils.isMySQLFamily(connection.driver))
                         sql.should.be.equal(

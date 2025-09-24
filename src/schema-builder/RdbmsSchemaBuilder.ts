@@ -64,13 +64,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
         this.currentDatabase = this.connection.driver.database
         this.currentSchema = this.connection.driver.schema
 
-        // CockroachDB implements asynchronous schema sync operations which can not been executed in transaction.
-        // E.g. if you try to DROP column and ADD it again in the same transaction, crdb throws error.
-        // In Spanner queries against the INFORMATION_SCHEMA can be used in a read-only transaction,
-        // but not in a read-write transaction.
         const isUsingTransactions =
-            !(this.connection.driver.options.type === "cockroachdb") &&
-            !(this.connection.driver.options.type === "spanner") &&
             this.connection.options.migrationsTransactionMode !== "none"
 
         await this.queryRunner.beforeMigration()
@@ -497,11 +491,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
 
     protected async dropOldChecks(): Promise<void> {
         // Mysql does not support check constraints
-        if (
-            DriverUtils.isMySQLFamily(this.connection.driver) ||
-            this.connection.driver.options.type === "aurora-mysql"
-        )
-            return
+        if (DriverUtils.isMySQLFamily(this.connection.driver)) return
 
         for (const metadata of this.entityToSyncMetadatas) {
             const table = this.queryRunner.loadedTables.find(
@@ -921,13 +911,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
 
             // drop all composite uniques related to this column
             // Mysql does not support unique constraints.
-            if (
-                !(
-                    DriverUtils.isMySQLFamily(this.connection.driver) ||
-                    this.connection.driver.options.type === "aurora-mysql" ||
-                    this.connection.driver.options.type === "spanner"
-                )
-            ) {
+            if (!DriverUtils.isMySQLFamily(this.connection.driver)) {
                 for (const changedColumn of changedColumns) {
                     await this.dropColumnCompositeUniques(
                         this.getTablePath(metadata),
@@ -1057,11 +1041,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
 
     protected async createNewChecks(): Promise<void> {
         // Mysql does not support check constraints
-        if (
-            DriverUtils.isMySQLFamily(this.connection.driver) ||
-            this.connection.driver.options.type === "aurora-mysql"
-        )
-            return
+        if (DriverUtils.isMySQLFamily(this.connection.driver)) return
 
         for (const metadata of this.entityToSyncMetadatas) {
             const table = this.queryRunner.loadedTables.find(
@@ -1346,10 +1326,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
             database,
         )
 
-        // Spanner requires at least one primary key in a table.
-        // Since we don't have unique column in "typeorm_metadata" table
-        // and we should avoid breaking changes, we mark all columns as primary for Spanner driver.
-        const isPrimary = this.connection.driver.options.type === "spanner"
+        const isPrimary = false
         await queryRunner.createTable(
             new Table({
                 database: database,

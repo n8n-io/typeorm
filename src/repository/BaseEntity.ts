@@ -10,7 +10,6 @@ import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder"
 import { InsertResult } from "../query-builder/result/InsertResult"
 import { UpdateResult } from "../query-builder/result/UpdateResult"
 import { DeleteResult } from "../query-builder/result/DeleteResult"
-import { ObjectId } from "../driver/mongodb/typings"
 import { ObjectUtils } from "../util/ObjectUtils"
 import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity"
 import { UpsertOptions } from "./UpsertOptions"
@@ -341,8 +340,6 @@ export class BaseEntity {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<T>,
         partialEntity: QueryDeepPartialEntity<T>,
     ): Promise<UpdateResult> {
@@ -382,8 +379,6 @@ export class BaseEntity {
             | number[]
             | Date
             | Date[]
-            | ObjectId
-            | ObjectId[]
             | FindOptionsWhere<T>,
     ): Promise<DeleteResult> {
         return this.getRepository<T>().delete(criteria)
@@ -565,7 +560,7 @@ export class BaseEntity {
      */
     static findOneById<T extends BaseEntity>(
         this: { new (): T } & typeof BaseEntity,
-        id: string | number | Date | ObjectId,
+        id: string | number | Date,
     ): Promise<T | null> {
         return this.getRepository<T>().findOneById(id)
     }

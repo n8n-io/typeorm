@@ -33,11 +33,7 @@ describe("schema builder > change unique constraint", () => {
                 let uniqueMetadata: UniqueMetadata | undefined = undefined
 
                 // Mysql and SAP stores unique constraints as unique indices.
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     uniqueIndexMetadata = new IndexMetadata({
                         entityMetadata: teacherMetadata,
                         columns: [nameColumn],
@@ -67,11 +63,7 @@ describe("schema builder > change unique constraint", () => {
                 const table = await queryRunner.getTable("teacher")
                 await queryRunner.release()
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     table!.indices.length.should.be.equal(1)
                     table!.indices[0].isUnique!.should.be.true
 
@@ -101,11 +93,7 @@ describe("schema builder > change unique constraint", () => {
                 const postMetadata = connection.getMetadata(Post)
 
                 // Mysql and SAP stores unique constraints as unique indices.
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     const uniqueIndexMetadata = postMetadata.indices.find(
                         (i) => i.columns.length === 2 && i.isUnique === true,
                     )
@@ -123,11 +111,7 @@ describe("schema builder > change unique constraint", () => {
                 const table = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     const tableIndex = table!.indices.find(
                         (index) =>
                             index.columnNames.length === 2 &&
@@ -171,11 +155,7 @@ describe("schema builder > change unique constraint", () => {
                 const postMetadata = connection.getMetadata(Post)
 
                 // Mysql and SAP stores unique constraints as unique indices.
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     const index = postMetadata!.indices.find(
                         (i) => i.columns.length === 2 && i.isUnique === true,
                     )
@@ -199,11 +179,7 @@ describe("schema builder > change unique constraint", () => {
                 const table = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     table!.indices.length.should.be.equal(1)
                 } else {
                     table!.uniques.length.should.be.equal(1)

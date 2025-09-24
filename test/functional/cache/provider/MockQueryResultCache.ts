@@ -1,8 +1,6 @@
 import { ObjectLiteral } from "../../../../src/common/ObjectLiteral"
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { PostgresConnectionOptions } from "../../../../src/driver/postgres/PostgresConnectionOptions"
-import { MssqlParameter } from "../../../../src/driver/sqlserver/MssqlParameter"
-import { SqlServerConnectionOptions } from "../../../../src/driver/sqlserver/SqlServerConnectionOptions"
 import { QueryRunner } from "../../../../src/query-runner/QueryRunner"
 import { Table } from "../../../../src/schema-builder/table/Table"
 import { QueryResultCache } from "../../../../src/cache/QueryResultCache"
@@ -23,9 +21,9 @@ export class MockQueryResultCache implements QueryResultCache {
     // -------------------------------------------------------------------------
 
     constructor(protected connection: DataSource) {
-        const options = <
-            SqlServerConnectionOptions | PostgresConnectionOptions
-        >this.connection.driver.options
+        const options = <PostgresConnectionOptions>(
+            this.connection.driver.options
+        )
         const cacheOptions =
             typeof this.connection.options.cache === "object"
                 ? this.connection.options.cache
@@ -145,31 +143,14 @@ export class MockQueryResultCache implements QueryResultCache {
                     )} = :identifier`,
                 )
                 .setParameters({
-                    identifier:
-                        this.connection.driver.options.type === "mssql"
-                            ? new MssqlParameter(options.identifier, "nvarchar")
-                            : options.identifier,
+                    identifier: options.identifier,
                 })
                 .getRawOne()
         } else if (options.query) {
-            if (this.connection.driver.options.type === "oracle") {
-                return qb
-                    .where(
-                        `dbms_lob.compare(${qb.escape("cache")}.${qb.escape(
-                            "query",
-                        )}, :query) = 0`,
-                        { query: options.query },
-                    )
-                    .getRawOne()
-            }
-
             return qb
                 .where(`${qb.escape("cache")}.${qb.escape("query")} = :query`)
                 .setParameters({
-                    query:
-                        this.connection.driver.options.type === "mssql"
-                            ? new MssqlParameter(options.query, "nvarchar")
-                            : options.query,
+                    query: options.query,
                 })
                 .getRawOne()
         }
@@ -205,16 +186,6 @@ export class MockQueryResultCache implements QueryResultCache {
         queryRunner = this.getQueryRunner(queryRunner)
 
         let insertedValues: ObjectLiteral = options
-        if (this.connection.driver.options.type === "mssql") {
-            // todo: bad abstraction, re-implement this part, probably better if we create an entity metadata for cache table
-            insertedValues = {
-                identifier: new MssqlParameter(options.identifier, "nvarchar"),
-                time: new MssqlParameter(options.time, "bigint"),
-                duration: new MssqlParameter(options.duration, "int"),
-                query: new MssqlParameter(options.query, "nvarchar"),
-                result: new MssqlParameter(options.result, "nvarchar"),
-            }
-        }
 
         if (savedCache && savedCache.identifier) {
             // if exist then update
@@ -234,15 +205,9 @@ export class MockQueryResultCache implements QueryResultCache {
                 .update(this.queryResultCacheTable)
                 .set(insertedValues)
 
-            if (this.connection.driver.options.type === "oracle") {
-                qb.where(`dbms_lob.compare("query", :condition) = 0`, {
-                    condition: insertedValues.query,
-                })
-            } else {
-                qb.where(`${qb.escape("query")} = :condition`, {
-                    condition: insertedValues.query,
-                })
-            }
+            qb.where(`${qb.escape("query")} = :condition`, {
+                condition: insertedValues.query,
+            })
 
             await qb.execute()
         } else {

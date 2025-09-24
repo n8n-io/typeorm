@@ -22,13 +22,13 @@ export interface JoinTableMultipleColumnsOptions {
 
     /**
      * Database where join table will be created.
-     * Works only in some databases (like mysql and mssql).
+     * Works only in some databases (like mysql).
      */
     database?: string
 
     /**
      * Schema where join table will be created.
-     * Works only in some databases (like postgres and mssql).
+     * Works only in some databases (like postgres).
      */
     schema?: string
 

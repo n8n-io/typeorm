@@ -1,6 +1,5 @@
 import "reflect-metadata"
 import { DataSource } from "../../../src/data-source/DataSource"
-import { UniqueMetadata } from "../../../src/metadata/UniqueMetadata"
 import {
     closeTestingConnections,
     createTestingConnections,
@@ -43,22 +42,6 @@ describe("schema builder > create foreign key", () => {
                     namingStrategy: connection.namingStrategy,
                 })
                 categoryMetadata.foreignKeys.push(fkMetadata)
-
-                // CockroachDB requires unique constraint for foreign key referenced columns
-                if (connection.driver.options.type === "cockroachdb") {
-                    const uniqueConstraint = new UniqueMetadata({
-                        entityMetadata: categoryMetadata,
-                        columns: fkMetadata.columns,
-                        args: {
-                            name: connection.namingStrategy.relationConstraintName(
-                                categoryMetadata.tableName,
-                                fkMetadata.columns.map((c) => c.databaseName),
-                            ),
-                            target: categoryMetadata.target,
-                        },
-                    })
-                    categoryMetadata.uniques.push(uniqueConstraint)
-                }
 
                 await connection.synchronize()
 

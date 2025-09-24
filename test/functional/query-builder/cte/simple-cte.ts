@@ -33,10 +33,7 @@ describe("query builder > cte > simple", () => {
                             [1, 2, 3].map((i) => ({ id: i, bar: String(i) })),
                         )
 
-                    let cteSelection =
-                        dataSource.driver.options.type === "oracle"
-                            ? `"foo"."bar"`
-                            : `foo.bar`
+                    let cteSelection = "foo.bar"
 
                     const cteQuery = dataSource
                         .createQueryBuilder()
@@ -45,20 +42,11 @@ describe("query builder > cte > simple", () => {
                         .from(Foo, "foo")
                         .where(`${cteSelection} = :value`, { value: "2" })
 
-                    // Spanner does not support column names in CTE
-                    const cteOptions =
-                        dataSource.driver.options.type === "spanner"
-                            ? undefined
-                            : {
-                                  columnNames: ["raz"],
-                              }
+                    const cteOptions = {
+                        columnNames: ["raz"],
+                    }
 
-                    cteSelection =
-                        dataSource.driver.options.type === "spanner"
-                            ? "qaz.bar"
-                            : dataSource.driver.options.type === "oracle"
-                            ? `"qaz"."raz"`
-                            : "qaz.raz"
+                    cteSelection = "qaz.raz"
 
                     const qb = dataSource
                         .createQueryBuilder()
@@ -82,50 +70,25 @@ describe("query builder > cte > simple", () => {
                             [1, 2, 3].map((i) => ({ id: i, bar: String(i) })),
                         )
 
-                    let cteSelection =
-                        dataSource.driver.options.type === "oracle"
-                            ? `"foo"."bar"`
-                            : `foo.bar`
+                    let cteSelection = "foo.bar"
 
                     const cteQuery = dataSource
                         .createQueryBuilder()
                         .select()
-                        .addSelect(
-                            dataSource.driver.options.type === "oracle"
-                                ? `"bar"`
-                                : "bar",
-                            "bar",
-                        )
+                        .addSelect("bar", "bar")
                         .from(Foo, "foo")
                         .where(`${cteSelection} = '2'`)
 
-                    // Spanner does not support column names in CTE
-                    const cteOptions =
-                        dataSource.driver.options.type === "spanner"
-                            ? undefined
-                            : {
-                                  columnNames: ["raz"],
-                              }
+                    const cteOptions = {
+                        columnNames: ["raz"],
+                    }
 
-                    cteSelection =
-                        dataSource.driver.options.type === "spanner"
-                            ? "qaz.bar"
-                            : dataSource.driver.options.type === "oracle"
-                            ? `"qaz"."raz"`
-                            : "qaz.raz"
+                    cteSelection = "qaz.raz"
 
                     const results = await dataSource
                         .createQueryBuilder(Foo, "foo")
                         .addCommonTableExpression(cteQuery, "qaz", cteOptions)
-                        .innerJoin(
-                            "qaz",
-                            "qaz",
-                            `${cteSelection} = ${
-                                dataSource.driver.options.type === "oracle"
-                                    ? `"foo"."bar"`
-                                    : `foo.bar`
-                            }`,
-                        )
+                        .innerJoin("qaz", "qaz", `${cteSelection} = foo.bar`)
                         .getMany()
 
                     expect(results).to.have.length(1)
@@ -172,57 +135,23 @@ describe("query builder > cte > simple", () => {
             dataSources
                 .filter(filterByCteCapabilities("enabled"))
                 .map(async (dataSource) => {
-                    // Spanner does not support column names in CTE
-
                     let results: { row: any }[]
-                    if (dataSource.driver.options.type === "spanner") {
-                        results = await dataSource
-                            .createQueryBuilder()
-                            .select()
-                            .addCommonTableExpression(
-                                `
-                                SELECT 1 AS foo
-                                UNION ALL
-                                SELECT 2 AS foo
-                                `,
-                                "cte",
-                            )
-                            .from("cte", "cte")
-                            .addSelect("foo", "row")
-                            .getRawMany<{ row: any }>()
-                    } else if (dataSource.driver.options.type === "oracle") {
-                        results = await dataSource
-                            .createQueryBuilder()
-                            .select()
-                            .addCommonTableExpression(
-                                `
-                                SELECT 1 FROM DUAL
-                                UNION
-                                SELECT 2 FROM DUAL
-                                `,
-                                "cte",
-                                { columnNames: ["foo"] },
-                            )
-                            .from("cte", "cte")
-                            .addSelect(`"foo"`, "row")
-                            .getRawMany<{ row: any }>()
-                    } else {
-                        results = await dataSource
-                            .createQueryBuilder()
-                            .select()
-                            .addCommonTableExpression(
-                                `
+
+                    results = await dataSource
+                        .createQueryBuilder()
+                        .select()
+                        .addCommonTableExpression(
+                            `
                                 SELECT 1
                                 UNION
                                 SELECT 2
                                 `,
-                                "cte",
-                                { columnNames: ["foo"] },
-                            )
-                            .from("cte", "cte")
-                            .addSelect("foo", "row")
-                            .getRawMany<{ row: any }>()
-                    }
+                            "cte",
+                            { columnNames: ["foo"] },
+                        )
+                        .from("cte", "cte")
+                        .addSelect("foo", "row")
+                        .getRawMany<{ row: any }>()
 
                     const [rowWithOne, rowWithTwo] = results
 

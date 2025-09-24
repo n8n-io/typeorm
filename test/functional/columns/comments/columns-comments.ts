@@ -15,7 +15,7 @@ describe("columns > comments", () => {
             (connections = await createTestingConnections({
                 entities: [Test],
                 // Only supported on cockroachdb, mysql, postgres, and sap
-                enabledDrivers: ["cockroachdb", "mysql", "postgres", "sap"],
+                enabledDrivers: ["mysql", "postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

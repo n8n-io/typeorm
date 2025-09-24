@@ -30,8 +30,6 @@ describe("query runner > create table", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
                 const options: TableOptions = {
@@ -41,21 +39,12 @@ describe("query runner > create table", () => {
                             name: "id",
                             type: numericType,
                             isPrimary: true,
-                            isGenerated:
-                                connection.driver.options.type === "spanner"
-                                    ? false
-                                    : true,
-                            generationStrategy:
-                                connection.driver.options.type === "spanner"
-                                    ? undefined
-                                    : "increment",
+                            isGenerated: true,
+                            generationStrategy: "increment",
                         },
                         {
                             name: "name",
-                            type:
-                                connection.driver.options.type === "spanner"
-                                    ? "string"
-                                    : "varchar",
+                            type: "varchar",
                             isUnique: true,
                             isNullable: false,
                         },
@@ -69,25 +58,13 @@ describe("query runner > create table", () => {
                 const nameColumn = table!.findColumnByName("name")
                 idColumn!.should.be.exist
                 idColumn!.isPrimary.should.be.true
-                if (connection.driver.options.type === "spanner") {
-                    idColumn!.isGenerated.should.be.false
-                    expect(idColumn!.generationStrategy).to.be.undefined
-                } else {
-                    idColumn!.isGenerated.should.be.true
-                    idColumn!.generationStrategy!.should.be.equal("increment")
-                }
+                idColumn!.isGenerated.should.be.true
+                idColumn!.generationStrategy!.should.be.equal("increment")
                 nameColumn!.should.be.exist
                 nameColumn!.isUnique.should.be.true
                 table!.should.exist
 
-                if (
-                    !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
-                        connection.driver.options.type === "aurora-mysql" ||
-                        connection.driver.options.type === "sap" ||
-                        connection.driver.options.type === "spanner"
-                    )
-                ) {
+                if (!DriverUtils.isMySQLFamily(connection.driver)) {
                     table!.uniques.length.should.be.equal(1)
                 }
 
@@ -110,28 +87,15 @@ describe("query runner > create table", () => {
                 const table = await queryRunner.getTable("post")
                 const idColumn = table!.findColumnByName("id")
                 const versionColumn = table!.findColumnByName("version")
-                const nameColumn = table!.findColumnByName("name")
 
                 table!.should.exist
-                if (
-                    !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
-                        connection.driver.options.type === "aurora-mysql" ||
-                        connection.driver.options.type === "sap" ||
-                        connection.driver.options.type === "spanner"
-                    )
-                ) {
+                if (!DriverUtils.isMySQLFamily(connection.driver)) {
                     table!.uniques.length.should.be.equal(2)
                     table!.checks.length.should.be.equal(1)
                 }
 
                 idColumn!.isPrimary.should.be.true
                 versionColumn!.isUnique.should.be.true
-
-                // Spanner does not support DEFAULT values
-                if (!(connection.driver.options.type === "spanner")) {
-                    nameColumn!.default!.should.be.exist
-                }
 
                 await queryRunner.release()
             }),
@@ -145,14 +109,9 @@ describe("query runner > create table", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
                 let stringType = "varchar"
-                if (connection.driver.options.type === "spanner") {
-                    stringType = "string"
-                }
 
                 await queryRunner.createTable(
                     new Table({
@@ -184,14 +143,8 @@ describe("query runner > create table", () => {
                             name: "id",
                             type: numericType,
                             isPrimary: true,
-                            isGenerated:
-                                connection.driver.options.type === "spanner"
-                                    ? false
-                                    : true,
-                            generationStrategy:
-                                connection.driver.options.type === "spanner"
-                                    ? undefined
-                                    : "increment",
+                            isGenerated: true,
+                            generationStrategy: "increment",
                         },
                         {
                             name: "name",
@@ -226,12 +179,7 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     questionTableOptions.indices!.push({
                         columnNames: ["name", "text"],
                     })
@@ -260,14 +208,8 @@ describe("query runner > create table", () => {
                             name: "id",
                             type: numericType,
                             isPrimary: true,
-                            isGenerated:
-                                connection.driver.options.type === "spanner"
-                                    ? false
-                                    : true,
-                            generationStrategy:
-                                connection.driver.options.type === "spanner"
-                                    ? undefined
-                                    : "increment",
+                            isGenerated: true,
+                            generationStrategy: "increment",
                         },
                         {
                             name: "name",
@@ -295,12 +237,7 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     categoryTableOptions.indices = [
                         { columnNames: ["name", "alternativeName"] },
                     ]
@@ -311,15 +248,7 @@ describe("query runner > create table", () => {
                 }
 
                 // When we mark column as unique, MySql create index for that column and we don't need to create index separately.
-                if (
-                    !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
-                        connection.driver.options.type === "aurora-mysql" ||
-                        connection.driver.options.type === "oracle" ||
-                        connection.driver.options.type === "sap" ||
-                        connection.driver.options.type === "spanner"
-                    )
-                )
+                if (!DriverUtils.isMySQLFamily(connection.driver))
                     categoryTableOptions.indices = [
                         { columnNames: ["questionId"] },
                     ]
@@ -339,35 +268,13 @@ describe("query runner > create table", () => {
                 let questionTable = await queryRunner.getTable("question")
                 const questionIdColumn = questionTable!.findColumnByName("id")
                 questionIdColumn!.isPrimary.should.be.true
-                if (!(connection.driver.options.type === "spanner")) {
-                    questionIdColumn!.isGenerated.should.be.true
-                    questionIdColumn!.generationStrategy!.should.be.equal(
-                        "increment",
-                    )
-                }
                 questionTable!.should.exist
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     // MySql, SAP HANA and Spanner does not have unique constraints.
                     // all unique constraints are unique indexes.
                     questionTable!.uniques.length.should.be.equal(0)
                     questionTable!.indices.length.should.be.equal(2)
-                } else if (connection.driver.options.type === "cockroachdb") {
-                    // CockroachDB stores unique indices as UNIQUE constraints
-                    questionTable!.uniques.length.should.be.equal(2)
-                    questionTable!.uniques[0].columnNames.length.should.be.equal(
-                        2,
-                    )
-                    questionTable!.uniques[1].columnNames.length.should.be.equal(
-                        2,
-                    )
-                    questionTable!.indices.length.should.be.equal(0)
-                    questionTable!.checks.length.should.be.equal(1)
                 } else {
                     questionTable!.uniques.length.should.be.equal(1)
                     questionTable!.uniques[0].columnNames.length.should.be.equal(
@@ -392,26 +299,12 @@ describe("query runner > create table", () => {
                 const categoryTableIdColumn =
                     categoryTable!.findColumnByName("id")
                 categoryTableIdColumn!.isPrimary.should.be.true
-                if (!(connection.driver.options.type === "spanner")) {
-                    categoryTableIdColumn!.isGenerated.should.be.true
-                    categoryTableIdColumn!.generationStrategy!.should.be.equal(
-                        "increment",
-                    )
-                }
                 categoryTable!.should.exist
                 categoryTable!.foreignKeys.length.should.be.equal(1)
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
-                    // MySql, SAP HANA and Spanner does not have unique constraints. All unique constraints are unique indexes.
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                    // MySql does not have unique constraints. All unique constraints are unique indexes.
                     categoryTable!.indices.length.should.be.equal(3)
-                } else if (connection.driver.options.type === "oracle") {
-                    // Oracle does not allow to put index on primary or unique columns.
-                    categoryTable!.indices.length.should.be.equal(0)
                 } else {
                     categoryTable!.uniques.length.should.be.equal(3)
                     categoryTable!.indices.length.should.be.equal(1)
@@ -448,20 +341,9 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 descriptionColumn!.isUnique.should.be.true
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "aurora-mysql" ||
-                    connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
-                ) {
+                if (DriverUtils.isMySQLFamily(connection.driver)) {
                     table!.uniques.length.should.be.equal(0)
                     table!.indices.length.should.be.equal(4)
-                    tagColumn!.isUnique.should.be.true
-                    textColumn!.isUnique.should.be.true
-                } else if (connection.driver.options.type === "cockroachdb") {
-                    // CockroachDB stores unique indices as UNIQUE constraints
-                    table!.uniques.length.should.be.equal(4)
-                    table!.indices.length.should.be.equal(0)
                     tagColumn!.isUnique.should.be.true
                     textColumn!.isUnique.should.be.true
                 } else {

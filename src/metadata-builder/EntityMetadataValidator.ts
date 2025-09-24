@@ -122,46 +122,33 @@ export class EntityMetadataValidator {
                 )
         })
 
-        if (!(driver.options.type === "mongodb")) {
-            entityMetadata.columns
-                .filter((column) => !column.isVirtualProperty)
-                .forEach((column) => {
-                    const normalizedColumn = driver.normalizeType(
+        entityMetadata.columns
+            .filter((column) => !column.isVirtualProperty)
+            .forEach((column) => {
+                const normalizedColumn = driver.normalizeType(
+                    column,
+                ) as ColumnType
+                if (driver.supportedDataTypes.indexOf(normalizedColumn) === -1)
+                    throw new DataTypeNotSupportedError(
                         column,
-                    ) as ColumnType
-                    if (
-                        driver.supportedDataTypes.indexOf(normalizedColumn) ===
+                        normalizedColumn,
+                        driver.options.type,
+                    )
+                if (
+                    column.length &&
+                    driver.withLengthColumnTypes.indexOf(normalizedColumn) ===
                         -1
+                )
+                    throw new TypeORMError(
+                        `Column ${column.propertyName} of Entity ${entityMetadata.name} does not support length property.`,
                     )
-                        throw new DataTypeNotSupportedError(
-                            column,
-                            normalizedColumn,
-                            driver.options.type,
-                        )
-                    if (
-                        column.length &&
-                        driver.withLengthColumnTypes.indexOf(
-                            normalizedColumn,
-                        ) === -1
+                if (column.type === "enum" && !column.enum && !column.enumName)
+                    throw new TypeORMError(
+                        `Column "${column.propertyName}" of Entity "${entityMetadata.name}" is defined as enum, but missing "enum" or "enumName" properties.`,
                     )
-                        throw new TypeORMError(
-                            `Column ${column.propertyName} of Entity ${entityMetadata.name} does not support length property.`,
-                        )
-                    if (
-                        column.type === "enum" &&
-                        !column.enum &&
-                        !column.enumName
-                    )
-                        throw new TypeORMError(
-                            `Column "${column.propertyName}" of Entity "${entityMetadata.name}" is defined as enum, but missing "enum" or "enumName" properties.`,
-                        )
-                })
-        }
+            })
 
-        if (
-            DriverUtils.isMySQLFamily(driver) ||
-            driver.options.type === "aurora-mysql"
-        ) {
+        if (DriverUtils.isMySQLFamily(driver)) {
             const generatedColumns = entityMetadata.columns.filter(
                 (column) =>
                     column.isGenerated && column.generationStrategy !== "uuid",
@@ -181,16 +168,6 @@ export class EntityMetadataValidator {
             )
             if (metadatasWithDatabase.length === 0 && !driver.database)
                 throw new NoConnectionOptionError("database")
-        }
-
-        if (driver.options.type === "mssql") {
-            const charsetColumns = entityMetadata.columns.filter(
-                (column) => column.charset,
-            )
-            if (charsetColumns.length > 1)
-                throw new TypeORMError(
-                    `Character set specifying is not supported in Sql Server`,
-                )
         }
 
         // Postgres supports only STORED generated columns.

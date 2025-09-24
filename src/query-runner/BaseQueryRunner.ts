@@ -1,7 +1,6 @@
 import { PostgresConnectionOptions } from "../driver/postgres/PostgresConnectionOptions"
 import { Query } from "../driver/Query"
 import { SqlInMemory } from "../driver/SqlInMemory"
-import { SqlServerConnectionOptions } from "../driver/sqlserver/SqlServerConnectionOptions"
 import { TableIndex } from "../schema-builder/table/TableIndex"
 import { View } from "../schema-builder/view/View"
 import { DataSource } from "../data-source/DataSource"
@@ -337,9 +336,9 @@ export abstract class BaseQueryRunner {
     }
 
     protected getTypeormMetadataTableName(): string {
-        const options = <
-            SqlServerConnectionOptions | PostgresConnectionOptions
-        >this.connection.driver.options
+        const options = <PostgresConnectionOptions>(
+            this.connection.driver.options
+        )
         return this.connection.driver.buildTableName(
             this.connection.metadataTableName,
             options.schema,
