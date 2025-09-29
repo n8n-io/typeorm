@@ -766,6 +766,7 @@ export class InsertQueryBuilder<
                         } else {
                             expression += "DEFAULT"
                         }
+                        // support for SQL expressions in queries
                     } else if (typeof value === "function") {
                         expression += value()
 
@@ -853,6 +854,7 @@ export class InsertQueryBuilder<
                         } else {
                             expression += "DEFAULT"
                         }
+                        // just any other regular value
                     } else {
                         expression += this.createParameter(value)
                     }
