@@ -59,7 +59,7 @@ export type WithLengthColumnType =
     | "nvarchar2" // sqlite
     | "binary" // mysql
     | "varbinary" // mysql
-    | "string" // ??
+    | "string" // all supported dbs
 
 export type WithWidthColumnType =
     | "tinyint" // mysql
