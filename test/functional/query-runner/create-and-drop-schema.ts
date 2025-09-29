@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import { DataSource } from "../../../src"
+import { DataSource, Table } from "../../../src"
 import {
     closeTestingConnections,
     createTestingConnections,
@@ -35,6 +35,38 @@ describe("query runner > create and drop schema", () => {
 
                 hasSchema = await queryRunner.hasSchema("myTestSchema")
                 hasSchema.should.be.false
+
+                await queryRunner.release()
+            }),
+        ))
+
+    it("should safely handle potentially malicious database names", () =>
+        Promise.all(
+            connections.map(async (connection) => {
+                const queryRunner = connection.createQueryRunner()
+
+                await queryRunner.createTable(
+                    new Table({
+                        name: "injection_test_table",
+                        columns: [{ name: "id", type: "int", isPrimary: true }],
+                    }),
+                    true,
+                )
+
+                const maliciousName =
+                    "test'; DROP TABLE injection_test_table; --"
+                let exists
+                try {
+                    exists = await queryRunner.hasSchema(maliciousName)
+                    exists.should.be.false
+                } catch (error) {
+                    exists = false
+                }
+
+                const tableExists = await queryRunner.hasTable(
+                    "injection_test_table",
+                )
+                tableExists.should.be.true
 
                 await queryRunner.release()
             }),
