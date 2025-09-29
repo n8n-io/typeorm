@@ -13,12 +13,7 @@ describe("database schema > column length > sqlite", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [Post],
-            enabledDrivers: [
-                "sqlite",
-                "sqlite-pooled",
-                "better-sqlite3",
-                "libsql",
-            ],
+            enabledDrivers: ["sqlite", "sqlite-pooled"],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))

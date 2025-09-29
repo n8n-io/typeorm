@@ -35,7 +35,6 @@ export class ConnectionOptionsEnvReader {
                 username: PlatformTools.getEnvVariable("TYPEORM_USERNAME"),
                 password: PlatformTools.getEnvVariable("TYPEORM_PASSWORD"),
                 database: PlatformTools.getEnvVariable("TYPEORM_DATABASE"),
-                sid: PlatformTools.getEnvVariable("TYPEORM_SID"),
                 schema: PlatformTools.getEnvVariable("TYPEORM_SCHEMA"),
                 extra: PlatformTools.getEnvVariable("TYPEORM_DRIVER_EXTRA")
                     ? JSON.parse(

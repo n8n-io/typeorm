@@ -25,9 +25,6 @@ describe("github issues > #9910 Incorrect behaivor of 'alwaysEnabled: true' afte
     it("should automatically cache if alwaysEnabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "spanner") {
-                    return
-                }
                 const user1 = new User()
                 user1.name = "Foo"
                 await connection.manager.save(user1)

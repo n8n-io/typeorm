@@ -133,27 +133,20 @@ export class ClosureJunctionEntityMetadataBuilder {
         }
 
         // create junction table foreign keys
-        // Note: CASCADE is not applied to mssql because it does not support multi cascade paths
         entityMetadata.foreignKeys = [
             new ForeignKeyMetadata({
                 entityMetadata: entityMetadata,
                 referencedEntityMetadata: parentClosureEntityMetadata,
                 columns: [entityMetadata.ownColumns[0]],
                 referencedColumns: parentClosureEntityMetadata.primaryColumns,
-                onDelete:
-                    this.connection.driver.options.type === "mssql"
-                        ? "NO ACTION"
-                        : "CASCADE",
+                onDelete: "CASCADE",
             }),
             new ForeignKeyMetadata({
                 entityMetadata: entityMetadata,
                 referencedEntityMetadata: parentClosureEntityMetadata,
                 columns: [entityMetadata.ownColumns[1]],
                 referencedColumns: parentClosureEntityMetadata.primaryColumns,
-                onDelete:
-                    this.connection.driver.options.type === "mssql"
-                        ? "NO ACTION"
-                        : "CASCADE",
+                onDelete: "CASCADE",
             }),
         ]
 

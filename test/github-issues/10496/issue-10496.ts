@@ -21,17 +21,11 @@ describe("github issues > #10496 User-defined index name for Single Table Inheri
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "better-sqlite3",
-                    "cockroachdb",
                     "mariadb",
-                    "mssql",
                     "mysql",
-                    "oracle",
                     "postgres",
-                    "spanner",
                     "sqlite",
                     "sqlite-pooled",
-                    "libsql",
                 ],
             })),
     )

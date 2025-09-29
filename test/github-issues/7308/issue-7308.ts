@@ -15,13 +15,7 @@ describe("github issues > #7308 queryBuilder makes different parameter identifie
             async () =>
                 (dataSources = await createTestingConnections({
                     entities: [Weather],
-                    enabledDrivers: [
-                        "postgres",
-                        "cockroachdb",
-                        "spanner",
-                        "mssql",
-                        "oracle",
-                    ],
+                    enabledDrivers: ["postgres"],
                     schemaCreate: true,
                     dropSchema: true,
                 })),
@@ -43,24 +37,9 @@ describe("github issues > #7308 queryBuilder makes different parameter identifie
                         .getQueryAndParameters()
                     query.should.not.be.undefined
 
-                    if (
-                        dataSource.driver.options.type === "postgres" ||
-                        dataSource.driver.options.type === "cockroachdb"
-                    ) {
+                    if (dataSource.driver.options.type === "postgres") {
                         expect(query).to.equal(
                             'SELECT round(temperature, $1), count(*) AS "count" FROM "weather" "Weather" GROUP BY round(temperature, $1)',
-                        )
-                    } else if (dataSource.driver.options.type === "spanner") {
-                        expect(query).to.equal(
-                            'SELECT round(temperature, @param0), count(*) AS "count" FROM "weather" "Weather" GROUP BY round(temperature, @param0)',
-                        )
-                    } else if (dataSource.driver.options.type === "oracle") {
-                        expect(query).to.equal(
-                            'SELECT round(temperature, :1), count(*) AS "count" FROM "weather" "Weather" GROUP BY round(temperature, :1)',
-                        )
-                    } else if (dataSource.driver.options.type === "mssql") {
-                        expect(query).to.equal(
-                            'SELECT round(temperature, @0), count(*) AS "count" FROM "weather" "Weather" GROUP BY round(temperature, @0)',
                         )
                     }
                     return parameters.length.should.eql(1)

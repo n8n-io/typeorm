@@ -1,10 +1,8 @@
 import { v4 as uuidv4 } from "uuid"
 import { EntityTarget } from "../common/EntityTarget"
 import { ObjectLiteral } from "../common/ObjectLiteral"
-import { AuroraMysqlDriver } from "../driver/aurora-mysql/AuroraMysqlDriver"
 import { DriverUtils } from "../driver/DriverUtils"
 import { MysqlDriver } from "../driver/mysql/MysqlDriver"
-import { SqlServerDriver } from "../driver/sqlserver/SqlServerDriver"
 import { TypeORMError } from "../error"
 import { InsertValuesMissingError } from "../error/InsertValuesMissingError"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
@@ -120,15 +118,8 @@ export class InsertQueryBuilder<
                 this.expressionMap.updateEntity === true &&
                 this.expressionMap.mainAlias!.hasMetadata
             ) {
-                if (
-                    !(
-                        valueSets.length > 1 &&
-                        this.connection.driver.options.type === "oracle"
-                    )
-                ) {
-                    this.expressionMap.extraReturningColumns =
-                        this.expressionMap.mainAlias!.metadata.getInsertionReturningColumns()
-                }
+                this.expressionMap.extraReturningColumns =
+                    this.expressionMap.mainAlias!.metadata.getInsertionReturningColumns()
 
                 returningColumns.push(
                     ...this.expressionMap.extraReturningColumns.filter(
@@ -137,18 +128,6 @@ export class InsertQueryBuilder<
                 )
             }
 
-            if (
-                returningColumns.length > 0 &&
-                this.connection.driver.options.type === "mssql"
-            ) {
-                declareSql = (
-                    this.connection.driver as SqlServerDriver
-                ).buildTableVariableDeclaration(
-                    "@OutputTable",
-                    returningColumns,
-                )
-                selectOutputSql = `SELECT * FROM @OutputTable`
-            }
             // console.timeEnd(".prepare returning statement");
 
             // execute query
@@ -407,11 +386,7 @@ export class InsertQueryBuilder<
     protected createInsertExpression() {
         const tableName = this.getTableName(this.getMainTableName())
         const valuesExpression = this.createValuesExpression() // its important to get values before returning expression because oracle rely on native parameters and ordering of them is important
-        const returningExpression =
-            this.connection.driver.options.type === "oracle" &&
-            this.getValueSets().length > 1
-                ? null
-                : this.createReturningExpression("insert") // oracle doesnt support returning with multi-row insert
+        const returningExpression = this.createReturningExpression("insert")
         const columnsExpression = this.createColumnNamesExpression()
         let query = "INSERT "
 
@@ -419,10 +394,7 @@ export class InsertQueryBuilder<
             query = "UPSERT "
         }
 
-        if (
-            DriverUtils.isMySQLFamily(this.connection.driver) ||
-            this.connection.driver.options.type === "aurora-mysql"
-        ) {
+        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
             query += `${this.expressionMap.onIgnore ? " IGNORE " : ""}`
         }
 
@@ -441,37 +413,17 @@ export class InsertQueryBuilder<
         } else {
             if (
                 !valuesExpression &&
-                (DriverUtils.isMySQLFamily(this.connection.driver) ||
-                    this.connection.driver.options.type === "aurora-mysql")
+                DriverUtils.isMySQLFamily(this.connection.driver)
             )
                 // special syntax for mysql DEFAULT VALUES insertion
                 query += "()"
         }
 
-        // add OUTPUT expression
-        if (
-            returningExpression &&
-            this.connection.driver.options.type === "mssql"
-        ) {
-            query += ` OUTPUT ${returningExpression}`
-        }
-
         // add VALUES expression
         if (valuesExpression) {
-            if (
-                (this.connection.driver.options.type === "oracle" ||
-                    this.connection.driver.options.type === "sap") &&
-                this.getValueSets().length > 1
-            ) {
-                query += ` ${valuesExpression}`
-            } else {
-                query += ` VALUES ${valuesExpression}`
-            }
+            query += ` VALUES ${valuesExpression}`
         } else {
-            if (
-                DriverUtils.isMySQLFamily(this.connection.driver) ||
-                this.connection.driver.options.type === "aurora-mysql"
-            ) {
+            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
                 // special syntax for mysql DEFAULT VALUES insertion
                 query += " VALUES ()"
             } else {
@@ -556,18 +508,8 @@ export class InsertQueryBuilder<
                                         !overwrite?.includes(
                                             column.databaseName,
                                         ) &&
-                                        !(
-                                            (this.connection.driver.options
-                                                .type === "oracle" &&
-                                                this.getValueSets().length >
-                                                    1) ||
-                                            DriverUtils.isSQLiteFamily(
-                                                this.connection.driver,
-                                            ) ||
-                                            this.connection.driver.options
-                                                .type === "sap" ||
-                                            this.connection.driver.options
-                                                .type === "spanner"
+                                        !DriverUtils.isSQLiteFamily(
+                                            this.connection.driver,
                                         ),
                                 )
                                 .map(
@@ -644,31 +586,9 @@ export class InsertQueryBuilder<
         if (
             returningExpression &&
             (DriverUtils.isPostgresFamily(this.connection.driver) ||
-                this.connection.driver.options.type === "oracle" ||
-                this.connection.driver.options.type === "cockroachdb" ||
                 DriverUtils.isMySQLFamily(this.connection.driver))
         ) {
             query += ` RETURNING ${returningExpression}`
-        }
-
-        // Inserting a specific value for an auto-increment primary key in mssql requires enabling IDENTITY_INSERT
-        // IDENTITY_INSERT can only be enabled for tables where there is an IDENTITY column and only if there is a value to be inserted (i.e. supplying DEFAULT is prohibited if IDENTITY_INSERT is enabled)
-        if (
-            this.connection.driver.options.type === "mssql" &&
-            this.expressionMap.mainAlias!.hasMetadata &&
-            this.expressionMap
-                .mainAlias!.metadata.columns.filter((column) =>
-                    this.expressionMap.insertColumns.length > 0
-                        ? this.expressionMap.insertColumns.indexOf(
-                              column.propertyPath,
-                          ) !== -1
-                        : column.isInsert,
-                )
-                .some((column) =>
-                    this.isOverridingAutoIncrementBehavior(column),
-                )
-        ) {
-            query = `SET IDENTITY_INSERT ${tableName} ON; ${query}; SET IDENTITY_INSERT ${tableName} OFF`
         }
 
         return query
@@ -696,19 +616,11 @@ export class InsertQueryBuilder<
                 }
 
                 // if user did not specified such list then return all columns except auto-increment one
-                // for Oracle we return auto-increment column as well because Oracle does not support DEFAULT VALUES expression
                 if (
                     column.isGenerated &&
                     column.generationStrategy === "increment" &&
-                    !(this.connection.driver.options.type === "spanner") &&
-                    !(this.connection.driver.options.type === "oracle") &&
                     !DriverUtils.isSQLiteFamily(this.connection.driver) &&
-                    !DriverUtils.isMySQLFamily(this.connection.driver) &&
-                    !(this.connection.driver.options.type === "aurora-mysql") &&
-                    !(
-                        this.connection.driver.options.type === "mssql" &&
-                        this.isOverridingAutoIncrementBehavior(column)
-                    )
+                    !DriverUtils.isMySQLFamily(this.connection.driver)
                 )
                     return false
 
@@ -759,19 +671,7 @@ export class InsertQueryBuilder<
             valueSets.forEach((valueSet, valueSetIndex) => {
                 columns.forEach((column, columnIndex) => {
                     if (columnIndex === 0) {
-                        if (
-                            this.connection.driver.options.type === "oracle" &&
-                            valueSets.length > 1
-                        ) {
-                            expression += " SELECT "
-                        } else if (
-                            this.connection.driver.options.type === "sap" &&
-                            valueSets.length > 1
-                        ) {
-                            expression += " SELECT "
-                        } else {
-                            expression += "("
-                        }
+                        expression += "("
                     }
 
                     // extract real value from the entity
@@ -848,13 +748,7 @@ export class InsertQueryBuilder<
                         // if value for this column was not provided then insert default value
                     } else if (value === undefined) {
                         if (
-                            (this.connection.driver.options.type === "oracle" &&
-                                valueSets.length > 1) ||
-                            DriverUtils.isSQLiteFamily(
-                                this.connection.driver,
-                            ) ||
-                            this.connection.driver.options.type === "sap" ||
-                            this.connection.driver.options.type === "spanner"
+                            DriverUtils.isSQLiteFamily(this.connection.driver)
                         ) {
                             // unfortunately sqlite does not support DEFAULT expression in INSERT queries
                             if (
@@ -872,23 +766,12 @@ export class InsertQueryBuilder<
                         } else {
                             expression += "DEFAULT"
                         }
-                    } else if (
-                        value === null &&
-                        this.connection.driver.options.type === "spanner"
-                    ) {
-                        expression += "NULL"
-
                         // support for SQL expressions in queries
                     } else if (typeof value === "function") {
                         expression += value()
 
                         // just any other regular value
                     } else {
-                        if (this.connection.driver.options.type === "mssql")
-                            value = (
-                                this.connection.driver as SqlServerDriver
-                            ).parametrizeValue(column, value)
-
                         // we need to store array values in a special class to make sure parameter replacement will work correctly
                         // if (value instanceof Array)
                         //     value = new ArrayParameter(value);
@@ -896,19 +779,13 @@ export class InsertQueryBuilder<
                         const paramName = this.createParameter(value)
 
                         if (
-                            (DriverUtils.isMySQLFamily(
-                                this.connection.driver,
-                            ) ||
-                                this.connection.driver.options.type ===
-                                    "aurora-mysql") &&
+                            DriverUtils.isMySQLFamily(this.connection.driver) &&
                             this.connection.driver.spatialTypes.indexOf(
                                 column.type,
                             ) !== -1
                         ) {
                             const useLegacy = (
-                                this.connection.driver as
-                                    | MysqlDriver
-                                    | AuroraMysqlDriver
+                                this.connection.driver as MysqlDriver
                             ).options.legacySpatialSupport
                             const geomFromText = useLegacy
                                 ? "GeomFromText"
@@ -931,19 +808,6 @@ export class InsertQueryBuilder<
                             } else {
                                 expression += `ST_GeomFromGeoJSON(${paramName})::${column.type}`
                             }
-                        } else if (
-                            this.connection.driver.options.type === "mssql" &&
-                            this.connection.driver.spatialTypes.indexOf(
-                                column.type,
-                            ) !== -1
-                        ) {
-                            expression +=
-                                column.type +
-                                "::STGeomFromText(" +
-                                paramName +
-                                ", " +
-                                (column.srid || "0") +
-                                ")"
                         } else {
                             expression += paramName
                         }
@@ -951,35 +815,9 @@ export class InsertQueryBuilder<
 
                     if (columnIndex === columns.length - 1) {
                         if (valueSetIndex === valueSets.length - 1) {
-                            if (
-                                this.connection.driver.options.type ===
-                                    "oracle" &&
-                                valueSets.length > 1
-                            ) {
-                                expression += " FROM DUAL "
-                            } else if (
-                                this.connection.driver.options.type === "sap" &&
-                                valueSets.length > 1
-                            ) {
-                                expression += " FROM dummy "
-                            } else {
-                                expression += ")"
-                            }
+                            expression += ")"
                         } else {
-                            if (
-                                this.connection.driver.options.type ===
-                                    "oracle" &&
-                                valueSets.length > 1
-                            ) {
-                                expression += " FROM DUAL UNION ALL "
-                            } else if (
-                                this.connection.driver.options.type === "sap" &&
-                                valueSets.length > 1
-                            ) {
-                                expression += " FROM dummy UNION ALL "
-                            } else {
-                                expression += "), "
-                            }
+                            expression += "), "
                         }
                     } else {
                         expression += ", "
@@ -1010,22 +848,12 @@ export class InsertQueryBuilder<
                         // if value for this column was not provided then insert default value
                     } else if (value === undefined) {
                         if (
-                            (this.connection.driver.options.type === "oracle" &&
-                                valueSets.length > 1) ||
-                            DriverUtils.isSQLiteFamily(
-                                this.connection.driver,
-                            ) ||
-                            this.connection.driver.options.type === "sap" ||
-                            this.connection.driver.options.type === "spanner"
+                            DriverUtils.isSQLiteFamily(this.connection.driver)
                         ) {
                             expression += "NULL"
                         } else {
                             expression += "DEFAULT"
                         }
-                    } else if (
-                        value === null &&
-                        this.connection.driver.options.type === "spanner"
-                    ) {
                         // just any other regular value
                     } else {
                         expression += this.createParameter(value)

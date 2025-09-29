@@ -22,7 +22,6 @@ import { WhereClause, WhereClauseCondition } from "./WhereClause"
 import { NotBrackets } from "./NotBrackets"
 import { EntityPropertyNotFoundError } from "../error/EntityPropertyNotFoundError"
 import { ReturningType } from "../driver/Driver"
-import { OracleDriver } from "../driver/oracle/OracleDriver"
 import { InstanceChecker } from "../util/InstanceChecker"
 import { escapeRegExp } from "../util/escapeRegExp"
 
@@ -931,50 +930,10 @@ export abstract class QueryBuilder<Entity extends ObjectLiteral> {
             let columnsExpression = columns
                 .map((column) => {
                     const name = this.escape(column.databaseName)
-                    if (driver.options.type === "mssql") {
-                        if (
-                            this.expressionMap.queryType === "insert" ||
-                            this.expressionMap.queryType === "update" ||
-                            this.expressionMap.queryType === "soft-delete" ||
-                            this.expressionMap.queryType === "restore"
-                        ) {
-                            return "INSERTED." + name
-                        } else {
-                            return (
-                                this.escape(this.getMainTableName()) +
-                                "." +
-                                name
-                            )
-                        }
-                    } else {
-                        return name
-                    }
+
+                    return name
                 })
                 .join(", ")
-
-            if (driver.options.type === "oracle") {
-                columnsExpression +=
-                    " INTO " +
-                    columns
-                        .map((column) => {
-                            return this.createParameter({
-                                type: (
-                                    driver as OracleDriver
-                                ).columnTypeToNativeParameter(column.type),
-                                dir: (driver as OracleDriver).oracle.BIND_OUT,
-                            })
-                        })
-                        .join(", ")
-            }
-
-            if (driver.options.type === "mssql") {
-                if (
-                    this.expressionMap.queryType === "insert" ||
-                    this.expressionMap.queryType === "update"
-                ) {
-                    columnsExpression += " INTO @OutputTable"
-                }
-            }
 
             return columnsExpression
         } else if (typeof this.expressionMap.returning === "string") {
@@ -1095,10 +1054,7 @@ export abstract class QueryBuilder<Entity extends ObjectLiteral> {
             case "equal":
                 return `${condition.parameters[0]} = ${condition.parameters[1]}`
             case "ilike":
-                if (
-                    driver.options.type === "postgres" ||
-                    driver.options.type === "cockroachdb"
-                ) {
+                if (driver.options.type === "postgres") {
                     return `${condition.parameters[0]} ILIKE ${condition.parameters[1]}`
                 }
 
@@ -1115,10 +1071,6 @@ export abstract class QueryBuilder<Entity extends ObjectLiteral> {
                     .slice(1)
                     .join(", ")})`
             case "any":
-                if (driver.options.type === "cockroachdb") {
-                    return `${condition.parameters[0]}::STRING = ANY(${condition.parameters[1]}::STRING[])`
-                }
-
                 return `${condition.parameters[0]} = ANY(${condition.parameters[1]})`
             case "isNull":
                 return `${condition.parameters[0]} IS NULL`

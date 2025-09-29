@@ -106,7 +106,7 @@ describe("schema builder > custom-db-and-schema-sync", () => {
         let connections: DataSource[]
         before(async () => {
             connections = await createTestingConnections({
-                enabledDrivers: ["postgres", "sap"],
+                enabledDrivers: ["postgres"],
                 entities: [Album, Photo],
                 dropSchema: true,
             })
@@ -262,110 +262,6 @@ describe("schema builder > custom-db-and-schema-sync", () => {
                     })
 
                     photoMetadata.foreignKeys.push(fkMetadata)
-                    await connection.synchronize()
-
-                    photoTable = await queryRunner.getTable(
-                        photoMetadata.tablePath,
-                    )
-                    photoTable!.foreignKeys.length.should.be.equal(1)
-
-                    // drop foreign key
-                    photoMetadata.foreignKeys = []
-                    await connection.synchronize()
-
-                    // drop tables manually, because they will not synchronize automatically
-                    await queryRunner.dropTable(
-                        photoMetadata.tablePath,
-                        true,
-                        false,
-                    )
-                    await queryRunner.dropTable(
-                        albumMetadata.tablePath,
-                        true,
-                        false,
-                    )
-
-                    // drop created database
-                    await queryRunner.dropDatabase("secondDB", true)
-
-                    await queryRunner.release()
-                }),
-            ))
-    })
-
-    describe("custom database and schema", () => {
-        let connections: DataSource[]
-        before(async () => {
-            connections = await createTestingConnections({
-                entities: [Album, Photo],
-                enabledDrivers: ["mssql"],
-                dropSchema: true,
-            })
-        })
-        beforeEach(() => reloadTestingDatabases(connections))
-        after(() => closeTestingConnections(connections))
-
-        it("should correctly sync tables with custom schema and database", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const photoMetadata = connection.getMetadata("photo")
-                    const albumMetadata = connection.getMetadata("album")
-
-                    // create tables
-                    photoMetadata.synchronize = true
-                    albumMetadata.synchronize = true
-
-                    photoMetadata.database = "secondDB"
-                    photoMetadata.schema = "photo-schema"
-                    photoMetadata.tablePath = "secondDB.photo-schema.photo"
-                    const photoMetadataSchemaPath = "secondDB.photo-schema"
-
-                    albumMetadata.database = "secondDB"
-                    albumMetadata.schema = "album-schema"
-                    albumMetadata.tablePath = "secondDB.album-schema.album"
-                    const albumMetadataSchemaPath = "secondDB.album-schema"
-
-                    await queryRunner.createDatabase(
-                        photoMetadata.database,
-                        true,
-                    )
-                    await queryRunner.createSchema(
-                        photoMetadataSchemaPath,
-                        true,
-                    )
-                    await queryRunner.createSchema(
-                        albumMetadataSchemaPath,
-                        true,
-                    )
-
-                    await connection.synchronize()
-
-                    // create foreign key
-                    let albumTable = await queryRunner.getTable(
-                        albumMetadata.tablePath,
-                    )
-                    let photoTable = await queryRunner.getTable(
-                        photoMetadata.tablePath,
-                    )
-                    albumTable!.should.be.exist
-                    photoTable!.should.be.exist
-
-                    const columns = photoMetadata.columns.filter(
-                        (column) => column.propertyName === "albumId",
-                    )
-                    const referencedColumns = albumMetadata.columns.filter(
-                        (column) => column.propertyName === "id",
-                    )
-                    const fkMetadata = new ForeignKeyMetadata({
-                        entityMetadata: photoMetadata,
-                        referencedEntityMetadata: albumMetadata,
-                        columns: columns,
-                        referencedColumns: referencedColumns,
-                        namingStrategy: connection.namingStrategy,
-                    })
-                    photoMetadata.foreignKeys.push(fkMetadata)
-
                     await connection.synchronize()
 
                     photoTable = await queryRunner.getTable(

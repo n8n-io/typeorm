@@ -23,12 +23,7 @@ describe("query runner > rename table", () => {
     it("should correctly rename table and revert rename", function () {
         return Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not support renaming constraints and removing PK.
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner" ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     /*
                      * ISSUE: Test expects table renaming operations to work correctly with proper constraint and sequence handling.
                      *
@@ -131,13 +126,6 @@ describe("query runner > rename table", () => {
     it("should correctly rename table with all constraints depend to that table and revert rename", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not support renaming constraints and removing PK.
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const queryRunner = connection.createQueryRunner()
 
                 let table = await queryRunner.getTable("post")
@@ -150,10 +138,7 @@ describe("query runner > rename table", () => {
                 await queryRunner.dropPrimaryKey(table!)
 
                 // MySql does not support unique constraints
-                if (
-                    !DriverUtils.isMySQLFamily(connection.driver) &&
-                    !(connection.driver.options.type === "sap")
-                ) {
+                if (!DriverUtils.isMySQLFamily(connection.driver)) {
                     const newUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
@@ -179,13 +164,6 @@ describe("query runner > rename table", () => {
     it("should correctly rename table with custom schema and database and all its dependencies and revert rename", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // CockroachDB and Spanner does not support renaming constraints and removing PK.
-                if (
-                    connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
-                    return
-
                 const queryRunner = connection.createQueryRunner()
                 let table: Table | undefined
 
@@ -195,19 +173,7 @@ describe("query runner > rename table", () => {
                 let renamedCategoryTableName: string = "renamedCategory"
 
                 // create different names to test renaming with custom schema and database.
-                if (connection.driver.options.type === "mssql") {
-                    questionTableName = "testDB.testSchema.question"
-                    renamedQuestionTableName =
-                        "testDB.testSchema.renamedQuestion"
-                    categoryTableName = "testDB.testSchema.category"
-                    renamedCategoryTableName =
-                        "testDB.testSchema.renamedCategory"
-                    await queryRunner.createDatabase("testDB", true)
-                    await queryRunner.createSchema("testDB.testSchema", true)
-                } else if (
-                    connection.driver.options.type === "postgres" ||
-                    connection.driver.options.type === "sap"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     questionTableName = "testSchema.question"
                     renamedQuestionTableName = "testSchema.renamedQuestion"
                     categoryTableName = "testSchema.category"

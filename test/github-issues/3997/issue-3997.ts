@@ -14,9 +14,6 @@ describe("github issues > #3997 synchronize=true always failing when using decim
             (connections = await createTestingConnections({
                 enabledDrivers: [
                     "postgres",
-                    "oracle",
-                    "cockroachdb",
-                    "mssql",
                     "mysql",
                     "sqlite",
                     "sqlite-pooled",

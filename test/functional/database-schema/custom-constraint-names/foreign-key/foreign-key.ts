@@ -129,9 +129,6 @@ describe("database schema > custom constraint names > foreign key", () => {
     it("should not change constraint names when column renamed", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
-                // in SqlServer we can't change column that is used in FK.
-                if (dataSource.driver.options.type === "mssql") return
-
                 const queryRunner = dataSource.createQueryRunner()
 
                 let table = await queryRunner.getTable("animal")

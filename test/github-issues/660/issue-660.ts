@@ -46,11 +46,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
                     )
                 }
 
-                if (connection.driver.options.type === "mssql") {
-                    expect(sql).to.equal(
-                        "INSERT INTO user(name) OUTPUT inserted.* VALUES (@0)",
-                    )
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     expect(sql).to.equal(
                         "INSERT INTO user(name) VALUES ($1) RETURNING *",
                     )
@@ -64,10 +60,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
                 const user = new User()
                 user.name = "Tim Merrison"
 
-                if (
-                    connection.driver.options.type === "mssql" ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const returning = await connection
                         .createQueryBuilder()
                         .insert()
@@ -105,11 +98,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
                         .disableEscaping()
                         .getSql()
 
-                    if (connection.driver.options.type === "mssql") {
-                        expect(sql).to.equal(
-                            "UPDATE user SET name = @0 OUTPUT inserted.* WHERE name = @1",
-                        )
-                    } else if (connection.driver.options.type === "postgres") {
+                    if (connection.driver.options.type === "postgres") {
                         expect(sql).to.equal(
                             "UPDATE user SET name = $1 WHERE name = $2 RETURNING *",
                         )
@@ -130,10 +119,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
 
                 await connection.manager.save(user)
 
-                if (
-                    connection.driver.options.type === "mssql" ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const returning = await connection
                         .createQueryBuilder()
                         .update(User)
@@ -171,11 +157,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
                         .disableEscaping()
                         .getSql()
 
-                    if (connection.driver.options.type === "mssql") {
-                        expect(sql).to.equal(
-                            "DELETE FROM user OUTPUT deleted.* WHERE name = @0",
-                        )
-                    } else if (connection.driver.options.type === "postgres") {
+                    if (connection.driver.options.type === "postgres") {
                         expect(sql).to.equal(
                             "DELETE FROM user WHERE name = $1 RETURNING *",
                         )
@@ -196,10 +178,7 @@ describe("github issues > #660 Specifying a RETURNING or OUTPUT clause with Quer
 
                 await connection.manager.save(user)
 
-                if (
-                    connection.driver.options.type === "mssql" ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const returning = await connection
                         .createQueryBuilder()
                         .delete()

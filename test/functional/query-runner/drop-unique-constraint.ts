@@ -11,16 +11,7 @@ describe("query runner > drop unique constraint", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: [
-                "mssql",
-                "postgres",
-                "sqlite",
-                "sqlite-pooled",
-                "better-sqlite3",
-                "oracle",
-                "cockroachdb",
-                "libsql",
-            ], // mysql and sap does not supports unique constraints
+            enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"], // mysql and sap does not supports unique constraints
             schemaCreate: true,
             dropSchema: true,
         })

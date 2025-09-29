@@ -18,12 +18,7 @@ describe("github issues > #1308 Raw Postgresql Update query result is always an 
                     new EntitySchema<Post>(PostSchema),
                 ],
                 dropSchema: true,
-                enabledDrivers: [
-                    "postgres",
-                    "mysql",
-                    "mariadb",
-                    "aurora-mysql",
-                ],
+                enabledDrivers: ["postgres", "mysql", "mariadb"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

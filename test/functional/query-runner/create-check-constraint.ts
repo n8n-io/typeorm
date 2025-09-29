@@ -29,14 +29,9 @@ describe("query runner > create check constraint", () => {
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"
-                } else if (connection.driver.options.type === "spanner") {
-                    numericType = "int64"
                 }
 
                 let stringType = "varchar"
-                if (connection.driver.options.type === "spanner") {
-                    stringType = "string"
-                }
 
                 const queryRunner = connection.createQueryRunner()
                 await queryRunner.createTable(

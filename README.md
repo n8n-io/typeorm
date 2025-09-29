@@ -21,8 +21,7 @@
 </div>
 
 TypeORM is an [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping)
-that can run in NodeJS, Browser, Cordova, PhoneGap, Ionic, React Native, NativeScript, Expo, and Electron platforms
-and can be used with TypeScript and JavaScript (ES2021).
+that can run in NodeJS platforms and can be used with TypeScript and JavaScript (ES2021).
 Its goal is to always support the latest JavaScript features and provide additional features
 that help you to develop any kind of application that uses databases - from
 small applications with a few tables to large-scale enterprise applications
@@ -66,9 +65,8 @@ TypeORM is highly influenced by other ORMs, such as [Hibernate](http://hibernate
 -   Listeners and subscribers (hooks).
 -   Supports closure table pattern.
 -   Schema declaration in models or separate configuration files.
--   Supports MySQL / MariaDB / Postgres / CockroachDB / SQLite / Microsoft SQL Server / Oracle / SAP Hana / sql.js.
--   Supports MongoDB NoSQL database.
--   Works in NodeJS / Browser / Ionic / Cordova / React Native / NativeScript / Expo / Electron platforms.
+-   Supports MySQL / MariaDB / Postgres / SQLite.
+-   Works in NodeJS platforms.
 -   TypeScript and JavaScript support.
 -   ESM and CommonJS support.
 -   Produced code is performant, flexible, clean, and maintainable.
@@ -76,6 +74,18 @@ TypeORM is highly influenced by other ORMs, such as [Hibernate](http://hibernate
 -   CLI.
 
 And more...
+
+## Supported Drivers
+
+This is a specialized fork of TypeORM that supports only the following database drivers:
+
+- **MySQL** - Full MySQL database support
+- **MariaDB** - Full MariaDB database support (uses MySQL driver)
+- **PostgreSQL** - Full PostgreSQL database support
+- **SQLite** - Standard file-based SQLite support
+- **SQLite-Pooled** - Enhanced SQLite with connection pooling for better performance
+
+This fork focuses on server-side Node.js applications and core SQL database support.
 
 With TypeORM your models look like this:
 

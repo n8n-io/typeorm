@@ -23,17 +23,11 @@ describe("github issues > #9833 Add support for Single Table Inheritance when us
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "better-sqlite3",
-                    "cockroachdb",
                     "mariadb",
-                    "mssql",
                     "mysql",
-                    "oracle",
                     "postgres",
-                    "spanner",
                     "sqlite",
                     "sqlite-pooled",
-                    "libsql",
                 ],
             })),
     )

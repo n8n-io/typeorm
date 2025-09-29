@@ -11,7 +11,7 @@ describe("query runner > create and drop schema", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mssql", "postgres", "sap"],
+            enabledDrivers: ["postgres"],
             dropSchema: true,
         })
     })
