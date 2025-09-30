@@ -4278,8 +4278,8 @@ export class PostgresQueryRunner
         const sql =
             `SELECT "n"."nspname", "t"."typname" FROM "pg_type" "t" ` +
             `INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace" ` +
-            `WHERE "n"."nspname" = '${schema}' AND "t"."typname" = '${enumName}'`
-        const result = await this.query(sql)
+            `WHERE "n"."nspname" = $1 AND "t"."typname" = $2`
+        const result = await this.query(sql, [schema, enumName])
         return result.length ? true : false
     }
 

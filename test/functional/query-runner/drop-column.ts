@@ -5,6 +5,7 @@ import {
     createTestingConnections,
 } from "../../utils/test-utils"
 import { DataSource } from "../../../src"
+import { Table } from "../../../src/schema-builder/table/Table"
 
 describe("query runner > drop column", () => {
     let connections: DataSource[]
@@ -110,4 +111,69 @@ describe("query runner > drop column", () => {
                 }),
             ))
     })
+
+    it("should safely handle SQL injection in hasEnumType", () =>
+        Promise.all(
+            connections
+                .filter((connection) => connection.name === "postgres")
+                .map(async (connection) => {
+                    const queryRunner = connection.createQueryRunner()
+
+                    // SQL Injection Attack Strategy:
+                    // Create a column name that injects a subquery: test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='
+                    // This generates enumName: tablename_test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='_enum
+                    // Which injects into: WHERE "t"."typname" = 'tablename_test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='_enum'
+                    //
+                    // VULNERABLE: The subquery executes and returns > 0, making hasEnumType return TRUE
+                    //             TypeORM skips creating the enum, PostgreSQL fails with "does not exist"
+                    //
+                    // SECURE: Parameterized query treats entire string as literal, hasEnumType returns FALSE,
+                    //         TypeORM creates the enum, table creation succeeds or fails with different error
+
+                    const maliciousColumnName =
+                        "test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='"
+                    let tableCreated = false
+                    let creationError: any = null
+
+                    try {
+                        await queryRunner.createTable(
+                            new Table({
+                                name: "sqli_test",
+                                columns: [
+                                    {
+                                        name: "id",
+                                        type: "int",
+                                        isPrimary: true,
+                                    },
+                                    {
+                                        name: maliciousColumnName,
+                                        type: "enum",
+                                        enum: ["val1", "val2"],
+                                    },
+                                ],
+                            }),
+                            true,
+                        )
+                        tableCreated = true
+                    } catch (error) {
+                        creationError = error
+                    }
+
+                    // Verify: With vulnerable code, we get "does not exist" because SQL injection
+                    // made hasEnumType return true, skipping enum creation
+                    // With secure code, we either succeed or get a different error
+                    if (creationError) {
+                        expect(creationError.message).to.not.include(
+                            "does not exist",
+                        )
+                    }
+
+                    // Clean up
+                    if (tableCreated) {
+                        await queryRunner.dropTable("sqli_test", true)
+                    }
+
+                    await queryRunner.release()
+                }),
+        ))
 })
