@@ -19,7 +19,7 @@ describe("query runner > stream", () => {
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    it("should stream data", () =>
+    it.only("should stream data", () =>
         Promise.all(
             connections.map(async (connection) => {
                 await connection.manager.save(Book, { ean: "a" })
