@@ -13,7 +13,7 @@ import {
 } from "./entity/configuration"
 import { AssetEntity, AssetStatus } from "./entity/asset"
 
-describe.only("github issues > #10209", () => {
+describe("github issues > #10209", () => {
     let dataSources: DataSource[]
     before(
         async () =>
@@ -21,7 +21,11 @@ describe.only("github issues > #10209", () => {
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                disabledDrivers: ["sqlite-pooled"],
+                // This test does not work on sqlite because it does not
+                // support nested transactions reliably. The fix and the test
+                // were even reverted upstream:
+                // https://github.com/typeorm/typeorm/pull/11264
+                disabledDrivers: ["sqlite-pooled", "sqlite"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))
