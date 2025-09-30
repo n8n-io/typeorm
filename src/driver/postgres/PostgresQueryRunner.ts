@@ -377,7 +377,8 @@ export class PostgresQueryRunner
      */
     async hasDatabase(database: string): Promise<boolean> {
         const result = await this.query(
-            `SELECT * FROM pg_database WHERE datname='${database}';`,
+            `SELECT * FROM pg_database WHERE datname=$1;`,
+            [database],
         )
         return result.length ? true : false
     }
@@ -395,7 +396,8 @@ export class PostgresQueryRunner
      */
     async hasSchema(schema: string): Promise<boolean> {
         const result = await this.query(
-            `SELECT * FROM "information_schema"."schemata" WHERE "schema_name" = '${schema}'`,
+            `SELECT * FROM "information_schema"."schemata" WHERE "schema_name" = $1`,
+            [schema],
         )
         return result.length ? true : false
     }
@@ -418,8 +420,11 @@ export class PostgresQueryRunner
             parsedTableName.schema = await this.getCurrentSchema()
         }
 
-        const sql = `SELECT * FROM "information_schema"."tables" WHERE "table_schema" = '${parsedTableName.schema}' AND "table_name" = '${parsedTableName.tableName}'`
-        const result = await this.query(sql)
+        const sql = `SELECT * FROM "information_schema"."tables" WHERE "table_schema" = $1 AND "table_name" = $2`
+        const result = await this.query(sql, [
+            parsedTableName.schema,
+            parsedTableName.tableName,
+        ])
         return result.length ? true : false
     }
 
@@ -436,8 +441,12 @@ export class PostgresQueryRunner
             parsedTableName.schema = await this.getCurrentSchema()
         }
 
-        const sql = `SELECT * FROM "information_schema"."columns" WHERE "table_schema" = '${parsedTableName.schema}' AND "table_name" = '${parsedTableName.tableName}' AND "column_name" = '${columnName}'`
-        const result = await this.query(sql)
+        const sql = `SELECT * FROM "information_schema"."columns" WHERE "table_schema" = $1 AND "table_name" = $2 AND "column_name" = $3`
+        const result = await this.query(sql, [
+            parsedTableName.schema,
+            parsedTableName.tableName,
+            columnName,
+        ])
         return result.length ? true : false
     }
 
@@ -4269,8 +4278,8 @@ export class PostgresQueryRunner
         const sql =
             `SELECT "n"."nspname", "t"."typname" FROM "pg_type" "t" ` +
             `INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace" ` +
-            `WHERE "n"."nspname" = '${schema}' AND "t"."typname" = '${enumName}'`
-        const result = await this.query(sql)
+            `WHERE "n"."nspname" = $1 AND "t"."typname" = $2`
+        const result = await this.query(sql, [schema, enumName])
         return result.length ? true : false
     }
 
@@ -4616,7 +4625,8 @@ export class PostgresQueryRunner
 
         const result = await this.query(
             `SELECT "udt_schema", "udt_name" ` +
-                `FROM "information_schema"."columns" WHERE "table_schema" = '${schema}' AND "table_name" = '${name}' AND "column_name"='${column.name}'`,
+                `FROM "information_schema"."columns" WHERE "table_schema" = $1 AND "table_name" = $2 AND "column_name"=$3`,
+            [schema, name, column.name],
         )
 
         // docs: https://www.postgresql.org/docs/current/xtypes.html
