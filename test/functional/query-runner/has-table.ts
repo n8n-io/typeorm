@@ -20,16 +20,20 @@ describe("query runner > has table", () => {
     it("should correctly check if table exists", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
 
+                // ACT
+
                 // Check for existing tables (created from entities)
-                let hasPostTable = await queryRunner.hasTable("post")
-                let hasPhotoTable = await queryRunner.hasTable("photo")
-                let hasBookTable = await queryRunner.hasTable("book")
-                let hasNonExistentTable = await queryRunner.hasTable(
+                const hasPostTable = await queryRunner.hasTable("post")
+                const hasPhotoTable = await queryRunner.hasTable("photo")
+                const hasBookTable = await queryRunner.hasTable("book")
+                const hasNonExistentTable = await queryRunner.hasTable(
                     "non_existent_table",
                 )
 
+                // ASSERT
                 hasPostTable.should.be.true
                 hasPhotoTable.should.be.true
                 hasBookTable.should.be.true
@@ -42,43 +46,42 @@ describe("query runner > has table", () => {
     it("should correctly detect dynamically created tables", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
+                const table = new Table({
+                    name: "test_dynamic_table",
+                    columns: [
+                        {
+                            name: "id",
+                            type: "int",
+                            isPrimary: true,
+                        },
+                        {
+                            name: "name",
+                            type: "varchar",
+                            length: "255",
+                        },
+                    ],
+                })
+                let exists = false
+
+                // ACT & ASSERT
 
                 // Initially table doesn't exist
-                let exists = await queryRunner.hasTable("test_dynamic_table")
+                exists = await queryRunner.hasTable(table.name)
                 exists.should.be.false
 
-                // Create table using TypeORM Table helper
-                await queryRunner.createTable(
-                    new Table({
-                        name: "test_dynamic_table",
-                        columns: [
-                            {
-                                name: "id",
-                                type: "int",
-                                isPrimary: true,
-                            },
-                            {
-                                name: "name",
-                                type: "varchar",
-                                length: "255",
-                            },
-                        ],
-                    }),
-                    true,
-                )
-
-                // Now it should exist
-                exists = await queryRunner.hasTable("test_dynamic_table")
+                // exists after creation
+                await queryRunner.createTable(table, true)
+                exists = await queryRunner.hasTable(table.name)
                 exists.should.be.true
 
-                // Drop table
-                await queryRunner.dropTable("test_dynamic_table", true)
-
-                // Should not exist anymore
-                exists = await queryRunner.hasTable("test_dynamic_table")
+                // does not exist after dropping
+                await queryRunner.dropTable(table)
+                exists = await queryRunner.hasTable(table.name)
                 exists.should.be.false
 
+                // CLEANUP
                 await queryRunner.release()
             }),
         ))
@@ -86,36 +89,34 @@ describe("query runner > has table", () => {
     it("should handle table names with special characters", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
+                const table = new Table({
+                    name: "test_table_123",
+                    columns: [
+                        {
+                            name: "id",
+                            type: "int",
+                            isPrimary: true,
+                        },
+                    ],
+                })
 
-                const testTableName = "test_table_123"
+                // ACT & ASSERT
 
                 // Initially table doesn't exist
-                let exists = await queryRunner.hasTable(testTableName)
+                let exists = await queryRunner.hasTable(table.name)
                 exists.should.be.false
 
                 // Create table with special characters in name
-                await queryRunner.createTable(
-                    new Table({
-                        name: testTableName,
-                        columns: [
-                            {
-                                name: "id",
-                                type: "int",
-                                isPrimary: true,
-                            },
-                        ],
-                    }),
-                    true,
-                )
+                await queryRunner.createTable(table, true)
 
                 // Should exist
-                exists = await queryRunner.hasTable(testTableName)
+                exists = await queryRunner.hasTable(table.name)
                 exists.should.be.true
 
-                // Clean up
-                await queryRunner.dropTable(testTableName, true)
-
+                // CLEANUP
+                await queryRunner.dropTable(table.name, true)
                 await queryRunner.release()
             }),
         ))
@@ -123,12 +124,10 @@ describe("query runner > has table", () => {
     it("should handle case sensitivity correctly", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
-
                 const originalName = "TestCaseTable"
                 const lowerName = "testcasetable"
-
-                // Create table
                 await queryRunner.createTable(
                     new Table({
                         name: originalName,
@@ -142,28 +141,25 @@ describe("query runner > has table", () => {
                     }),
                     true,
                 )
+                let existsLower = false
+                let existsOriginal = false
 
-                // Check existence with original name
-                let existsOriginal = await queryRunner.hasTable(originalName)
+                // ACT & ASSERT
+
+                // original should exist
+                existsOriginal = await queryRunner.hasTable(originalName)
+                existsLower = await queryRunner.hasTable(lowerName)
                 existsOriginal.should.be.true
+                existsLower.should.be.false
 
-                // Check with lowercase name (behavior may vary by database)
-                let existsLower = await queryRunner.hasTable(lowerName)
-
-                // For databases that are case-insensitive (like MySQL by default),
-                // both should return true. For case-sensitive databases,
-                // only the original case should return true.
-                // We'll accept either behavior as valid.
-
-                // Clean up
+                // both should not exist after drop
                 await queryRunner.dropTable(originalName, true)
-
-                // Both should not exist after drop
                 existsOriginal = await queryRunner.hasTable(originalName)
                 existsLower = await queryRunner.hasTable(lowerName)
                 existsOriginal.should.be.false
                 existsLower.should.be.false
 
+                // CLEANUP
                 await queryRunner.release()
             }),
         ))
@@ -171,9 +167,8 @@ describe("query runner > has table", () => {
     it("should safely handle potentially malicious table names", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
-
-                // First, create a table that we'll verify still exists after the injection attempt
                 await queryRunner.createTable(
                     new Table({
                         name: "injection_test_table",
@@ -188,28 +183,26 @@ describe("query runner > has table", () => {
                     true,
                 )
 
-                // Try to check for a table with SQL injection attempt in the name
+                // ACT
                 const maliciousName =
                     "test'; DROP TABLE injection_test_table; --"
-                let exists
+                let exists = false
                 try {
                     exists = await queryRunner.hasTable(maliciousName)
-                    exists.should.be.false // Should simply return false for a non-existent table
                 } catch (error) {
-                    // If the database driver properly prevents SQL injection, it might throw an error
-                    // which is also acceptable behavior (parameterized queries working correctly)
-                    exists = false
+                    // Acceptable if it throws due to proper parameterization
                 }
 
-                // Verify the table still exists (wasn't dropped by injection)
+                // ASSERT
+                exists.should.be.false
+
                 const tableExists = await queryRunner.hasTable(
                     "injection_test_table",
                 )
                 tableExists.should.be.true
 
-                // Clean up
+                // CLEANUP
                 await queryRunner.dropTable("injection_test_table", true)
-
                 await queryRunner.release()
             }),
         ))
