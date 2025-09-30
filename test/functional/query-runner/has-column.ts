@@ -1,6 +1,5 @@
 import "reflect-metadata"
-import { DataSource } from "../../../src/data-source/DataSource"
-import { Table } from "../../../src/schema-builder/table/Table"
+import { DataSource, Table } from "../../../src"
 import {
     closeTestingConnections,
     createTestingConnections,

@@ -4,8 +4,7 @@ import {
     closeTestingConnections,
     createTestingConnections,
 } from "../../utils/test-utils"
-import { DataSource } from "../../../src"
-import { Table } from "../../../src/schema-builder/table/Table"
+import { DataSource, Table } from "../../../src"
 
 describe("query runner > drop column", () => {
     let connections: DataSource[]
