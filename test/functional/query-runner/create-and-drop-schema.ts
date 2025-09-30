@@ -43,8 +43,8 @@ describe("query runner > create and drop schema", () => {
     it("should safely handle potentially malicious database names", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
-
                 await queryRunner.createTable(
                     new Table({
                         name: "injection_test_table",
@@ -52,22 +52,20 @@ describe("query runner > create and drop schema", () => {
                     }),
                     true,
                 )
-
                 const maliciousName =
                     "test'; DROP TABLE injection_test_table; --"
-                let exists
-                try {
-                    exists = await queryRunner.hasSchema(maliciousName)
-                    exists.should.be.false
-                } catch (error) {
-                    exists = false
-                }
 
+                // ACT
+                const exists = await queryRunner.hasSchema(maliciousName)
+
+                // ASSERT
+                exists.should.be.false
                 const tableExists = await queryRunner.hasTable(
                     "injection_test_table",
                 )
                 tableExists.should.be.true
 
+                // CLEANUP
                 await queryRunner.release()
             }),
         ))
