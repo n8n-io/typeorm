@@ -13,7 +13,7 @@ import {
 } from "./entity/configuration"
 import { AssetEntity, AssetStatus } from "./entity/asset"
 
-describe("github issues > #10209", () => {
+describe.only("github issues > #10209", () => {
     let dataSources: DataSource[]
     before(
         async () =>
