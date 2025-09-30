@@ -42,12 +42,11 @@ describe("query runner > has column", () => {
             }),
         ))
 
-    it("should safely handle potentially malicious column names", () =>
+    it("should safely handle SQL injection in column name parameter", () =>
         Promise.all(
             connections.map(async (connection) => {
+                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
-
-                // Create a test table that we'll verify still exists after injection attempt
                 await queryRunner.createTable(
                     new Table({
                         name: "injection_test_table",
@@ -62,49 +61,79 @@ describe("query runner > has column", () => {
                     true,
                 )
 
-                // Test 1: SQL injection in column name parameter
+                // ACT
                 const maliciousColumnName =
                     "test'; DROP TABLE injection_test_table; --"
-                let exists
+                let exists = false
                 try {
                     exists = await queryRunner.hasColumn(
                         "post",
                         maliciousColumnName,
                     )
-                    exists.should.be.false // Should return false for non-existent column
-                } catch (error) {
+                } catch {
                     // Acceptable if it throws due to proper parameterization
-                    exists = false
                 }
 
-                // Verify the test table still exists (wasn't dropped by injection)
+                // ASSERT
+                exists.should.be.false
+
+                // Verify the test table still exists (wasn't dropped by
+                // injection)
                 const tableExists = await queryRunner.hasTable(
                     "injection_test_table",
                 )
                 tableExists.should.be.true
 
-                // Test 2: SQL injection in table name parameter
+                // CLEANUP
+                await queryRunner.dropTable("injection_test_table", true)
+                await queryRunner.release()
+            }),
+        ))
+
+    it("should safely handle SQL injection in table name parameter", () =>
+        Promise.all(
+            connections.map(async (connection) => {
+                // ARRANGE
+                const queryRunner = connection.createQueryRunner()
+                await queryRunner.createTable(
+                    new Table({
+                        name: "injection_test_table",
+                        columns: [
+                            {
+                                name: "test_column",
+                                type: "varchar",
+                                length: "255",
+                            },
+                        ],
+                    }),
+                    true,
+                )
                 const maliciousTableName =
                     "post'; DROP TABLE injection_test_table; --"
+
+                // ACT
+                let exists = false
                 try {
                     exists = await queryRunner.hasColumn(
                         maliciousTableName,
                         "id",
                     )
-                    exists.should.be.false
-                } catch (error) {
-                    exists = false
+                } catch {
+                    // Acceptable if it throws due to proper parameterization
                 }
 
-                // Verify the test table still exists
-                const tableStillExists = await queryRunner.hasTable(
+                // ASSERT
+                exists.should.be.false
+
+                // Verify the test table still exists (wasn't dropped by
+                // injection)
+                const tableExists = await queryRunner.hasTable(
                     "injection_test_table",
                 )
-                tableStillExists.should.be.true
+                tableExists.should.be.true
 
-                // Clean up
+                // CLEANUP
                 await queryRunner.dropTable("injection_test_table", true)
-
                 await queryRunner.release()
             }),
         ))
