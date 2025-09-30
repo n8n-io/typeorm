@@ -1,0 +1,256 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Compile TypeScript
+        run: pnpm compile
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: build/
+
+  test-mysql:
+    name: Test (MySQL)
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      mysql:
+        image: mysql:5.7.37
+        env:
+          MYSQL_ROOT_PASSWORD: admin
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+
+      - name: Configure ormconfig for MySQL
+        run: |
+          jq 'map(.skip = if .name == "mysql" then false else true end)' ormconfig.json.dist > ormconfig.json
+          cat ormconfig.json
+
+      - name: Run tests
+        run: pnpm test-fast
+
+  test-mariadb:
+    name: Test (MariaDB)
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      mariadb:
+        image: mariadb:10.10.3
+        env:
+          MYSQL_ROOT_PASSWORD: admin
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+          MYSQL_DATABASE: test
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+
+      - name: Configure ormconfig for MariaDB
+        run: |
+          jq 'map(.skip = if .name == "mariadb" then false else true end)' ormconfig.json.dist > ormconfig.json
+          cat ormconfig.json
+
+      - name: Run tests
+        run: pnpm test-fast
+
+  test-postgres:
+    name: Test (PostgreSQL)
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgis/postgis:14-3.3
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+
+      - name: Configure ormconfig for PostgreSQL
+        run: |
+          jq 'map(.skip = if .name == "postgres" then false else true end)' ormconfig.json.dist > ormconfig.json
+          cat ormconfig.json
+
+      - name: Run tests
+        run: pnpm test-fast
+
+  test-sqlite:
+    name: Test (SQLite)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+
+      - name: Configure ormconfig for SQLite
+        run: |
+          jq 'map(.skip = if .name == "sqlite" then false else true end)' ormconfig.json.dist > ormconfig.json
+          cat ormconfig.json
+
+      - name: Run tests
+        run: pnpm test-fast
+
+  test-sqlite-pooled:
+    name: Test (SQLite Pooled)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+
+      - name: Configure ormconfig for SQLite Pooled
+        run: |
+          jq 'map(.skip = if .name == "sqlite-pooled" then false else true end)' ormconfig.json.dist > ormconfig.json
+          cat ormconfig.json
+
+      - name: Run tests
+        run: pnpm test-fast
