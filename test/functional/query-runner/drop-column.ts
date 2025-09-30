@@ -115,26 +115,18 @@ describe("query runner > drop column", () => {
     it("should safely handle SQL injection in hasEnumType", () =>
         Promise.all(
             connections
-                .filter((connection) => connection.name === "postgres")
+                .filter((connection) => connection.options.type === "postgres")
                 .map(async (connection) => {
+                    // ARRANGE
                     const queryRunner = connection.createQueryRunner()
-
-                    // SQL Injection Attack Strategy:
-                    // Create a column name that injects a subquery: test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='
-                    // This generates enumName: tablename_test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='_enum
-                    // Which injects into: WHERE "t"."typname" = 'tablename_test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='_enum'
-                    //
-                    // VULNERABLE: The subquery executes and returns > 0, making hasEnumType return TRUE
-                    //             TypeORM skips creating the enum, PostgreSQL fails with "does not exist"
-                    //
-                    // SECURE: Parameterized query treats entire string as literal, hasEnumType returns FALSE,
-                    //         TypeORM creates the enum, table creation succeeds or fails with different error
-
+                    // Try to create a table with a column name containing SQL
+                    // injection The malicious column name will inject a
+                    // subquery into hasEnumType
                     const maliciousColumnName =
                         "test' OR (SELECT COUNT(*) FROM pg_type) > 0 OR '1'='"
-                    let tableCreated = false
-                    let creationError: any = null
+                    let creationError = null
 
+                    // ACT
                     try {
                         await queryRunner.createTable(
                             new Table({
@@ -154,25 +146,22 @@ describe("query runner > drop column", () => {
                             }),
                             true,
                         )
-                        tableCreated = true
                     } catch (error) {
                         creationError = error
                     }
 
-                    // Verify: With vulnerable code, we get "does not exist" because SQL injection
-                    // made hasEnumType return true, skipping enum creation
-                    // With secure code, we either succeed or get a different error
+                    // ASSERT
+                    // Verify the SQL injection did not affect the query logic
+                    // If vulnerable, we'd get "does not exist" error (hasEnumType returned wrong result)
+                    // If secure, parameterized queries prevent the injection
                     if (creationError) {
                         expect(creationError.message).to.not.include(
                             "does not exist",
                         )
                     }
 
-                    // Clean up
-                    if (tableCreated) {
-                        await queryRunner.dropTable("sqli_test", true)
-                    }
-
+                    // CLEANUP
+                    await queryRunner.dropTable("sqli_test", true)
                     await queryRunner.release()
                 }),
         ))
@@ -180,20 +169,16 @@ describe("query runner > drop column", () => {
     it("should safely handle SQL injection in getUserDefinedTypeName", () =>
         Promise.all(
             connections
-                .filter((connection) => connection.name === "postgres")
+                .filter((connection) => connection.options.type === "postgres")
                 .map(async (connection) => {
+                    // ARRANGE
                     const queryRunner = connection.createQueryRunner()
-
-                    // Create a "victim" table with an ENUM to establish a baseline
+                    // First, create a victim table that we'll verify isn't affected by the injection
                     await queryRunner.createTable(
                         new Table({
                             name: "victim_table",
                             columns: [
-                                {
-                                    name: "id",
-                                    type: "int",
-                                    isPrimary: true,
-                                },
+                                { name: "id", type: "int", isPrimary: true },
                                 {
                                     name: "priority",
                                     type: "enum",
@@ -204,30 +189,15 @@ describe("query runner > drop column", () => {
                         true,
                     )
 
-                    // SQL Injection Attack Strategy:
-                    // Create a table with malicious name: test' OR '1'='1
-                    // This injects into: WHERE "table_name" = 'test' OR '1'='1'
-                    // Due to operator precedence: WHERE ... AND "table_name" = 'test' OR '1'='1' AND ...
-                    // The OR makes it return columns from ALL tables, not just the target table
-                    //
-                    // VULNERABLE: getUserDefinedTypeName returns first matching column (could be from victim table)
-                    //             Code tries to drop wrong enum type, causing error or dropping wrong enum
-                    //
-                    // SECURE: Parameterized query only returns columns from the specific table
-                    //         Correct enum type is identified and dropped
-
+                    // Try to create a table with SQL injection in the table name
                     const maliciousTableName = "test' OR '1'='1"
                     let maliciousTableCreated = false
-                    let dropError: any = null
+                    let dropError = null
 
                     const tableWithMaliciousName = new Table({
                         name: maliciousTableName,
                         columns: [
-                            {
-                                name: "id",
-                                type: "int",
-                                isPrimary: true,
-                            },
+                            { name: "id", type: "int", isPrimary: true },
                             {
                                 name: "priority",
                                 type: "enum",
@@ -236,17 +206,16 @@ describe("query runner > drop column", () => {
                         ],
                     })
 
+                    // ACT
                     try {
-                        // Create table with malicious name and ENUM column
                         await queryRunner.createTable(
                             tableWithMaliciousName,
                             true,
                         )
                         maliciousTableCreated = true
 
-                        // Now try to drop the ENUM column using the Table object directly
-                        // This avoids calling getTable which might also have SQL injection
-                        // We pass the malicious table object, which will use its name in getUserDefinedTypeName
+                        // Try to drop the ENUM column, which triggers
+                        // getUserDefinedTypeName with the malicious table name
                         await queryRunner.dropColumn(
                             tableWithMaliciousName,
                             "priority",
@@ -255,38 +224,13 @@ describe("query runner > drop column", () => {
                         dropError = error
                     }
 
-                    // Clean up - use the actual table object, not the name
-                    // This avoids triggering SQL injection in dropTable during cleanup
-                    if (maliciousTableCreated) {
-                        try {
-                            // Try to drop using the table object directly
-                            await queryRunner.dropTable(
-                                tableWithMaliciousName,
-                                true,
-                            )
-                        } catch (cleanupError) {
-                            // If cleanup fails, try with raw SQL
-                            try {
-                                await queryRunner.query(
-                                    `DROP TABLE IF EXISTS "${maliciousTableName}" CASCADE`,
-                                )
-                            } catch (e) {
-                                // Ignore cleanup errors
-                            }
-                        }
-                    }
-                    await queryRunner.dropTable("victim_table", true)
-
-                    // With VULNERABLE code: SQL injection in getUserDefinedTypeName causes errors
-                    // The error would reference wrong tables (victim_table or system tables)
-                    //
-                    // With SECURE code: Operation completes successfully, dropError is null
-
-                    // The test passes if dropError is null (operation succeeded)
-                    // If dropError exists, it should not reference wrong tables
+                    // ASSERT
+                    // Verify the SQL injection didn't cause cross-table data
+                    // leakage If vulnerable, the error would reference the
+                    // victim table or system tables If secure, parameterized
+                    // queries prevent the injection
                     if (dropError) {
                         const errorMsg = dropError.message.toLowerCase()
-                        // These would indicate SQL injection caused cross-table data leakage
                         expect(errorMsg).to.not.include("victim_table")
                         expect(errorMsg).to.not.include(
                             "victim_table_priority_enum",
@@ -295,6 +239,22 @@ describe("query runner > drop column", () => {
                         expect(errorMsg).to.not.include("geometry_columns")
                     }
 
+                    // CLEANUP
+                    if (maliciousTableCreated) {
+                        try {
+                            await queryRunner.dropTable(
+                                tableWithMaliciousName,
+                                true,
+                            )
+                        } catch {
+                            // TODO: this fails because `loadTables` is also
+                            // susceptive to the injection and thus return
+                            // the wrong table which cannot be deleted and thus
+                            // this throws this error:
+                            // QueryFailedError: "geography_columns" is not a table
+                        }
+                    }
+                    await queryRunner.dropTable("victim_table", true)
                     await queryRunner.release()
                 }),
         ))
