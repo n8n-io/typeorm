@@ -176,4 +176,126 @@ describe("query runner > drop column", () => {
                     await queryRunner.release()
                 }),
         ))
+
+    it("should safely handle SQL injection in getUserDefinedTypeName", () =>
+        Promise.all(
+            connections
+                .filter((connection) => connection.name === "postgres")
+                .map(async (connection) => {
+                    const queryRunner = connection.createQueryRunner()
+
+                    // Create a "victim" table with an ENUM to establish a baseline
+                    await queryRunner.createTable(
+                        new Table({
+                            name: "victim_table",
+                            columns: [
+                                {
+                                    name: "id",
+                                    type: "int",
+                                    isPrimary: true,
+                                },
+                                {
+                                    name: "priority",
+                                    type: "enum",
+                                    enum: ["low", "high"],
+                                },
+                            ],
+                        }),
+                        true,
+                    )
+
+                    // SQL Injection Attack Strategy:
+                    // Create a table with malicious name: test' OR '1'='1
+                    // This injects into: WHERE "table_name" = 'test' OR '1'='1'
+                    // Due to operator precedence: WHERE ... AND "table_name" = 'test' OR '1'='1' AND ...
+                    // The OR makes it return columns from ALL tables, not just the target table
+                    //
+                    // VULNERABLE: getUserDefinedTypeName returns first matching column (could be from victim table)
+                    //             Code tries to drop wrong enum type, causing error or dropping wrong enum
+                    //
+                    // SECURE: Parameterized query only returns columns from the specific table
+                    //         Correct enum type is identified and dropped
+
+                    const maliciousTableName = "test' OR '1'='1"
+                    let maliciousTableCreated = false
+                    let dropError: any = null
+
+                    const tableWithMaliciousName = new Table({
+                        name: maliciousTableName,
+                        columns: [
+                            {
+                                name: "id",
+                                type: "int",
+                                isPrimary: true,
+                            },
+                            {
+                                name: "priority",
+                                type: "enum",
+                                enum: ["yes", "no"],
+                            },
+                        ],
+                    })
+
+                    try {
+                        // Create table with malicious name and ENUM column
+                        await queryRunner.createTable(
+                            tableWithMaliciousName,
+                            true,
+                        )
+                        maliciousTableCreated = true
+
+                        // Now try to drop the ENUM column using the Table object directly
+                        // This avoids calling getTable which might also have SQL injection
+                        // We pass the malicious table object, which will use its name in getUserDefinedTypeName
+                        await queryRunner.dropColumn(
+                            tableWithMaliciousName,
+                            "priority",
+                        )
+                    } catch (error) {
+                        dropError = error
+                    }
+
+                    // Clean up - use the actual table object, not the name
+                    // This avoids triggering SQL injection in dropTable during cleanup
+                    if (maliciousTableCreated) {
+                        try {
+                            // Try to drop using the table object directly
+                            await queryRunner.dropTable(
+                                tableWithMaliciousName,
+                                true,
+                            )
+                        } catch (cleanupError) {
+                            // If cleanup fails, try with raw SQL
+                            try {
+                                await queryRunner.query(
+                                    `DROP TABLE IF EXISTS "${maliciousTableName}" CASCADE`,
+                                )
+                            } catch (e) {
+                                // Ignore cleanup errors
+                            }
+                        }
+                    }
+                    await queryRunner.dropTable("victim_table", true)
+
+                    // With VULNERABLE code: SQL injection in getUserDefinedTypeName causes errors
+                    // The error would reference wrong tables (victim_table or system tables)
+                    //
+                    // With SECURE code: Operation completes successfully, dropError is null
+
+                    // The test passes if dropError is null (operation succeeded)
+                    // If dropError exists, it should not reference wrong tables
+                    if (dropError) {
+                        const errorMsg = dropError.message.toLowerCase()
+                        // These would indicate SQL injection caused cross-table data leakage
+                        expect(errorMsg).to.not.include("victim_table")
+                        expect(errorMsg).to.not.include(
+                            "victim_table_priority_enum",
+                        )
+                        expect(errorMsg).to.not.include("geography_columns")
+                        expect(errorMsg).to.not.include("geometry_columns")
+                    }
+
+                    await queryRunner.release()
+                }),
+        ))
 })
