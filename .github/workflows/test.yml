@@ -9,17 +9,17 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -31,18 +31,18 @@ jobs:
         run: pnpm compile
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build
           path: build/
 
   test-mysql:
     name: Test (MySQL)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     services:
       mysql:
-        image: mysql:5.7.37
+        image: mysql@sha256:1520c2db1591b37fc7f2c0bc72b4e0a002afed6fcc2397f7bcd2bbdff490c930 # 5.7.37
         env:
           MYSQL_ROOT_PASSWORD: admin
           MYSQL_USER: test
@@ -56,15 +56,15 @@ jobs:
           --health-timeout=5s
           --health-retries=3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -73,7 +73,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build
           path: build/
@@ -88,11 +88,11 @@ jobs:
 
   test-mariadb:
     name: Test (MariaDB)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     services:
       mariadb:
-        image: mariadb:10.10.3
+        image: mariadb@sha256:9a77e977742823fac7eddddefee837aa0466ed2821cfe23b258002bc118be3d8 # 10.10.3
         env:
           MYSQL_ROOT_PASSWORD: admin
           MYSQL_USER: test
@@ -106,15 +106,15 @@ jobs:
           --health-timeout=5s
           --health-retries=3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -123,7 +123,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build
           path: build/
@@ -138,11 +138,11 @@ jobs:
 
   test-postgres:
     name: Test (PostgreSQL)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     services:
       postgres:
-        image: postgis/postgis:14-3.3
+        image: postgis/postgis@sha256:b2ea11c9767c1b327f4c02252d9077fbbcea684d4d5b1369dc05f0eeebc82ff5 # 14-3.3
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -155,15 +155,15 @@ jobs:
           --health-timeout=5s
           --health-retries=3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -172,7 +172,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build
           path: build/
@@ -187,18 +187,18 @@ jobs:
 
   test-sqlite:
     name: Test (SQLite)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -207,7 +207,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build
           path: build/
@@ -222,18 +222,18 @@ jobs:
 
   test-sqlite-pooled:
     name: Test (SQLite Pooled)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           version: 9.6.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
           cache: 'pnpm'
@@ -242,7 +242,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build
           path: build/
