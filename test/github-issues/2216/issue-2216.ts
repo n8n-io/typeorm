@@ -8,8 +8,9 @@ import {
 import { EntityManager, QueryRunner, SimpleConsoleLogger } from "../../../src"
 import { Foo } from "./entity/Foo"
 import { expect } from "chai"
+import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
 
-describe.only("github issues > #2216 - Ability to capture Postgres notifications in logger", () => {
+describe("github issues > #2216 - Ability to capture Postgres notifications in logger", () => {
     let connections: DataSource[]
     let queryRunner: QueryRunner
     let manager: EntityManager
@@ -95,20 +96,28 @@ describe.only("github issues > #2216 - Ability to capture Postgres notifications
 
         it("should pass extension setup notices to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    console.log("[TEST DEBUG] logInfoStub callCount:", logInfoStub.callCount)
-                    console.log("[TEST DEBUG] logInfoStub calls:", logInfoStub.getCalls().map(c => ({ args: c.args })))
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        `extension "uuid-ossp" already exists, skipping`,
-                    )
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        `extension "citext" already exists, skipping`,
-                    )
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            `extension "uuid-ossp" already exists, skipping`,
+                        )
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            `extension "citext" already exists, skipping`,
+                        )
+                    }),
             ))
 
         it("should pass manual notices to client", async () =>
