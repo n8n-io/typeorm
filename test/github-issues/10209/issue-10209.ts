@@ -21,7 +21,11 @@ describe("github issues > #10209", () => {
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                disabledDrivers: ["sqlite-pooled"],
+                // This test does not work on sqlite because it does not
+                // support nested transactions reliably. The fix and the test
+                // were even reverted upstream:
+                // https://github.com/typeorm/typeorm/pull/11264
+                disabledDrivers: ["sqlite-pooled", "sqlite"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))

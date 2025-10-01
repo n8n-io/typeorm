@@ -8,6 +8,7 @@ import {
 import { EntityManager, QueryRunner, SimpleConsoleLogger } from "../../../src"
 import { Foo } from "./entity/Foo"
 import { expect } from "chai"
+import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
 
 describe("github issues > #2216 - Ability to capture Postgres notifications in logger", () => {
     let connections: DataSource[]
@@ -95,49 +96,79 @@ describe("github issues > #2216 - Ability to capture Postgres notifications in l
 
         it("should pass extension setup notices to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        `extension "uuid-ossp" already exists, skipping`,
-                    )
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        `extension "citext" already exists, skipping`,
-                    )
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            `extension "uuid-ossp" already exists, skipping`,
+                        )
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            `extension "citext" already exists, skipping`,
+                        )
+                    }),
             ))
 
         it("should pass manual notices to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    queryRunner = connection.createQueryRunner()
-                    await queryRunner.query(
-                        `DO $do$ BEGIN RAISE NOTICE 'this is a notice'; END $do$`,
-                    )
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        "this is a notice",
-                    )
-                    await queryRunner.release()
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        queryRunner = connection.createQueryRunner()
+                        await queryRunner.query(
+                            `DO $do$ BEGIN RAISE NOTICE 'this is a notice'; END $do$`,
+                        )
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            "this is a notice",
+                        )
+                        await queryRunner.release()
+                    }),
             ))
 
         it("should pass 'listen -> notify' messages to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    queryRunner = connection.createQueryRunner()
-                    await queryRunner.query("LISTEN foo;")
-                    await queryRunner.query("NOTIFY foo, 'bar!'")
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        "Received NOTIFY on channel foo: bar!.",
-                    )
-                    await queryRunner.release()
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        queryRunner = connection.createQueryRunner()
+                        await queryRunner.query("LISTEN foo;")
+                        await queryRunner.query("NOTIFY foo, 'bar!'")
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            "Received NOTIFY on channel foo: bar!.",
+                        )
+                        await queryRunner.release()
+                    }),
             ))
 
         it("should not interfere with actual queries", async () =>

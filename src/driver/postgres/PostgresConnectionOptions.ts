@@ -76,7 +76,9 @@ export interface PostgresConnectionOptions
     readonly poolErrorHandler?: (err: any) => any
 
     /**
-     * Include notification messages from Postgres server in client logs
+     * Include notification messages from Postgres server in client logs.
+     * Note: This only works with the JavaScript `pg` driver.
+     * The native `pg-native` driver does not emit notice/notification events.
      */
     readonly logNotifications?: boolean
 

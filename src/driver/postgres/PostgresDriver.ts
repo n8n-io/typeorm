@@ -297,6 +297,13 @@ export class PostgresDriver implements Driver {
         materializedHint: true,
     }
 
+    /**
+     * Is true if the native driver is used. The native driver does not support
+     * streaming, so you can use this property to disable streaming in your
+     * application.
+     */
+    isNative = false
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -1452,8 +1459,10 @@ export class PostgresDriver implements Driver {
             try {
                 const pgNative =
                     this.options.nativeDriver || PlatformTools.load("pg-native")
-                if (pgNative && this.postgres.native)
+                if (pgNative && this.postgres.native) {
                     this.postgres = this.postgres.native
+                    this.isNative = true
+                }
             } catch (e) {}
         } catch (e) {
             // todo: better error for browser env
