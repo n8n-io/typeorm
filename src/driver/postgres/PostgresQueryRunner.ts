@@ -4611,7 +4611,7 @@ export class PostgresQueryRunner
         return enumName
             .split(".")
             .map((i) => {
-                return disableEscape ? i : `"${i}"`
+                return disableEscape ? i : `"${i.replace(/"/g, '""')}"`
             })
             .join(".")
     }
