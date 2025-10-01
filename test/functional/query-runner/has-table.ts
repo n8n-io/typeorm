@@ -166,42 +166,16 @@ describe("query runner > has table", () => {
     it("should safely handle potentially malicious table names", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // ARRANGE
                 const queryRunner = connection.createQueryRunner()
-                await queryRunner.createTable(
-                    new Table({
-                        name: "injection_test_table",
-                        columns: [
-                            {
-                                name: "id",
-                                type: "int",
-                                isPrimary: true,
-                            },
-                        ],
-                    }),
-                    true,
-                )
 
-                // ACT
-                const maliciousName =
-                    "test'; DROP TABLE injection_test_table; --"
-                let exists = false
-                try {
-                    exists = await queryRunner.hasTable(maliciousName)
-                } catch (error) {
-                    // Acceptable if it throws due to proper parameterization
-                }
+                // Test with SQL injection payload that attempts to manipulate the WHERE clause
+                const maliciousName = "' OR '1'='1"
+                const exists = await queryRunner.hasTable(maliciousName)
 
-                // ASSERT
+                console.log(connection.options.type, exists)
+                // Should return false for non-existent table, even with malicious input
                 exists.should.be.false
 
-                const tableExists = await queryRunner.hasTable(
-                    "injection_test_table",
-                )
-                tableExists.should.be.true
-
-                // CLEANUP
-                await queryRunner.dropTable("injection_test_table", true)
                 await queryRunner.release()
             }),
         ))
