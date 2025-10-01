@@ -9,7 +9,7 @@ import { EntityManager, QueryRunner, SimpleConsoleLogger } from "../../../src"
 import { Foo } from "./entity/Foo"
 import { expect } from "chai"
 
-describe("github issues > #2216 - Ability to capture Postgres notifications in logger", () => {
+describe.only("github issues > #2216 - Ability to capture Postgres notifications in logger", () => {
     let connections: DataSource[]
     let queryRunner: QueryRunner
     let manager: EntityManager
@@ -96,6 +96,7 @@ describe("github issues > #2216 - Ability to capture Postgres notifications in l
         it("should pass extension setup notices to client", async () =>
             Promise.all(
                 connections.map(async (connection) => {
+                    console.log("logInfoStub", logInfoStub.callCount)
                     sinon.assert.calledWith(
                         logInfoStub,
                         "info",
