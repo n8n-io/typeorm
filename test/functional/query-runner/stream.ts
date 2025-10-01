@@ -20,7 +20,7 @@ describe("query runner > stream", () => {
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    it.only("should stream data", () =>
+    it("should stream data", () =>
         Promise.all(
             connections
                 .filter((connection) => {
