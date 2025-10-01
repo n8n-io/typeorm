@@ -122,33 +122,53 @@ describe("github issues > #2216 - Ability to capture Postgres notifications in l
 
         it("should pass manual notices to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    queryRunner = connection.createQueryRunner()
-                    await queryRunner.query(
-                        `DO $do$ BEGIN RAISE NOTICE 'this is a notice'; END $do$`,
-                    )
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        "this is a notice",
-                    )
-                    await queryRunner.release()
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        queryRunner = connection.createQueryRunner()
+                        await queryRunner.query(
+                            `DO $do$ BEGIN RAISE NOTICE 'this is a notice'; END $do$`,
+                        )
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            "this is a notice",
+                        )
+                        await queryRunner.release()
+                    }),
             ))
 
         it("should pass 'listen -> notify' messages to client", async () =>
             Promise.all(
-                connections.map(async (connection) => {
-                    queryRunner = connection.createQueryRunner()
-                    await queryRunner.query("LISTEN foo;")
-                    await queryRunner.query("NOTIFY foo, 'bar!'")
-                    sinon.assert.calledWith(
-                        logInfoStub,
-                        "info",
-                        "Received NOTIFY on channel foo: bar!.",
-                    )
-                    await queryRunner.release()
-                }),
+                connections
+                    .filter((connection) => {
+                        if (connection.driver instanceof PostgresDriver) {
+                            // the native driver does not emit notice events, but logs them itself instead
+                            if (connection.driver.isNative) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+                    .map(async (connection) => {
+                        queryRunner = connection.createQueryRunner()
+                        await queryRunner.query("LISTEN foo;")
+                        await queryRunner.query("NOTIFY foo, 'bar!'")
+                        sinon.assert.calledWith(
+                            logInfoStub,
+                            "info",
+                            "Received NOTIFY on channel foo: bar!.",
+                        )
+                        await queryRunner.release()
+                    }),
             ))
 
         it("should not interfere with actual queries", async () =>
