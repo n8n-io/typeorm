@@ -389,6 +389,7 @@ export class PostgresDriver implements Driver {
     async afterConnect(): Promise<void> {
         const extensionsMetadata = await this.checkMetadataForExtensions()
         const [connection, release] = await this.obtainMasterConnection()
+        console.log("[DEBUG] Connection obtained for afterConnect/extension installation:", connection.processID)
 
         const installExtensions =
             this.options.installExtensions === undefined ||
@@ -1536,7 +1537,9 @@ export class PostgresDriver implements Driver {
                 if (err) return fail(err)
 
                 if (options.logNotifications) {
+                    console.log("[DEBUG] Attaching notice handler to connection during pool creation:", connection.processID)
                     connection.on("notice", (msg: any) => {
+                        console.log("[DEBUG] Notice received on connection:", connection.processID, "message:", msg?.message)
                         msg && this.connection.logger.log("info", msg.message)
                     })
                     connection.on("notification", (msg: any) => {

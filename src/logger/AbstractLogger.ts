@@ -172,9 +172,11 @@ export abstract class AbstractLogger implements Logger {
 
             case "info":
                 if (!this.isLogEnabledFor("info")) {
+                    console.log("[DEBUG] Logger.log() called with info level but logging not enabled for info. Message:", message)
                     return
                 }
 
+                console.log("[DEBUG] Logger.log() called with info level. Message:", message)
                 this.writeLog(
                     "info",
                     {

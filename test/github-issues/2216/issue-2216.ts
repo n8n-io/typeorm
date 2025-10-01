@@ -96,7 +96,8 @@ describe.only("github issues > #2216 - Ability to capture Postgres notifications
         it("should pass extension setup notices to client", async () =>
             Promise.all(
                 connections.map(async (connection) => {
-                    console.log("logInfoStub", logInfoStub.callCount)
+                    console.log("[TEST DEBUG] logInfoStub callCount:", logInfoStub.callCount)
+                    console.log("[TEST DEBUG] logInfoStub calls:", logInfoStub.getCalls().map(c => ({ args: c.args })))
                     sinon.assert.calledWith(
                         logInfoStub,
                         "info",
