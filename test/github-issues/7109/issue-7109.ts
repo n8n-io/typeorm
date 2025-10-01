@@ -8,6 +8,7 @@ import { DataSource } from "../../../src/data-source/DataSource"
 import { Dummy } from "./entity/Dummy"
 import { ReadStream } from "fs"
 import { expect } from "chai"
+import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
 
 function ingestStream(stream: ReadStream): Promise<any[]> {
     let chunks: any[] = []
@@ -34,33 +35,49 @@ describe("github issues > #7109 stream() bug from 0.2.25 to 0.2.26 with postgres
 
     it("should release the QueryRunner created by a SelectQueryBuilder", () =>
         Promise.all(
-            connections.map(async (connection) => {
-                const values = [
-                    { field: "abc" },
-                    { field: "def" },
-                    { field: "ghi" },
-                ]
-                // First create some test data
-                await connection
-                    .createQueryBuilder()
-                    .insert()
-                    .into(Dummy)
-                    .values(values)
-                    .execute()
+            connections
+                .filter((connection) => {
+                    if (connection.driver instanceof PostgresDriver) {
+                        // The native driver (pg-native) does not support
+                        // streaming because pg-query-stream requires access to
+                        // the wire protocol which is not available through the
+                        // native libpq bindings
+                        if (connection.driver.isNative) {
+                            console.log(
+                                "Skipping streaming test: pg-native is incompatible with pg-query-stream",
+                            )
+                            return false
+                        }
+                    }
+                    return true
+                })
+                .map(async (connection) => {
+                    const values = [
+                        { field: "abc" },
+                        { field: "def" },
+                        { field: "ghi" },
+                    ]
+                    // First create some test data
+                    await connection
+                        .createQueryBuilder()
+                        .insert()
+                        .into(Dummy)
+                        .values(values)
+                        .execute()
 
-                // Stream data:
-                const stream = await connection
-                    .createQueryBuilder()
-                    .from(Dummy, "dummy")
-                    .select("field")
-                    .stream()
-                const streamedEntities = await ingestStream(stream)
+                    // Stream data:
+                    const stream = await connection
+                        .createQueryBuilder()
+                        .from(Dummy, "dummy")
+                        .select("field")
+                        .stream()
+                    const streamedEntities = await ingestStream(stream)
 
-                // If the runner is properly released, the test is already successful; this assert is just a sanity check.
-                const extractFields = (val: { field: string }) => val.field
-                expect(streamedEntities.map(extractFields)).to.have.members(
-                    values.map(extractFields),
-                )
-            }),
+                    // If the runner is properly released, the test is already successful; this assert is just a sanity check.
+                    const extractFields = (val: { field: string }) => val.field
+                    expect(streamedEntities.map(extractFields)).to.have.members(
+                        values.map(extractFields),
+                    )
+                }),
         ))
 })
