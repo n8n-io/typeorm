@@ -1569,6 +1569,14 @@ export class PostgresDriver implements Driver {
                     // Try attaching to connection anyway (for JS driver)
                     if (typeof connection.on === "function") {
                         console.log("[DEBUG] Attaching notice handlers to CONNECTION")
+
+                        // Add catch-all listener to see what events ARE being emitted
+                        const originalEmit = connection.emit
+                        connection.emit = function(event: any, ...args: any[]) {
+                            console.log("[DEBUG] Connection emitted event:", event, "args:", args?.slice(0, 2))
+                            return originalEmit.apply(this, [event, ...args])
+                        }
+
                         connection.on("notice", (msg: any) => {
                             console.log("[DEBUG] Notice event fired on CONNECTION! Connection:", connection.processID, "message:", msg?.message, "msg object:", msg)
                             msg && this.connection.logger.log("info", msg.message)
