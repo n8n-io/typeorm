@@ -4664,10 +4664,10 @@ export class PostgresQueryRunner
         const { schema, tableName } = this.driver.parseTableName(target)
 
         if (schema && schema !== this.driver.searchSchema) {
-            return `"${schema}"."${tableName}"`
+            return `"${schema}"."${tableName.replace(/"/g, '""')}"`
         }
 
-        return `"${tableName}"`
+        return `"${tableName.replace(/"/g, '""')}"`
     }
 
     /**

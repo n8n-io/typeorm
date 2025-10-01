@@ -3305,10 +3305,10 @@ export class MysqlQueryRunner extends BaseQueryRunner implements QueryRunner {
         const { database, tableName } = this.driver.parseTableName(target)
 
         if (database && database !== this.driver.database) {
-            return `\`${database}\`.\`${tableName}\``
+            return `\`${database}\`.\`${tableName.replace(/`/g, "``")}\``
         }
 
-        return `\`${tableName}\``
+        return `\`${tableName.replace(/`/g, "``")}\``
     }
 
     /**
