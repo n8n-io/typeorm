@@ -1555,6 +1555,12 @@ export class PostgresDriver implements Driver {
                         console.log("[DEBUG] Native driver detected - checking pool for event handling")
                         console.log("[DEBUG] Pool keys:", Object.keys(pool).slice(0, 20))
                         console.log("[DEBUG] Pool has 'on' method:", typeof pool.on)
+                        console.log("[DEBUG] Connection.native exists?", connection.native !== undefined)
+                        if (connection.native) {
+                            console.log("[DEBUG] connection.native type:", typeof connection.native)
+                            console.log("[DEBUG] connection.native keys:", Object.keys(connection.native || {}).slice(0, 20))
+                            console.log("[DEBUG] connection.native has 'on'?", typeof connection.native?.on)
+                        }
 
                         if (typeof pool.on === "function") {
                             console.log("[DEBUG] Attaching notice handlers to POOL for native driver")
