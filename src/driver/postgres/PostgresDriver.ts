@@ -1536,18 +1536,16 @@ export class PostgresDriver implements Driver {
                 if (err) return fail(err)
 
                 if (options.logNotifications) {
-                    if (typeof connection.on === "function") {
-                        connection.on("notice", (msg: any) => {
-                            msg && this.connection.logger.log("info", msg.message)
-                        })
-                        connection.on("notification", (msg: any) => {
-                            msg &&
-                                this.connection.logger.log(
-                                    "info",
-                                    `Received NOTIFY on channel ${msg.channel}: ${msg.payload}.`,
-                                )
-                        })
-                    }
+                    connection.on("notice", (msg: any) => {
+                        msg && this.connection.logger.log("info", msg.message)
+                    })
+                    connection.on("notification", (msg: any) => {
+                        msg &&
+                            this.connection.logger.log(
+                                "info",
+                                `Received NOTIFY on channel ${msg.channel}: ${msg.payload}.`,
+                            )
+                    })
                 }
                 release()
                 ok(pool)

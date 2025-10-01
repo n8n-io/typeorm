@@ -55,7 +55,6 @@
     "username": "test",
     "password": "test",
     "database": "test",
-    "logging": false,
-    "nativeDriver": false
+    "logging": false
   }
 ]
