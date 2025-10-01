@@ -1268,17 +1268,36 @@ export abstract class AbstractSqliteQueryRunner
             database =
                 this.driver.getAttachedDatabasePathRelativeByHandle(schema)
         }
-        return this.query(
-            `SELECT ${database ? `'${database}'` : null} as database, ${
-                schema ? `'${schema}'` : null
-            } as schema, * FROM ${
-                schema ? `"${schema}".` : ""
-            }${this.escapePath(
-                `sqlite_master`,
-            )} WHERE "type" = '${tableOrIndex}' AND "${
-                tableOrIndex === "table" ? "name" : "tbl_name"
-            }" IN ('${tableName}')`,
-        )
+
+        const parameters: any[] = []
+        let query = `SELECT `
+
+        if (database) {
+            query += `$${parameters.length + 1} as database, `
+            parameters.push(database)
+        } else {
+            query += `null as database, `
+        }
+
+        if (schema) {
+            query += `$${parameters.length + 1} as schema, `
+            parameters.push(schema)
+        } else {
+            query += `null as schema, `
+        }
+
+        query += `* FROM ${
+            schema ? this.escapePath(schema) + "." : ""
+        }${this.escapePath(
+            "sqlite_master",
+        )} WHERE "type" = $${parameters.length + 1} AND "${
+            tableOrIndex === "table" ? "name" : "tbl_name"
+        }" = $${parameters.length + 2}`
+
+        parameters.push(tableOrIndex)
+        parameters.push(tableName)
+
+        return this.query(query, parameters)
     }
 
     protected async loadPragmaRecords(tablePath: string, pragma: string) {
