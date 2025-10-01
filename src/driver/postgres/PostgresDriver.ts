@@ -389,7 +389,9 @@ export class PostgresDriver implements Driver {
     async afterConnect(): Promise<void> {
         const extensionsMetadata = await this.checkMetadataForExtensions()
         const [connection, release] = await this.obtainMasterConnection()
-        console.log("[DEBUG] Connection obtained for afterConnect/extension installation:", connection.processID)
+        console.log("[DEBUG] Connection obtained for afterConnect/extension installation. ProcessID:", connection.processID)
+        console.log("[DEBUG] afterConnect connection keys:", Object.keys(connection).slice(0, 20))
+        console.log("[DEBUG] Is same connection type?", typeof connection, "Has 'on' method:", typeof connection.on)
 
         const installExtensions =
             this.options.installExtensions === undefined ||
@@ -432,14 +434,17 @@ export class PostgresDriver implements Driver {
             hasExclusionConstraints,
         } = extensionsMetadata
 
+        console.log("[DEBUG] enableExtensions called with connection:", connection.processID)
         if (hasUuidColumns)
             try {
+                console.log("[DEBUG] About to create uuid-ossp extension...")
                 await this.executeQuery(
                     connection,
                     `CREATE EXTENSION IF NOT EXISTS "${
                         this.options.uuidExtension || "uuid-ossp"
                     }"`,
                 )
+                console.log("[DEBUG] uuid-ossp extension query completed")
             } catch (_) {
                 logger.log(
                     "warn",
@@ -450,10 +455,12 @@ export class PostgresDriver implements Driver {
             }
         if (hasCitextColumns)
             try {
+                console.log("[DEBUG] About to create citext extension...")
                 await this.executeQuery(
                     connection,
                     `CREATE EXTENSION IF NOT EXISTS "citext"`,
                 )
+                console.log("[DEBUG] citext extension query completed")
             } catch (_) {
                 logger.log(
                     "warn",
@@ -1537,18 +1544,47 @@ export class PostgresDriver implements Driver {
                 if (err) return fail(err)
 
                 if (options.logNotifications) {
-                    console.log("[DEBUG] Attaching notice handler to connection during pool creation:", connection.processID)
-                    connection.on("notice", (msg: any) => {
-                        console.log("[DEBUG] Notice received on connection:", connection.processID, "message:", msg?.message)
-                        msg && this.connection.logger.log("info", msg.message)
-                    })
-                    connection.on("notification", (msg: any) => {
-                        msg &&
-                            this.connection.logger.log(
-                                "info",
-                                `Received NOTIFY on channel ${msg.channel}: ${msg.payload}.`,
-                            )
-                    })
+                    console.log("[DEBUG] Driver isNative:", this.isNative)
+                    console.log("[DEBUG] Attaching notice handler to connection during pool creation. ProcessID:", connection.processID, "Connection type:", typeof connection, "Has 'on' method:", typeof connection.on)
+                    console.log("[DEBUG] Connection keys:", Object.keys(connection).slice(0, 20))
+                    console.log("[DEBUG] Connection constructor name:", connection.constructor?.name)
+                    console.log("[DEBUG] Pool type:", pool.constructor?.name)
+
+                    // For native driver, the pool itself might emit events, not individual connections
+                    if (this.isNative) {
+                        console.log("[DEBUG] Native driver detected - checking pool for event handling")
+                        console.log("[DEBUG] Pool keys:", Object.keys(pool).slice(0, 20))
+                        console.log("[DEBUG] Pool has 'on' method:", typeof pool.on)
+
+                        if (typeof pool.on === "function") {
+                            console.log("[DEBUG] Attaching notice handlers to POOL for native driver")
+                            pool.on("notice", (msg: any) => {
+                                console.log("[DEBUG] Notice event fired on POOL! Message:", msg?.message || msg)
+                                const message = typeof msg === "string" ? msg : msg?.message
+                                message && this.connection.logger.log("info", message)
+                            })
+                        }
+                    }
+
+                    // Try attaching to connection anyway (for JS driver)
+                    if (typeof connection.on === "function") {
+                        console.log("[DEBUG] Attaching notice handlers to CONNECTION")
+                        connection.on("notice", (msg: any) => {
+                            console.log("[DEBUG] Notice event fired on CONNECTION! Connection:", connection.processID, "message:", msg?.message, "msg object:", msg)
+                            msg && this.connection.logger.log("info", msg.message)
+                        })
+                        connection.on("notification", (msg: any) => {
+                            console.log("[DEBUG] Notification event fired on CONNECTION!")
+                            msg &&
+                                this.connection.logger.log(
+                                    "info",
+                                    `Received NOTIFY on channel ${msg.channel}: ${msg.payload}.`,
+                                )
+                        })
+                    } else {
+                        console.log("[DEBUG] WARNING: Connection does not have 'on' method - cannot attach handlers!")
+                    }
+                    console.log("[DEBUG] Notice handlers setup complete. Releasing connection back to pool.")
                 }
                 release()
                 ok(pool)
