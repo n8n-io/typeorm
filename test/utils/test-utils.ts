@@ -114,24 +114,13 @@ export interface TestingOptions {
                * Type of caching.
                *
                * - "database" means cached values will be stored in the separate table in database. This is default value.
-               * - "mongodb" means cached values will be stored in mongodb database. You must provide mongodb connection options.
-               * - "redis" means cached values will be stored inside redis. You must provide redis connection options.
                */
-              readonly type?:
-                  | "database"
-                  | "redis"
-                  | "ioredis"
-                  | "ioredis/cluster" // todo: add mongodb and other cache providers as well in the future
+              readonly type?: "database"
 
               /**
                * Factory function for custom cache providers that implement QueryResultCache.
                */
               readonly provider?: (connection: DataSource) => QueryResultCache
-
-              /**
-               * Used to provide mongodb / redis connection options.
-               */
-              options?: any
 
               /**
                * If set to true then queries (using find methods and QueryBuilder's methods) will always be cached.

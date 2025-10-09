@@ -2,7 +2,6 @@ import { mkdirp } from "mkdirp"
 import path from "path"
 import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
 import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
-import { PlatformTools } from "../../platform/PlatformTools"
 import { QueryResult } from "../../query-runner/QueryResult"
 import { QueryFailedError } from "../../error/QueryFailedError"
 import { SqlitePooledConnectionOptions } from "./SqlitePooledConnectionOptions"
@@ -37,7 +36,7 @@ export class SqliteLibrary {
      */
     public loadLibrary(): void {
         try {
-            const sqlite = this.options.driver || PlatformTools.load("sqlite3")
+            const sqlite = this.options.driver || require("sqlite3")
             this.sqlite = sqlite.verbose()
         } catch (e) {
             throw new DriverPackageNotInstalledError("SQLite", "sqlite3")

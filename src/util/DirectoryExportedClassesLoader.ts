@@ -64,19 +64,3 @@ export async function importClassesFromDirectories(
 
     return loadFileClasses(dirs, [])
 }
-
-/**
- * Loads all json files from the given directory.
- */
-export function importJsonsFromDirectories(
-    directories: string[],
-    format = ".json",
-): any[] {
-    const allFiles = directories.reduce((allDirs, dir) => {
-        return allDirs.concat(glob.sync(PlatformTools.pathNormalize(dir)))
-    }, [] as string[])
-
-    return allFiles
-        .filter((file) => PlatformTools.pathExtname(file) === format)
-        .map((file) => require(PlatformTools.pathResolve(file)))
-}

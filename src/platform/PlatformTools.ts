@@ -4,86 +4,11 @@ import dotenv from "dotenv"
 import chalk from "chalk"
 
 export { ReadStream } from "fs"
-export { EventEmitter } from "events"
-export { Readable, Writable } from "stream"
 
 /**
  * Platform-specific tools.
  */
 export class PlatformTools {
-    /**
-     * Type of the currently running platform.
-     */
-    static type: "browser" | "node" = "node"
-
-    /**
-     * Gets global variable where global stuff can be stored.
-     */
-    static getGlobalVariable(): any {
-        return global
-    }
-
-    /**
-     * Loads ("require"-s) given file or package.
-     * This operation only supports on node platform
-     */
-    static load(name: string): any {
-        // if name is not absolute or relative, then try to load package from the node_modules of the directory we are currently in
-        // this is useful when we are using typeorm package globally installed and it accesses drivers
-        // that are not installed globally
-
-        try {
-            // switch case to explicit require statements for webpack compatibility.
-            switch (name) {
-                /**
-                 * mysql
-                 */
-                case "mysql":
-                    return require("mysql")
-
-                case "mysql2":
-                    return require("mysql2")
-
-                /**
-                 * postgres
-                 */
-                case "pg":
-                    return require("pg")
-
-                case "pg-native":
-                    return require("pg-native")
-
-                case "pg-query-stream":
-                    return require("pg-query-stream")
-
-                /**
-                 * redis
-                 */
-                case "redis":
-                    return require("redis")
-
-                case "ioredis":
-                    return require("ioredis")
-
-                /**
-                 * sqlite
-                 */
-                case "sqlite3":
-                    return require("sqlite3")
-            }
-        } catch (err) {
-            return require(path.resolve(
-                process.cwd() + "/node_modules/" + name,
-            ))
-        }
-
-        // If nothing above matched and we get here, the package was not listed within PlatformTools
-        // and is an Invalid Package.  To make it explicit that this is NOT the intended use case for
-        // PlatformTools.load - it's not just a way to replace `require` all willy-nilly - let's throw
-        // an error.
-        throw new TypeError(`Invalid Package for PlatformTools.load: ${name}`)
-    }
-
     /**
      * Normalizes given path. Does "path.normalize" and replaces backslashes with forward slashes on Windows.
      */

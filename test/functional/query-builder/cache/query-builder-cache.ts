@@ -16,12 +16,6 @@ describe("query builder > cache", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 cache: true,
-                // cache: {
-                //     type: "redis",
-                //     options: {
-                //         host: "localhost",
-                //     }
-                // }
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

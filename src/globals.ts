@@ -1,5 +1,4 @@
 import { MetadataArgsStorage } from "./metadata-args/MetadataArgsStorage"
-import { PlatformTools } from "./platform/PlatformTools"
 import { DataSourceOptions } from "./data-source/DataSourceOptions"
 import { ConnectionOptionsReader } from "./connection/ConnectionOptionsReader"
 import { ConnectionManager } from "./connection/ConnectionManager"
@@ -26,7 +25,7 @@ export function getMetadataArgsStorage(): MetadataArgsStorage {
     // another reason is that when we run migrations typeorm is being called from a global package
     // and it may load entities which register decorators in typeorm of local package
     // this leads to impossibility of usage of entities in migrations and cli related operations
-    const globalScope = PlatformTools.getGlobalVariable()
+    const globalScope = global as any
     if (!globalScope.typeormMetadataArgsStorage)
         globalScope.typeormMetadataArgsStorage = new MetadataArgsStorage()
 

@@ -7,7 +7,6 @@ import { MysqlQueryRunner } from "./MysqlQueryRunner"
 import { ObjectLiteral } from "../../common/ObjectLiteral"
 import { ColumnMetadata } from "../../metadata/ColumnMetadata"
 import { DateUtils } from "../../util/DateUtils"
-import { PlatformTools } from "../../platform/PlatformTools"
 import { DataSource } from "../../data-source/DataSource"
 import { RdbmsSchemaBuilder } from "../../schema-builder/RdbmsSchemaBuilder"
 import { MysqlConnectionOptions } from "./MysqlConnectionOptions"
@@ -1168,37 +1167,14 @@ export class MysqlDriver implements Driver {
      * Loads all driver dependencies.
      */
     protected loadDependencies(): void {
-        const connectorPackage = this.options.connectorPackage ?? "mysql"
-        const fallbackConnectorPackage =
-            connectorPackage === "mysql"
-                ? ("mysql2" as const)
-                : ("mysql" as const)
         try {
             // try to load first supported package
-            const mysql =
-                this.options.driver || PlatformTools.load(connectorPackage)
-            this.mysql = mysql
-            /*
-             * Some frameworks (such as Jest) may mess up Node's require cache and provide garbage for the 'mysql' module
-             * if it was not installed. We check that the object we got actually contains something otherwise we treat
-             * it as if the `require` call failed.
-             *
-             * @see https://github.com/typeorm/typeorm/issues/1373
-             */
-            if (Object.keys(this.mysql).length === 0) {
-                throw new TypeORMError(
-                    `'${connectorPackage}' was found but it is empty. Falling back to '${fallbackConnectorPackage}'.`,
-                )
-            }
+            this.mysql = this.options.driver || require("mysql2")
         } catch (e) {
-            try {
-                this.mysql = PlatformTools.load(fallbackConnectorPackage) // try to load second supported package
-            } catch (e) {
-                throw new DriverPackageNotInstalledError(
-                    "Mysql",
-                    connectorPackage,
-                )
-            }
+            throw new DriverPackageNotInstalledError(
+                "Mysql",
+                "mysql2",
+            )
         }
     }
 
