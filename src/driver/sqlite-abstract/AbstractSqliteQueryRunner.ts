@@ -234,8 +234,8 @@ export abstract class AbstractSqliteQueryRunner
         const tableName = InstanceChecker.isTable(tableOrName)
             ? tableOrName.name
             : tableOrName
-        const sql = `SELECT * FROM "sqlite_master" WHERE "type" = 'table' AND "name" = '${tableName}'`
-        const result = await this.query(sql)
+        const sql = `SELECT * FROM "sqlite_master" WHERE "type" = 'table' AND "name" = $1`
+        const result = await this.query(sql, [tableName])
         return result.length ? true : false
     }
 
