@@ -4,7 +4,6 @@ import { ConnectionIsNotSetError } from "../../error/ConnectionIsNotSetError"
 import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
 import { ColumnMetadata } from "../../metadata/ColumnMetadata"
 import { EntityMetadata } from "../../metadata/EntityMetadata"
-import { PlatformTools } from "../../platform/PlatformTools"
 import { QueryRunner } from "../../query-runner/QueryRunner"
 import { RdbmsSchemaBuilder } from "../../schema-builder/RdbmsSchemaBuilder"
 import { TableColumn } from "../../schema-builder/table/TableColumn"
@@ -1436,7 +1435,7 @@ export class PostgresDriver implements Driver {
      */
     loadStreamDependency() {
         try {
-            return PlatformTools.load("pg-query-stream")
+            return require("pg-query-stream")
         } catch (e) {
             // todo: better error for browser env
             throw new TypeORMError(
@@ -1454,11 +1453,11 @@ export class PostgresDriver implements Driver {
      */
     protected loadDependencies(): void {
         try {
-            const postgres = this.options.driver || PlatformTools.load("pg")
+            const postgres = this.options.driver || require("pg")
             this.postgres = postgres
             try {
                 const pgNative =
-                    this.options.nativeDriver || PlatformTools.load("pg-native")
+                    this.options.nativeDriver || require("pg-native")
                 if (pgNative && this.postgres.native) {
                     this.postgres = this.postgres.native
                     this.isNative = true

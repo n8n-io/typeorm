@@ -167,13 +167,8 @@ export interface BaseDataSourceOptions {
                * Type of caching.
                *
                * - "database" means cached values will be stored in the separate table in database. This is default value.
-               * - "redis" means cached values will be stored inside redis. You must provide redis connection options.
                */
-              readonly type?:
-                  | "database"
-                  | "redis"
-                  | "ioredis"
-                  | "ioredis/cluster" // todo: add mongodb and other cache providers as well in the future
+              readonly type?: "database"
 
               /**
                * Factory function for custom cache providers that implement QueryResultCache.
@@ -185,11 +180,6 @@ export interface BaseDataSourceOptions {
                * Default value is "query-result-cache"
                */
               readonly tableName?: string
-
-              /**
-               * Used to provide redis connection options.
-               */
-              readonly options?: any
 
               /**
                * If set to true then queries (using find methods and QueryBuilder's methods) will always be cached.

@@ -3,7 +3,6 @@ import path from "path"
 import type { sqlite3, Database as Sqlite3Database } from "sqlite3"
 import { DriverPackageNotInstalledError } from "../../error/DriverPackageNotInstalledError"
 import { SqliteQueryRunner } from "./SqliteQueryRunner"
-import { PlatformTools } from "../../platform/PlatformTools"
 import { DataSource } from "../../data-source/DataSource"
 import { SqliteConnectionOptions } from "./SqliteConnectionOptions"
 import { ColumnType } from "../types/ColumnTypes"
@@ -195,7 +194,7 @@ export class SqliteDriver extends AbstractSqliteDriver {
      */
     protected loadDependencies(): void {
         try {
-            const sqlite = this.options.driver || PlatformTools.load("sqlite3")
+            const sqlite = this.options.driver || require("sqlite3")
             this.sqlite = sqlite.verbose()
         } catch (e) {
             throw new DriverPackageNotInstalledError("SQLite", "sqlite3")

@@ -15,3 +15,5 @@ npm-debug.log
 .yarn/
 .yarn*
 *.iml
+temp/**/*.db*
+temp/test

@@ -199,67 +199,6 @@ await timber.remove()
 
         `npm install sqlite3 --save`
 
-    - for **Microsoft SQL Server**
-
-        `npm install mssql --save`
-
-    - for **sql.js**
-
-        `npm install sql.js --save`
-
-    - for **Oracle**
-
-        `npm install oracledb --save`
-
-        To make the Oracle driver work, you need to follow the installation instructions from
-        [their](https://github.com/oracle/node-oracledb) site.
-
-    - for **SAP Hana**
-
-        ```
-        npm install @sap/hana-client
-        npm install hdb-pool
-        ```
-
-        _SAP Hana support made possible by the sponsorship of [Neptune Software](https://www.neptune-software.com/)._
-
-    - for **Google Cloud Spanner**
-
-        ```
-        npm install @google-cloud/spanner --save
-        ```
-
-        Provide authentication credentials to your application code
-        by setting the environment variable `GOOGLE_APPLICATION_CREDENTIALS`:
-
-        ```shell
-        # Linux/macOS
-        export GOOGLE_APPLICATION_CREDENTIALS="KEY_PATH"
-
-        # Windows
-        set GOOGLE_APPLICATION_CREDENTIALS=KEY_PATH
-
-        # Replace KEY_PATH with the path of the JSON file that contains your service account key.
-        ```
-
-        To use Spanner with the emulator you should set `SPANNER_EMULATOR_HOST` environment variable:
-
-        ```shell
-        # Linux/macOS
-        export SPANNER_EMULATOR_HOST=localhost:9010
-
-        # Windows
-        set SPANNER_EMULATOR_HOST=localhost:9010
-        ```
-
-    - for **MongoDB** (experimental)
-
-        `npm install mongodb@^5.2.0 --save`
-
-    - for **NativeScript**, **react-native** and **Cordova**
-
-        Check [documentation of supported platforms](./docs/supported-platforms.md)
-
     Install only _one_ of them, depending on which database you use.
 
 ##### TypeScript configuration
@@ -287,8 +226,7 @@ npx typeorm init --name MyProject --database postgres
 ```
 
 Where `name` is the name of your project and `database` is the database you'll use.
-Database can be one of the following values: `mysql`, `mariadb`, `postgres`, `cockroachdb`, `sqlite`, `mssql`, `sap`, `spanner`, `oracle`, `mongodb`,
-`cordova`, `react-native`, `expo`, `nativescript`.
+Database can be one of the following values: `mysql`, `mariadb`, `postgres`, `sqlite`.
 
 This command will generate a new project in the `MyProject` directory with the following files:
 
@@ -585,8 +523,7 @@ AppDataSource.initialize()
 
 We are using Postgres in this example, but you can use any other supported database.
 To use another database, simply change the `type` in the options to the database type you are using:
-`mysql`, `mariadb`, `postgres`, `cockroachdb`, `sqlite`, `mssql`, `oracle`, `sap`, `spanner`, `cordova`, `nativescript`, `react-native`,
-`expo`, or `mongodb`.
+`mysql`, `mariadb`, `postgres`, or `sqlite`.
 Also make sure to use your own host, port, username, password, and database settings.
 
 We added our Photo entity to the list of entities for this data source.
@@ -1275,18 +1212,8 @@ There are a few repositories that you can clone and start with:
 -   [Example how to use TypeORM with TypeScript](https://github.com/typeorm/typescript-example)
 -   [Example how to use TypeORM with JavaScript](https://github.com/typeorm/javascript-example)
 -   [Example how to use TypeORM with JavaScript and Babel](https://github.com/typeorm/babel-example)
--   [Example how to use TypeORM with TypeScript and SystemJS in Browser](https://github.com/typeorm/browser-example)
--   [Example how to use TypeORM with TypeScript and React in Browser](https://github.com/ItayGarin/typeorm-react-swc)
 -   [Example how to use Express and TypeORM](https://github.com/typeorm/typescript-express-example)
 -   [Example how to use Koa and TypeORM](https://github.com/typeorm/typescript-koa-example)
--   [Example how to use TypeORM with MongoDB](https://github.com/typeorm/mongo-typescript-example)
--   [Example how to use TypeORM in a Cordova/PhoneGap app](https://github.com/typeorm/cordova-example)
--   [Example how to use TypeORM with an Ionic app](https://github.com/typeorm/ionic-example)
--   [Example how to use TypeORM with React Native](https://github.com/typeorm/react-native-example)
--   [Example how to use TypeORM with Nativescript-Vue](https://github.com/typeorm/nativescript-vue-typeorm-sample)
--   [Example how to use TypeORM with Nativescript-Angular](https://github.com/betov18x/nativescript-angular-typeorm-example)
--   [Example how to use TypeORM with Electron using JavaScript](https://github.com/typeorm/electron-javascript-example)
--   [Example how to use TypeORM with Electron using TypeScript](https://github.com/typeorm/electron-typescript-example)
 
 ## Extensions
 
