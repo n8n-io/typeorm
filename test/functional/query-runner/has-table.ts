@@ -172,7 +172,6 @@ describe("query runner > has table", () => {
                 const maliciousName = "' OR '1'='1"
                 const exists = await queryRunner.hasTable(maliciousName)
 
-                console.log(connection.options.type, exists)
                 // Should return false for non-existent table, even with malicious input
                 exists.should.be.false
 
