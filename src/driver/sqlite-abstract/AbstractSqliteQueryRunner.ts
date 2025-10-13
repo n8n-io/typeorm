@@ -234,7 +234,7 @@ export abstract class AbstractSqliteQueryRunner
         const tableName = InstanceChecker.isTable(tableOrName)
             ? tableOrName.name
             : tableOrName
-        const sql = `SELECT * FROM "sqlite_master" WHERE "type" = 'table' AND "name" = $1`
+        const sql = `SELECT * FROM "sqlite_master" WHERE "type" = 'table' AND "name" = ?1`
         const result = await this.query(sql, [tableName])
         return result.length ? true : false
     }
@@ -1268,17 +1268,18 @@ export abstract class AbstractSqliteQueryRunner
             database =
                 this.driver.getAttachedDatabasePathRelativeByHandle(schema)
         }
-        return this.query(
-            `SELECT ${database ? `'${database}'` : null} as database, ${
-                schema ? `'${schema}'` : null
-            } as schema, * FROM ${
-                schema ? `"${schema}".` : ""
-            }${this.escapePath(
-                `sqlite_master`,
-            )} WHERE "type" = '${tableOrIndex}' AND "${
-                tableOrIndex === "table" ? "name" : "tbl_name"
-            }" IN ('${tableName}')`,
-        )
+
+        const databaseColumn = database ?? null
+        const schemaColumn = schema ?? null
+        const masterTable = `${
+            schema ? `${this.escapePath(schema)}.` : ""
+        }${this.escapePath("sqlite_master")}`
+        const query =
+            tableOrIndex === "table"
+                ? `SELECT ?1 as database, ?2 as schema, * FROM ${masterTable} WHERE "type" = 'table' AND "name" = ?3`
+                : `SELECT ?1 as database, ?2 as schema, * FROM ${masterTable} WHERE "type" = 'index' AND "tbl_name" = ?3`
+
+        return this.query(query, [databaseColumn, schemaColumn, tableName])
     }
 
     protected async loadPragmaRecords(tablePath: string, pragma: string) {
