@@ -1269,8 +1269,8 @@ export abstract class AbstractSqliteQueryRunner
                 this.driver.getAttachedDatabasePathRelativeByHandle(schema)
         }
 
-        const databaseColumn = database ?? "null"
-        const schemaColumn = schema ?? "null"
+        const databaseColumn = database ?? null
+        const schemaColumn = schema ?? null
         const masterTable = `${
             schema ? `${this.escapePath(schema)}.` : ""
         }${this.escapePath("sqlite_master")}`
