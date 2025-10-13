@@ -1314,7 +1314,7 @@ export abstract class AbstractSqliteQueryRunner
                 .filter((tableName) => {
                     return tableName.split(".").length === 1
                 })
-                .map((tableName) => `'${tableName}'`)
+                .map((tableName) => `${tableName}`)
 
             const tableNamesWithDot = tableNames.filter((tableName) => {
                 return tableName.split(".").length > 1
@@ -1328,11 +1328,14 @@ export abstract class AbstractSqliteQueryRunner
                 ]
 
                 if (tableNamesWithoutDot.length) {
+                    const columnName = type === "table" ? "name" : "tbl_name"
+                    const placeholders = tableNamesWithoutDot
+                        .map(() => "?")
+                        .join(",")
                     promises.push(
                         this.query(
-                            `SELECT * FROM "sqlite_master" WHERE "type" = '${type}' AND "${
-                                type === "table" ? "name" : "tbl_name"
-                            }" IN (${tableNamesWithoutDot})`,
+                            `SELECT * FROM "sqlite_master" WHERE "type" = ? AND ${columnName} IN (${placeholders})`,
+                            [type, ...tableNamesWithoutDot],
                         ),
                     )
                 }
