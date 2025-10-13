@@ -1269,35 +1269,17 @@ export abstract class AbstractSqliteQueryRunner
                 this.driver.getAttachedDatabasePathRelativeByHandle(schema)
         }
 
-        const parameters: any[] = []
-        let query = `SELECT `
+        const databaseColumn = database ?? "null"
+        const schemaColumn = schema ?? "null"
+        const masterTable = `${
+            schema ? `${this.escapePath(schema)}.` : ""
+        }${this.escapePath("sqlite_master")}`
+        const query =
+            tableOrIndex === "table"
+                ? `SELECT ?1 as database, ?2 as schema, * FROM ${masterTable} WHERE "type" = 'table' AND "name" = ?3`
+                : `SELECT ?1 as database, ?2 as schema, * FROM ${masterTable} WHERE "type" = 'index' AND "tbl_name" = ?3`
 
-        if (database) {
-            query += `$${parameters.length + 1} as database, `
-            parameters.push(database)
-        } else {
-            query += `null as database, `
-        }
-
-        if (schema) {
-            query += `$${parameters.length + 1} as schema, `
-            parameters.push(schema)
-        } else {
-            query += `null as schema, `
-        }
-
-        query += `* FROM ${
-            schema ? this.escapePath(schema) + "." : ""
-        }${this.escapePath(
-            "sqlite_master",
-        )} WHERE "type" = $${parameters.length + 1} AND "${
-            tableOrIndex === "table" ? "name" : "tbl_name"
-        }" = $${parameters.length + 2}`
-
-        parameters.push(tableOrIndex)
-        parameters.push(tableName)
-
-        return this.query(query, parameters)
+        return this.query(query, [databaseColumn, schemaColumn, tableName])
     }
 
     protected async loadPragmaRecords(tablePath: string, pragma: string) {
