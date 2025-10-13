@@ -38,14 +38,3 @@ services:
       POSTGRES_USER: "test"
       POSTGRES_PASSWORD: "test"
       POSTGRES_DB: "test"
-
-  # redis
-  # redis:
-  #   image: "redis:3.0.3"
-  #   container_name: "typeorm-redis"
-  #   ports:
-  #     - "6379:6379"
-
-#volumes:
-#  volume-hana-xe:
-#  mysql8_volume:

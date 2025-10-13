@@ -108,11 +108,7 @@ export class ConnectionOptionsEnvReader {
             return true
         if (caching === "false" || caching === "FALSE" || caching === "0")
             return false
-        if (
-            caching === "redis" ||
-            caching === "ioredis" ||
-            caching === "database"
-        )
+        if (caching === "database")
             return {
                 type: caching,
                 options: PlatformTools.getEnvVariable("TYPEORM_CACHE_OPTIONS")

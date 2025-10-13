@@ -5,7 +5,6 @@ import gulp from "gulp";
 import del from "del";
 import shell from "gulp-shell";
 import replace from "gulp-replace";
-import rename from "gulp-rename";
 import sourcemaps from "gulp-sourcemaps";
 import ts from "gulp-typescript";
 
@@ -31,64 +30,6 @@ export class Gulpfile {
     compile() {
         return gulp.src("package.json", { read: false })
             .pipe(shell(["npm run compile"]));
-    }
-
-    // -------------------------------------------------------------------------
-    // Build and packaging for browser
-    // -------------------------------------------------------------------------
-
-    /**
-     * Copies all source files into destination folder in a correct structure.
-     */
-    @Task()
-    browserCopySources() {
-        return gulp.src([
-            "./src/**/*.ts",
-            "!./src/commands/*.ts",
-            "!./src/cli.ts",
-            "!./src/typeorm.ts",
-            "!./src/typeorm-model-shim.ts"
-        ])
-        .pipe(gulp.dest("./build/browser/src"));
-    }
-
-    /**
-     * Copies templates for compilation
-     */
-    @Task()
-    browserCopyTemplates() {
-        return gulp.src("./src/platform/*.template")
-            .pipe(rename((p) => { p.extname = '.ts'; }))
-            .pipe(gulp.dest("./build/browser/src/platform"));
-    }
-
-    @MergedTask()
-    browserCompile() {
-        const tsProject = ts.createProject("tsconfig.json", {
-            module: "es2020",
-            lib: ["es2021", "dom", "es2022.Error"],
-            typescript: require("typescript")
-        });
-        const tsResult = gulp.src([
-            "./build/browser/src/**/*.ts",
-            "./node_modules/reflect-metadata/**/*.d.ts"
-        ])
-            .pipe(sourcemaps.init())
-            .pipe(tsProject());
-
-        return [
-            tsResult.dts.pipe(gulp.dest("./build/package/browser")),
-            tsResult.js
-                .pipe(sourcemaps.write(".", { sourceRoot: "", includeContent: true }))
-                .pipe(gulp.dest("./build/package/browser"))
-        ];
-    }
-
-    @Task()
-    async browserClearPackageDirectory() {
-        return del([
-            "./build/browser/**"
-        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -219,32 +160,20 @@ export class Gulpfile {
     }
 
     /**
-     * Copies shims to use typeorm in different environment and conditions file into package.
-     */
-    @Task()
-    packageCopyShims() {
-        return gulp.src(["./extra/typeorm-model-shim.js", "./extra/typeorm-class-transformer-shim.js"])
-            .pipe(gulp.dest("./build/package"));
-    }
-
-    /**
      * Creates a package that can be published to npm.
      */
     @SequenceTask()
     package() {
         return [
             "clean",
-            ["browserCopySources", "browserCopyTemplates"],
-            ["packageCompile", "browserCompile"],
+            ["packageCompile"],
             "packageMoveCompiledFiles",
             "packageCreateEsmIndex",
             [
-                "browserClearPackageDirectory",
                 "packageClearPackageDirectory",
                 "packageReplaceReferences",
                 "packagePreparePackageFile",
                 "packageCopyReadme",
-                "packageCopyShims"
             ],
         ];
     }
