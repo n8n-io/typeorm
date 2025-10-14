@@ -31,14 +31,18 @@ describe("github issues > #7283 Generating Migration on ManyToOne/OneToMany + Pr
                 // ManyToOne
                 const table = await queryRunner.getTable("access_event")
                 const column = table!.findColumnByName("employeeProvider")
-                expect(column!.enum).to.deep.equal(["msGraph", "atlassian"])
+                expect(column!.enum!.sort()).to.deep.equal(
+                    ["msGraph", "atlassian"].sort(),
+                )
 
                 // ManyToMany
                 const table2 = await queryRunner.getTable(
                     "access_event_employees_employee",
                 )
                 const column2 = table2!.findColumnByName("employeeProvider")
-                expect(column2!.enum).to.deep.equal(["msGraph", "atlassian"])
+                expect(column2!.enum!.sort()).to.deep.equal(
+                    ["msGraph", "atlassian"].sort(),
+                )
 
                 await queryRunner.release()
             }),

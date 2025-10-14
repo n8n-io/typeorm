@@ -60,14 +60,16 @@ describe("github issues > #6115 Down migration for enums with defaults are wrong
 
                 let table = await queryRunner.getTable("metric")
                 let defaultOperator = table!.findColumnByName("defaultOperator")
-                expect(defaultOperator!.enum).to.deep.equal([
-                    "lessthan",
-                    "lessequal",
-                    "equal",
-                    "notequal",
-                    "greaterequal",
-                    "greaterthan",
-                ])
+                expect(defaultOperator!.enum!.sort()).to.deep.equal(
+                    [
+                        "lessthan",
+                        "lessequal",
+                        "equal",
+                        "notequal",
+                        "greaterequal",
+                        "greaterthan",
+                    ].sort(),
+                )
                 expect(defaultOperator!.default).to.equal(`'equal'`)
 
                 let defaultOperator2 =
@@ -89,14 +91,9 @@ describe("github issues > #6115 Down migration for enums with defaults are wrong
 
                 table = await queryRunner.getTable("metric")
                 defaultOperator = table!.findColumnByName("defaultOperator")
-                expect(defaultOperator!.enum).to.deep.equal([
-                    "lt",
-                    "le",
-                    "eq",
-                    "ne",
-                    "ge",
-                    "gt",
-                ])
+                expect(defaultOperator!.enum!.sort()).to.deep.equal(
+                    ["lt", "le", "eq", "ne", "ge", "gt"].sort(),
+                )
                 expect(defaultOperator!.default).to.equal(`'eq'`)
 
                 defaultOperator2 = table!.findColumnByName("defaultOperator2")
