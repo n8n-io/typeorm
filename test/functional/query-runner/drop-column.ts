@@ -157,6 +157,7 @@ describe("query runner > drop column", () => {
 
                     // Clean up
                     await queryRunner.query(`DROP TRIGGER ${triggerName}`)
+                    await queryRunner.executeMemoryDownSql()
                     await queryRunner.release()
                 }),
         ))
