@@ -2005,6 +2005,14 @@ export abstract class AbstractSqliteQueryRunner
         const upQueries: Query[] = []
         const downQueries: Query[] = []
 
+        // query triggers from old table before recreation
+        const [, tableNameOldInitial] = this.splitTablePath(oldTable.name)
+        const triggerQuery = `SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?`
+        const triggers: { name: string; sql: string }[] = await this.query(
+            triggerQuery,
+            [tableNameOldInitial],
+        )
+
         // drop old table indices
         oldTable.indices.forEach((index) => {
             upQueries.push(this.dropIndexSql(index))
@@ -2110,6 +2118,14 @@ export abstract class AbstractSqliteQueryRunner
                 )
             upQueries.push(this.createIndexSql(newTable, index))
             downQueries.push(this.dropIndexSql(index))
+        })
+
+        // recreate table triggers
+        triggers.forEach((trigger) => {
+            // upQueries: recreate triggers on the new table (forward migration)
+            upQueries.push(new Query(trigger.sql))
+            // downQueries: recreate triggers on the old table (rollback)
+            downQueries.push(new Query(trigger.sql))
         })
 
         // update generated columns in "typeorm_metadata" table
