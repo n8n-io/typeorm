@@ -111,6 +111,56 @@ describe("query runner > drop column", () => {
             ))
     })
 
+    it("should preserve triggers when recreating table in sqlite", () =>
+        Promise.all(
+            connections
+            // Only run this test for sqlite-based connections
+                .filter(
+                    (connection) =>
+                        connection.options.type === "sqlite" ||
+                        connection.options.type === "sqlite-pooled",
+                )
+                .map(async (connection) => {
+                    const queryRunner = connection.createQueryRunner()
+
+                    // Get the post table
+                    let table = await queryRunner.getTable("post")
+                    expect(table).to.exist
+
+                    // Create a trigger on the table
+                    const triggerName = "test_insert_trigger"
+                    const triggerSql = `CREATE TRIGGER ${triggerName} AFTER INSERT ON "${table!.name}" BEGIN SELECT 1; END`
+                    await queryRunner.query(triggerSql)
+
+                    // Verify trigger exists before column drop
+                    const triggersBefore: { name: string; sql: string }[] =
+                        await queryRunner.query(
+                            `SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?`,
+                            [table!.name],
+                        )
+                    expect(triggersBefore).to.have.length(1)
+                    expect(triggersBefore[0].name).to.equal(triggerName)
+
+                    // Drop a column, which triggers recreateTable in SQLite
+                    await queryRunner.dropColumn(table!, "version")
+
+                    // Verify trigger still exists after table recreation
+                    table = await queryRunner.getTable("post")
+                    const triggersAfter: { name: string; sql: string }[] =
+                        await queryRunner.query(
+                            `SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?`,
+                            [table!.name],
+                        )
+                    expect(triggersAfter).to.have.length(1)
+                    expect(triggersAfter[0].name).to.equal(triggerName)
+                    expect(triggersAfter[0].sql).to.equal(triggerSql)
+
+                    // Clean up
+                    await queryRunner.query(`DROP TRIGGER ${triggerName}`)
+                    await queryRunner.release()
+                }),
+        ))
+
     it("should safely handle SQL injection in hasEnumType", () =>
         Promise.all(
             connections
