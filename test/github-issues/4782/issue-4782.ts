@@ -15,7 +15,7 @@ describe("github issues > #4782 mariadb driver wants to recreate create/update d
             (connections = await createTestingConnections({
                 // logging: true,
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import { expect } from "chai"
 import "reflect-metadata"
 import { DataSource } from "../../../src/data-source/DataSource"
@@ -7,7 +8,6 @@ import {
     createTestingConnections,
     createTypeormMetadataTable,
 } from "../../utils/test-utils"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
 
 describe("query runner > add column", () => {
@@ -44,7 +44,7 @@ describe("query runner > add column", () => {
                 // MySql, Sqlite does not supports autoincrement composite primary keys.
                 if (
                     !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
+                        false ||
                         DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
@@ -91,7 +91,7 @@ describe("query runner > add column", () => {
                 // Spanner does not support autoincrement.
                 if (
                     !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
+                        false ||
                         DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
@@ -103,11 +103,8 @@ describe("query runner > add column", () => {
                 column2.should.be.exist
                 column2.length.should.be.equal("100")
 
-                if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "postgres"
-                ) {
-                    const isMySQL = connection.options.type === "mysql"
+                if (connection.driver.options.type === "postgres") {
+                    const isMySQL = false
                     let postgresSupported = false
 
                     if (connection.driver.options.type === "postgres") {
@@ -129,7 +126,7 @@ describe("query runner > add column", () => {
                         column3!.generatedType!.should.be.equals("STORED")
                         column3!.asExpression!.should.be.a("string")
 
-                        if (DriverUtils.isMySQLFamily(connection.driver)) {
+                        if (false) {
                             await queryRunner.addColumn(table!, column4)
                             table = await queryRunner.getTable("post")
                             column4 = table!.findColumnByName("textAndTag2")!

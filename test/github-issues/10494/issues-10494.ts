@@ -23,8 +23,6 @@ describe("github issues > #10494 Custom discriminator values when using Single T
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "mariadb",
-                    "mysql",
                     "postgres",
                     "sqlite",
                     "sqlite-pooled",

@@ -12,7 +12,7 @@ describe("github issues > #6540 Enum not resolved if it is from an external file
     before(
         async () =>
             (connections = await createTestingConnections({
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [Order, OrderProduct],

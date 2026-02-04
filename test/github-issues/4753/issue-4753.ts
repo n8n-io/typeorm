@@ -1,5 +1,5 @@
 import { DataSource } from "../../../src/data-source/DataSource"
-import { MysqlConnectionOptions } from "../../../src/driver/mysql/MysqlConnectionOptions"
+import { PostgresConnectionOptions } from "../../../src/driver/postgres/PostgresConnectionOptions"
 import {
     closeTestingConnections,
     getTypeOrmConfig,
@@ -7,26 +7,26 @@ import {
 } from "../../utils/test-utils"
 import { User } from "./entity/User"
 
-function isMySql(v: TestingConnectionOptions): v is MysqlConnectionOptions {
-    return v.type === "mysql"
+function isPostgres(v: TestingConnectionOptions): v is PostgresConnectionOptions {
+    return v.type === "postgres"
 }
 
-describe("github issues > #4753 MySQL Replication Config broken", () => {
+describe("github issues > #4753 Replication Config", () => {
     let dataSources: DataSource[] = []
     after(() => closeTestingConnections(dataSources))
 
     it("should connect without error when using replication", async () => {
-        const connectionOptions: MysqlConnectionOptions | undefined =
+        const connectionOptions: PostgresConnectionOptions | undefined =
             getTypeOrmConfig()
                 .filter((v) => !v.skip)
-                .find(isMySql)
+                .find(isPostgres)
 
         if (!connectionOptions) {
-            // Skip if MySQL tests aren't enabled at all
+            // Skip if Postgres tests aren't enabled at all
             return
         }
         const dataSource = new DataSource({
-            type: "mysql",
+            type: "postgres",
             replication: {
                 master: {
                     host: connectionOptions.host,

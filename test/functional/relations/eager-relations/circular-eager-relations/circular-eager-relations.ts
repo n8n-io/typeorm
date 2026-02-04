@@ -9,7 +9,7 @@ describe("relations > eager relations > circular eager relations", () => {
     it("should throw error if eager: true is set on both sides of relationship", async () => {
         const connection = new DataSource({
             // dummy connection options, connection won't be established anyway
-            type: "mysql",
+            type: "postgres",
             host: "localhost",
             username: "test",
             password: "test",

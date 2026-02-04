@@ -60,7 +60,7 @@ describe("github issues > #7867 Column not renamed when schema/database is set",
                 driverSpecific: {
                     database: "test",
                 },
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })
         })
         beforeEach(() => reloadTestingDatabases(connections))

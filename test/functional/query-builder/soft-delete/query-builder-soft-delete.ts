@@ -7,12 +7,9 @@ import {
 } from "../../../utils/test-utils"
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { User } from "./entity/User"
-import { LimitOnUpdateNotSupportedError } from "../../../../src/error/LimitOnUpdateNotSupportedError"
-import { Not, IsNull } from "../../../../src"
 import { MissingDeleteDateColumnError } from "../../../../src/error/MissingDeleteDateColumnError"
 import { UserWithoutDeleteDate } from "./entity/UserWithoutDeleteDate"
 import { Photo } from "./entity/Photo"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > soft-delete", () => {
     let connections: DataSource[]
@@ -146,95 +143,6 @@ describe("query builder > soft-delete", () => {
                         deletedAt: null,
                     },
                 })
-            }),
-        ))
-
-    it("should perform soft delete with limit correctly", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                const user1 = new User()
-                user1.name = "Alex Messer"
-                const user2 = new User()
-                user2.name = "Muhammad Mirzoev"
-                const user3 = new User()
-                user3.name = "Brad Porter"
-
-                await connection.manager.save([user1, user2, user3])
-
-                const limitNum = 2
-
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await connection
-                        .createQueryBuilder()
-                        .softDelete()
-                        .from(User)
-                        .limit(limitNum)
-                        .execute()
-
-                    const loadedUsers = await connection
-                        .getRepository(User)
-                        .find({
-                            where: {
-                                deletedAt: Not(IsNull()),
-                            },
-                            withDeleted: true,
-                        })
-                    expect(loadedUsers).to.exist
-                    loadedUsers!.length.should.be.equal(limitNum)
-                } else {
-                    await connection
-                        .createQueryBuilder()
-                        .softDelete()
-                        .from(User)
-                        .limit(limitNum)
-                        .execute()
-                        .should.be.rejectedWith(LimitOnUpdateNotSupportedError)
-                }
-            }),
-        ))
-
-    it("should perform restory with limit correctly", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                const user1 = new User()
-                user1.name = "Alex Messer"
-                const user2 = new User()
-                user2.name = "Muhammad Mirzoev"
-                const user3 = new User()
-                user3.name = "Brad Porter"
-
-                await connection.manager.save([user1, user2, user3])
-
-                const limitNum = 2
-
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await connection
-                        .createQueryBuilder()
-                        .softDelete()
-                        .from(User)
-                        .execute()
-
-                    await connection
-                        .createQueryBuilder()
-                        .restore()
-                        .from(User)
-                        .limit(limitNum)
-                        .execute()
-
-                    const loadedUsers = await connection
-                        .getRepository(User)
-                        .find()
-                    expect(loadedUsers).to.exist
-                    loadedUsers!.length.should.be.equal(limitNum)
-                } else {
-                    await connection
-                        .createQueryBuilder()
-                        .restore()
-                        .from(User)
-                        .limit(limitNum)
-                        .execute()
-                        .should.be.rejectedWith(LimitOnUpdateNotSupportedError)
-                }
             }),
         ))
 

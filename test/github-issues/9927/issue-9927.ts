@@ -12,7 +12,7 @@ describe("github issues > #9927 aggregate function throw error when column alias
     before(async () => {
         dataSources = await createTestingConnections({
             entities: [ExampleEntity],
-            enabledDrivers: ["mariadb"],
+            enabledDrivers: ["postgres"],
         })
     })
 

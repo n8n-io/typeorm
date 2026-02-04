@@ -14,8 +14,6 @@ describe("table-inheritance > single-table > database-option-inherited", () => {
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 enabledDrivers: [
                     "postgres",
-                    "mariadb",
-                    "mysql",
                     "sqlite",
                     "sqlite-pooled",
                 ],

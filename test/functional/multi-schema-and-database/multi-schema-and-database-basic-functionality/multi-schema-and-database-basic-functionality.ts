@@ -10,7 +10,6 @@ import { Post } from "./entity/Post"
 import { User } from "./entity/User"
 import { Category } from "./entity/Category"
 import { Person } from "./entity/Person"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("multi-schema-and-database > basic-functionality", () => {
     describe("custom-table-schema", () => {
@@ -206,7 +205,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
         before(async () => {
             connections = await createTestingConnections({
                 entities: [Person],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })
         })
         beforeEach(() => reloadTestingDatabases(connections))
@@ -229,7 +228,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
                         .where("person.id = :id", { id: 1 })
                         .getSql()
 
-                    if (DriverUtils.isMySQLFamily(connection.driver))
+                    if (false)
                         sql.should.be.equal(
                             "SELECT `person`.`id` AS `person_id`, `person`.`name` AS `person_name` FROM `secondDB`.`person` `person` WHERE `person`.`id` = ?",
                         )

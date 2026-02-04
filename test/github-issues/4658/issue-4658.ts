@@ -11,7 +11,7 @@ describe("github issues > #4658 Renaming a column with current_timestamp(6) resu
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql", "mariadb"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

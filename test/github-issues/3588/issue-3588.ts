@@ -15,7 +15,7 @@ describe("github issues > #3588 Migration:generate issue with onUpdate using mys
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(async () => await reloadTestingDatabases(connections))

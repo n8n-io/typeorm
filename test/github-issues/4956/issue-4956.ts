@@ -20,7 +20,7 @@ describe("github issues > #4956 create typeorm_metatable when running migrations
         connections = await createTestingConnections({
             entities: [__dirname + "/entities/*{.js,.ts}"],
             migrations: [__dirname + "/migrations/WithView{.js,.ts}"],
-            enabledDrivers: ["mysql", "mariadb"],
+            enabledDrivers: ["postgres"],
             schemaCreate: false,
             dropSchema: true,
         })
@@ -50,7 +50,7 @@ describe("github issues > #4956 create typeorm_metatable when running migrations
         connections = await createTestingConnections({
             entities: [__dirname + "/entities/Foo{.js,.ts}"],
             migrations: [__dirname + "/migrations/WithoutView{.js,.ts}"],
-            enabledDrivers: ["mysql", "mariadb"],
+            enabledDrivers: ["postgres"],
             schemaCreate: false,
             dropSchema: true,
         })

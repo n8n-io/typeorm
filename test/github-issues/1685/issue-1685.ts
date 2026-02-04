@@ -18,7 +18,7 @@ describe.skip("github issues > #1685 JoinColumn from JoinColum is not considered
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

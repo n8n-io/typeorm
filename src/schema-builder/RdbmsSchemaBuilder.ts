@@ -393,12 +393,6 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
                             return true
 
                         if (
-                            this.connection.driver.isFullTextColumnTypeSupported() &&
-                            indexMetadata.isFulltext !== tableIndex.isFulltext
-                        )
-                            return true
-
-                        if (
                             indexMetadata.columns.length !==
                             tableIndex.columnNames.length
                         )
@@ -452,13 +446,6 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
                                 return true
 
                             if (
-                                this.connection.driver.isFullTextColumnTypeSupported() &&
-                                indexMetadata.isFulltext !==
-                                    tableIndex.isFulltext
-                            )
-                                return true
-
-                            if (
                                 indexMetadata.columns.length !==
                                 tableIndex.columnNames.length
                             )
@@ -490,9 +477,6 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
     }
 
     protected async dropOldChecks(): Promise<void> {
-        // Mysql does not support check constraints
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) return
-
         for (const metadata of this.entityToSyncMetadatas) {
             const table = this.queryRunner.loadedTables.find(
                 (table) =>
@@ -592,10 +576,7 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
             )
             if (!table) continue
 
-            if (
-                DriverUtils.isMySQLFamily(this.connection.driver) ||
-                this.connection.driver.options.type === "postgres"
-            ) {
+            if (this.connection.driver.options.type === "postgres") {
                 const newComment = metadata.comment
                 await this.queryRunner.changeTableComment(table, newComment)
             }
@@ -910,14 +891,11 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
             }
 
             // drop all composite uniques related to this column
-            // Mysql does not support unique constraints.
-            if (!DriverUtils.isMySQLFamily(this.connection.driver)) {
-                for (const changedColumn of changedColumns) {
-                    await this.dropColumnCompositeUniques(
-                        this.getTablePath(metadata),
-                        changedColumn.databaseName,
-                    )
-                }
+            for (const changedColumn of changedColumns) {
+                await this.dropColumnCompositeUniques(
+                    this.getTablePath(metadata),
+                    changedColumn.databaseName,
+                )
             }
 
             // generate a map of new/old columns
@@ -1040,9 +1018,6 @@ export class RdbmsSchemaBuilder implements SchemaBuilder {
     }
 
     protected async createNewChecks(): Promise<void> {
-        // Mysql does not support check constraints
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) return
-
         for (const metadata of this.entityToSyncMetadatas) {
             const table = this.queryRunner.loadedTables.find(
                 (table) =>

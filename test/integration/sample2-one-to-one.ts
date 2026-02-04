@@ -19,7 +19,7 @@ describe("one-to-one", function () {
     // connect to db
     let dataSource: DataSource
     before(async function () {
-        const options = setupSingleTestingConnection("mysql", {
+        const options = setupSingleTestingConnection("postgres", {
             entities: [
                 Post,
                 PostDetails,

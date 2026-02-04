@@ -31,7 +31,7 @@ describe('github issues > #7235 Use "INSERT...RETURNING" in MariaDB.', () => {
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: ["mariadb"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

@@ -16,7 +16,6 @@ describe("transaction > transaction with entity manager", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 enabledDrivers: [
-                    "mysql",
                     "sqlite",
                     "sqlite-pooled",
                     "postgres",

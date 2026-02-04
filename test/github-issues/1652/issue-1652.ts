@@ -10,7 +10,7 @@ describe("github issues > #1652 Multiple primary key defined", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

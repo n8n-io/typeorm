@@ -13,7 +13,7 @@ describe("github issues > #6066 Column comment string is not escaped during sync
         async () =>
             (connections = await createTestingConnections({
                 entities: [Session],
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
             })),

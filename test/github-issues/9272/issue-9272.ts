@@ -18,8 +18,6 @@ describe("github issues > #9272 Fix select on deeply nested embedded entities, u
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "mariadb",
-                    "mysql",
                     "postgres",
                     "sqlite",
                     "sqlite-pooled",

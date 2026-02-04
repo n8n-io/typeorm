@@ -11,7 +11,7 @@ describe("github issues > #438 how can i define unsigned column?", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

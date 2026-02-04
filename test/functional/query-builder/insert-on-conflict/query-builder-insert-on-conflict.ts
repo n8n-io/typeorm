@@ -303,33 +303,4 @@ describe("query builder > insertion > on conflict", () => {
                 )
             }),
         ))
-    it("should throw error if using indexPredicate amd an unsupported driver", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                if (
-                    !connection.driver.supportedUpsertTypes.includes(
-                        "on-duplicate-key-update",
-                    )
-                )
-                    return
-                const post1 = new Post()
-                post1.id = "post#1"
-                post1.title = "About post"
-                post1.date = new Date("06 Aug 2020 00:12:00 GMT")
-
-                const sql = connection.manager
-                    .createQueryBuilder()
-                    .insert()
-                    .into(Post)
-                    .values(post1)
-                    .orUpdate(["title"], ["date"], {
-                        indexPredicate: "date > 2020-01-01",
-                    })
-                    .setParameter("title", post1.title)
-                    .disableEscaping()
-                    .getSql()
-
-                expect(sql).to.throw(Error)
-            }),
-        ))
 })

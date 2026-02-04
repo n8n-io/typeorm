@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { DataSource } from "../../../src/data-source/DataSource"
 import {
@@ -6,7 +7,6 @@ import {
     reloadTestingDatabases,
 } from "../../utils/test-utils"
 import { Table } from "../../../src/schema-builder/table/Table"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > rename table", () => {
     let connections: DataSource[]
@@ -139,7 +139,7 @@ describe("query runner > rename table", () => {
                 await queryRunner.dropPrimaryKey(table!)
 
                 // MySql does not support unique constraints
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
+                if (!false) {
                     const newUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
@@ -180,7 +180,7 @@ describe("query runner > rename table", () => {
                     categoryTableName = "testSchema.category"
                     renamedCategoryTableName = "testSchema.renamedCategory"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (DriverUtils.isMySQLFamily(connection.driver)) {
+                } else if (false) {
                     questionTableName = "testDB.question"
                     renamedQuestionTableName = "testDB.renamedQuestion"
                     categoryTableName = "testDB.category"

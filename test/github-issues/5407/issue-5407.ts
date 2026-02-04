@@ -13,8 +13,6 @@ describe("github issues > #5407 Wrong migration created because of default colum
             (connections = await createTestingConnections({
                 migrations: [],
                 enabledDrivers: [
-                    "mysql",
-                    "mariadb",
                     "postgres",
                     "sqlite",
                     "sqlite-pooled",

@@ -28,13 +28,6 @@ export class DriverUtils {
         ].includes(driver.options.type)
     }
 
-    /**
-     * Returns true if given driver is MySQL-based driver.
-     */
-    static isMySQLFamily(driver: Driver): boolean {
-        return ["mysql", "mariadb"].includes(driver.options.type)
-    }
-
     static isReleaseVersionOrGreater(driver: Driver, version: string): boolean {
         return (
             driver.version != null &&

@@ -891,13 +891,6 @@ export abstract class AbstractSqliteDriver implements Driver {
     }
 
     /**
-     * Returns true if driver supports fulltext indices.
-     */
-    isFullTextColumnTypeSupported(): boolean {
-        return false
-    }
-
-    /**
      * Creates an escaped parameter.
      */
     createParameter(parameterName: string, index: number): string {

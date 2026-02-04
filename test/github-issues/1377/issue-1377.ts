@@ -11,7 +11,7 @@ describe("github issues > #1377 Add support for `GENERATED ALWAYS AS` in MySQL",
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

@@ -5,7 +5,6 @@ import { RelationMetadata } from "../metadata/RelationMetadata"
 import { JoinColumnMetadataArgs } from "../metadata-args/JoinColumnMetadataArgs"
 import { DataSource } from "../data-source/DataSource"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 
 /**
  * Builds join column for the many-to-one and one-to-one owner relations.
@@ -201,20 +200,7 @@ export class RelationJoinColumnBuilder {
                         options: {
                             name: joinColumnName,
                             type: referencedColumn.type,
-                            length:
-                                !referencedColumn.length &&
-                                DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
-                                ) &&
-                                // some versions of mariadb support the column type and should not try to provide the length property
-                                this.connection.driver.normalizeType(
-                                    referencedColumn,
-                                ) !== "uuid" &&
-                                (referencedColumn.generationStrategy ===
-                                    "uuid" ||
-                                    referencedColumn.type === "uuid")
-                                    ? "36"
-                                    : referencedColumn.length, // fix https://github.com/typeorm/typeorm/issues/3604
+                            length: referencedColumn.length,
                             width: referencedColumn.width,
                             charset: referencedColumn.charset,
                             collation: referencedColumn.collation,

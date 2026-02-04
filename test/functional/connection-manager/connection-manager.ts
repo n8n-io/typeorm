@@ -2,7 +2,6 @@ import "reflect-metadata"
 import { expect } from "chai"
 import { setupSingleTestingConnection } from "../../utils/test-utils"
 import { ConnectionManager } from "../../../src/connection/ConnectionManager"
-import { MysqlDriver } from "../../../src/driver/mysql/MysqlDriver"
 import { PrimaryGeneratedColumn } from "../../../src/decorator/columns/PrimaryGeneratedColumn"
 import { Column } from "../../../src/decorator/columns/Column"
 import { Entity } from "../../../src/decorator/entity/Entity"
@@ -24,8 +23,8 @@ describe("ConnectionManager", () => {
     }
 
     describe("create", function () {
-        it("should create a mysql connection when mysql driver is specified", async () => {
-            const options = setupSingleTestingConnection("mysql", {
+        it("should create a connection when a driver is specified", async () => {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "default",
                 entities: [],
             })
@@ -37,7 +36,7 @@ describe("ConnectionManager", () => {
             expect(connection.driver).to.be.undefined
 
             await connection.initialize()
-            connection.driver.should.be.instanceOf(MysqlDriver)
+            connection.driver.should.be.instanceOf(PostgresDriver)
             connection.isInitialized.should.be.true
 
             await connection.destroy()
@@ -67,7 +66,7 @@ describe("ConnectionManager", () => {
     /*describe("createAndConnect", function() {
 
         it("should create a mysql connection when mysql driver is specified AND connect to it", async () => {
-            const options: ConnectionOptions = setupSingleTestingConnection("mysql", {
+            const options: ConnectionOptions = setupSingleTestingConnection("postgres", {
                 name: "default",
                 entities: []
             });
@@ -95,7 +94,7 @@ describe("ConnectionManager", () => {
 
     describe("get", function () {
         it("should give connection with a requested name", () => {
-            const options = setupSingleTestingConnection("mysql", {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "myMysqlConnection",
                 entities: [],
             })
@@ -109,7 +108,7 @@ describe("ConnectionManager", () => {
         })
 
         it("should throw an error if connection with the given name was not found", () => {
-            const options = setupSingleTestingConnection("mysql", {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "myMysqlConnection",
                 entities: [],
             })
@@ -125,7 +124,7 @@ describe("ConnectionManager", () => {
 
     describe("create connection options", function () {
         it("should not drop the database if dropSchema was not specified", async () => {
-            const options = setupSingleTestingConnection("mysql", {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "myMysqlConnection",
                 schemaCreate: true,
                 entities: [Post],
@@ -153,7 +152,7 @@ describe("ConnectionManager", () => {
         })
 
         it("should drop the database if dropSchema was set to true (mysql)", async () => {
-            const options = setupSingleTestingConnection("mysql", {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "myMysqlConnection",
                 schemaCreate: true,
                 dropSchema: true,

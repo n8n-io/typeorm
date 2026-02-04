@@ -59,7 +59,7 @@ TypeORM is highly influenced by other ORMs, such as [Hibernate](http://hibernate
 -   Listeners and subscribers (hooks).
 -   Supports closure table pattern.
 -   Schema declaration in models or separate configuration files.
--   Supports MySQL / MariaDB / Postgres / SQLite.
+-   Supports Postgres / SQLite.
 -   Works in NodeJS platforms.
 -   TypeScript and JavaScript support.
 -   ESM and CommonJS support.
@@ -73,8 +73,6 @@ And more...
 
 This is a specialized fork of TypeORM that supports only the following database drivers:
 
-- **MySQL** - Full MySQL database support
-- **MariaDB** - Full MariaDB database support (uses MySQL driver)
 - **PostgreSQL** - Full PostgreSQL database support
 - **SQLite** - Standard file-based SQLite support
 - **SQLite-Pooled** - Enhanced SQLite with connection pooling for better performance
@@ -187,11 +185,7 @@ await timber.remove()
 
 4. Install a database driver:
 
-    - for **MySQL** or **MariaDB**
-
-        `npm install mysql --save` (you can install `mysql2` instead as well)
-
-    - for **PostgreSQL** or **CockroachDB**
+    - for **PostgreSQL**
 
         `npm install pg --save`
 
@@ -226,7 +220,7 @@ npx typeorm init --name MyProject --database postgres
 ```
 
 Where `name` is the name of your project and `database` is the database you'll use.
-Database can be one of the following values: `mysql`, `mariadb`, `postgres`, `sqlite`.
+Database can be one of the following values: `postgres`, `sqlite`.
 
 This command will generate a new project in the `MyProject` directory with the following files:
 
@@ -288,7 +282,7 @@ creating more entities.
 > `npx typeorm init --name MyProject --database postgres --module esm` command.
 
 > You can generate an even more advanced project with express installed by running
-> `npx typeorm init --name MyProject --database mysql --express` command.
+> `npx typeorm init --name MyProject --database postgres --express` command.
 
 > You can generate a docker-compose file by running
 > `npx typeorm init --name MyProject --database postgres --docker` command.
@@ -523,7 +517,7 @@ AppDataSource.initialize()
 
 We are using Postgres in this example, but you can use any other supported database.
 To use another database, simply change the `type` in the options to the database type you are using:
-`mysql`, `mariadb`, `postgres`, or `sqlite`.
+`postgres` or `sqlite`.
 Also make sure to use your own host, port, username, password, and database settings.
 
 We added our Photo entity to the list of entities for this data source.

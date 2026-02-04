@@ -16,7 +16,7 @@ describe("lazy-relations-loading-via-base-entity-finders", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 // we can properly test lazy-relations only on one platform
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
 

@@ -1,5 +1,5 @@
 <connections>
-    <connection type="mysql" name="default">
+    <connection type="postgres" name="default">
         <host>localhost</host>
         <username>root</username>
         <password>admin</password>

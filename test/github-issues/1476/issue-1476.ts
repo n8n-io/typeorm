@@ -9,7 +9,6 @@ import {
 } from "../../utils/test-utils"
 import { Plan } from "./entity/Plan"
 import { Item } from "./entity/Item"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #1476 subqueries", () => {
     let connections: DataSource[] = []
@@ -17,7 +16,7 @@ describe("github issues > #1476 subqueries", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "mariadb", "sqlite", "sqlite-pooled"],
+                enabledDrivers: ["sqlite", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
@@ -67,7 +66,7 @@ describe("github issues > #1476 subqueries", () => {
                 expect(plan.b_planName).to.be.equal("Test")
                 expect(plan.planId).to.be.equal(1)
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     expect(plan.total).to.be.equal("2")
                 } else {
                     expect(plan.total).to.be.equal(2)

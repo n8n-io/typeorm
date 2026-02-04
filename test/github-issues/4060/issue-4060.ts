@@ -12,7 +12,7 @@ describe("github issues > #4060 Fail to insert entity with Buffer type of primar
     let connections: DataSource[]
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mysql", "mariadb"],
+            enabledDrivers: ["postgres"],
             entities: [Foo, Bar],
             schemaCreate: true,
             dropSchema: true,

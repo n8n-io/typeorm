@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { DataSource } from "../../../src"
 import { ColumnMetadataArgs } from "../../../src/metadata-args/ColumnMetadataArgs"
@@ -7,7 +8,6 @@ import {
     createTestingConnections,
 } from "../../utils/test-utils"
 import { Post } from "./entity/Post"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("schema builder > add column", () => {
     let connections: DataSource[]

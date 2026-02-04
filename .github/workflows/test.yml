@@ -21,8 +21,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: "18"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -35,106 +35,6 @@ jobs:
         with:
           name: build
           path: build/
-
-  test-mysql:
-    name: Test (MySQL)
-    runs-on: ubuntu-24.04
-    needs: build
-    services:
-      mysql:
-        image: mysql@sha256:1520c2db1591b37fc7f2c0bc72b4e0a002afed6fcc2397f7bcd2bbdff490c930 # 5.7.37
-        env:
-          MYSQL_ROOT_PASSWORD: admin
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
-          MYSQL_DATABASE: test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          version: 9.6.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: build
-          path: build/
-
-      - name: Configure ormconfig for MySQL
-        run: |
-          jq 'map(.skip = if .name == "mysql" then false else true end)' ormconfig.json.dist > ormconfig.json
-          cat ormconfig.json
-
-      - name: Run tests
-        run: pnpm test-fast
-
-  test-mariadb:
-    name: Test (MariaDB)
-    runs-on: ubuntu-24.04
-    needs: build
-    services:
-      mariadb:
-        image: mariadb@sha256:9a77e977742823fac7eddddefee837aa0466ed2821cfe23b258002bc118be3d8 # 10.10.3
-        env:
-          MYSQL_ROOT_PASSWORD: admin
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
-          MYSQL_DATABASE: test
-        ports:
-          - 3307:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          version: 9.6.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: build
-          path: build/
-
-      - name: Configure ormconfig for MariaDB
-        run: |
-          jq 'map(.skip = if .name == "mariadb" then false else true end)' ormconfig.json.dist > ormconfig.json
-          cat ormconfig.json
-
-      - name: Run tests
-        run: pnpm test-fast
 
   test-postgres:
     name: Test (PostgreSQL)
@@ -165,8 +65,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: "18"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -200,8 +100,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: "18"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -235,8 +135,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: "18"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install

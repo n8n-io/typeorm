@@ -19,7 +19,6 @@ describe("github issues > #8527 cannot clear database inside a transaction.", ()
                     "postgres",
                     "sqlite",
                     "sqlite-pooled",
-                    "mysql",
                 ],
                 dropSchema: true,
                 schemaCreate: true,

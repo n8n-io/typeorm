@@ -15,7 +15,7 @@ describe("persistence > custom-column-names", function () {
     // connect to db
     let dataSource: DataSource
     before(async () => {
-        const options = setupSingleTestingConnection("mysql", {
+        const options = setupSingleTestingConnection("postgres", {
             entities: [Post, Category, CategoryMetadata],
         })
         if (!options) return

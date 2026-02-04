@@ -20,7 +20,7 @@ describe("github issues > #9673 TreeRepository not loading relations on findDesc
                 schemaCreate: true,
                 dropSchema: true,
                 relationLoadStrategy: "query",
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))

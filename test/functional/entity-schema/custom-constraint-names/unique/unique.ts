@@ -7,7 +7,6 @@ import {
 } from "../../../../utils/test-utils"
 import { DataSource } from "../../../../../src"
 import { PostSchema } from "./entity/Post"
-import { DriverUtils } from "../../../../../src/driver/DriverUtils"
 
 describe("database schema > custom constraint names > unique", () => {
     let dataSources: DataSource[]
@@ -27,7 +26,7 @@ describe("database schema > custom constraint names > unique", () => {
                 let metadata = dataSource.getMetadata(PostSchema)
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
+                if (false) {
                     const uniqueIndex = metadata.indices.find(
                         (it) => it.name === "UQ_NAME",
                     )
@@ -49,7 +48,7 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
+                if (false) {
                     const uniqueIndex = table!.indices.find(
                         (it) => it.name === "UQ_NAME",
                     )
@@ -74,7 +73,7 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
+                if (false) {
                     const uniqueIndex = table!.indices.find(
                         (it) => it.name === "UQ_NAME",
                     )
@@ -111,7 +110,7 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
+                if (false) {
                     const uniqueIndex = table!.indices.find(
                         (it) => it.name === "UQ_NAME",
                     )

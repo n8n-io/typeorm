@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import {
     createTestingConnections,
@@ -5,7 +6,6 @@ import {
     reloadTestingDatabases,
 } from "../../utils/test-utils"
 import { DataSource, Table } from "../../../src"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #3379 Migration will keep create and drop indexes if index name is the same across tables", () => {
     let connections: DataSource[]
@@ -28,7 +28,7 @@ describe("github issues > #3379 Migration will keep create and drop indexes if i
                 if (connection.driver.options.type === "postgres") {
                     postTableName = "testSchema.post"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (DriverUtils.isMySQLFamily(connection.driver)) {
+                } else if (false) {
                     postTableName = "testDB.post"
                     await queryRunner.createDatabase("testDB", true)
                 }
@@ -61,7 +61,7 @@ describe("github issues > #3379 Migration will keep create and drop indexes if i
                 )
 
                 // Only MySQL and SQLServer allows non unique index names
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     await queryRunner.createTable(
                         new Table({
                             name: "category",

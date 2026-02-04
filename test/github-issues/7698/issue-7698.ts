@@ -10,7 +10,7 @@ describe("github issues > #7698 MariaDB STORED columns don't accept [NULL | NOT 
     let connections: DataSource[]
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mariadb"],
+            enabledDrivers: ["postgres"],
             entities: [Test],
             schemaCreate: false,
             dropSchema: true,

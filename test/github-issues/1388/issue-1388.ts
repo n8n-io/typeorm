@@ -10,7 +10,7 @@ describe("github issues > #1388 nullable: true dons't output 'NULL' in mysql", (
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

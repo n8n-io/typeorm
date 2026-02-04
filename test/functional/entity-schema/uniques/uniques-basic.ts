@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import {
     closeTestingConnections,
@@ -7,7 +8,6 @@ import {
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { expect } from "chai"
 import { PersonSchema } from "./entity/Person"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("entity-schema > uniques", () => {
     let connections: DataSource[]
@@ -27,7 +27,7 @@ describe("entity-schema > uniques", () => {
                 const table = await queryRunner.getTable("person")
                 await queryRunner.release()
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     expect(table!.indices.length).to.be.equal(1)
                     expect(table!.indices[0].name).to.be.equal("UNIQUE_TEST")
                     expect(table!.indices[0].isUnique).to.be.true

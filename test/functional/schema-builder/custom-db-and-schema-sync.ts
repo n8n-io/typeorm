@@ -15,7 +15,7 @@ describe("schema builder > custom-db-and-schema-sync", () => {
         before(async () => {
             connections = await createTestingConnections({
                 entities: [Album, Photo],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
                 dropSchema: true,
             })
         })

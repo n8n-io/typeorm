@@ -10,7 +10,7 @@ describe("github issues > #609 Custom precision on CreateDateColumn and UpdateDa
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

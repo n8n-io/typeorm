@@ -9,7 +9,7 @@ describe("entity-metadata-validator", () => {
     it("should throw error if relation count decorator used with ManyToOne or OneToOne relations", async () => {
         const connection = new DataSource({
             // dummy connection options, connection won't be established anyway
-            type: "mysql",
+            type: "postgres",
             host: "localhost",
             username: "test",
             password: "test",

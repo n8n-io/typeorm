@@ -17,7 +17,7 @@ describe("persistence > order of persistence execution operations", () => {
         it("should throw CircularRelationsError", async () => {
             const connection = new DataSource({
                 // dummy connection options, connection won't be established anyway
-                type: "mysql",
+                type: "postgres",
                 host: "localhost",
                 username: "test",
                 password: "test",

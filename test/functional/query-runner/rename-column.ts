@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { expect } from "chai"
 import { DataSource, Table } from "../../../src"
@@ -5,7 +6,6 @@ import {
     closeTestingConnections,
     createTestingConnections,
 } from "../../utils/test-utils"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > rename column", () => {
     let connections: DataSource[]
@@ -69,7 +69,7 @@ describe("query runner > rename column", () => {
                 table!.findColumnByName("id2")!.should.be.exist
 
                 // MySql and SAP does not support unique constraints
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
+                if (!false) {
                     const oldUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
@@ -122,7 +122,7 @@ describe("query runner > rename column", () => {
                     questionTableName = "testSchema.question"
                     categoryTableName = "testSchema.category"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (DriverUtils.isMySQLFamily(connection.driver)) {
+                } else if (false) {
                     questionTableName = "testDB.question"
                     categoryTableName = "testDB.category"
                     await queryRunner.createDatabase("testDB", true)

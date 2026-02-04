@@ -12,7 +12,7 @@ describe("github issues > #7851 Updating (using save method) a ManyToOne relatio
     let connections: DataSource[]
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             entities: [User, Message],
             schemaCreate: true,
             dropSchema: true,

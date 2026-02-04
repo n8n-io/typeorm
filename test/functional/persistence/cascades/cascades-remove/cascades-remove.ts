@@ -15,7 +15,7 @@ describe.skip("persistence > cascades > remove", () => {
         async () =>
             (connections = await createTestingConnections({
                 __dirname,
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

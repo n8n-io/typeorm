@@ -15,7 +15,7 @@ describe("github issues > #996 already loaded via query builder relations should
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"], // only one driver is enabled because this example uses lazy relations
+                enabledDrivers: ["postgres"], // only one driver is enabled because this example uses lazy relations
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

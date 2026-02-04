@@ -6,10 +6,8 @@ import {
 } from "../../utils/test-utils"
 import { DataSource } from "../../../src/data-source/DataSource"
 import { Animal } from "./entity/Animal"
-import { OffsetWithoutLimitNotSupportedError } from "../../../src/error/OffsetWithoutLimitNotSupportedError"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
-describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () => {
+describe("github issues > #1099 BUG - QueryBuilder skip sql", () => {
     let connections: DataSource[]
     before(
         async () =>
@@ -20,7 +18,7 @@ describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () 
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    it("drivers which does not support offset without limit should throw an exception, other drivers must work fine", () =>
+    it("skip should work correctly", () =>
         Promise.all(
             connections.map(async (connection) => {
                 let animals = ["cat", "dog", "bear", "snake"]
@@ -37,22 +35,14 @@ describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () 
                     .orderBy("a.id")
                     .skip(1)
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await qb
-                        .getManyAndCount()
-                        .should.be.rejectedWith(
-                            OffsetWithoutLimitNotSupportedError,
-                        )
-                } else {
-                    await qb.getManyAndCount().should.eventually.be.eql([
-                        [
-                            { id: 2, name: "dog", categories: [] },
-                            { id: 3, name: "bear", categories: [] },
-                            { id: 4, name: "snake", categories: [] },
-                        ],
-                        4,
-                    ])
-                }
+                await qb.getManyAndCount().should.eventually.be.eql([
+                    [
+                        { id: 2, name: "dog", categories: [] },
+                        { id: 3, name: "bear", categories: [] },
+                        { id: 4, name: "snake", categories: [] },
+                    ],
+                    4,
+                ])
             }),
         ))
 })

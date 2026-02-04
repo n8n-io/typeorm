@@ -13,7 +13,7 @@ describe("github issues > #2943 Inappropriate migration generated", () => {
 
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mariadb", "mysql"],
+            enabledDrivers: ["postgres"],
             entities: [Test],
             schemaCreate: true,
             dropSchema: true,

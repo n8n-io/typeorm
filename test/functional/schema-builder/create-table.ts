@@ -5,7 +5,6 @@ import {
     closeTestingConnections,
     createTestingConnections,
 } from "../../utils/test-utils"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("schema builder > create table", () => {
     let connections: DataSource[]
@@ -37,7 +36,7 @@ describe("schema builder > create table", () => {
                 const versionColumn = postTable!.findColumnByName("version")
                 postTable!.should.exist
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     postTable!.indices.length.should.be.equal(2)
                 } else {
                     postTable!.uniques.length.should.be.equal(2)

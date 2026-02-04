@@ -15,7 +15,7 @@ describe("github issues > #3636 synchronize drops (and then re-adds) json column
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 subscribers: [__dirname + "/subscriber/*{.js,.ts}"],
-                enabledDrivers: ["mariadb"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

@@ -11,7 +11,7 @@ describe("github issues > #6412 Generating migrations when having entities with 
     before(
         async () =>
             (connections = await createTestingConnections({
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [ProductBrand],

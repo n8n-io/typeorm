@@ -16,7 +16,6 @@ describe("transaction > return data from transaction", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 enabledDrivers: [
-                    "mysql",
                     "sqlite",
                     "sqlite-pooled",
                     "postgres",

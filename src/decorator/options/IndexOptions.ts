@@ -14,12 +14,6 @@ export interface IndexOptions {
     spatial?: boolean
 
     /**
-     * The FULLTEXT modifier indexes the entire column and does not allow prefixing.
-     * Works only in MySQL.
-     */
-    fulltext?: boolean
-
-    /**
      * NULL_FILTERED indexes are particularly useful for indexing sparse columns, where most rows contain a NULL value.
      * In these cases, the NULL_FILTERED index can be considerably smaller and more efficient to maintain than
      * a normal index that includes NULL values.
@@ -27,12 +21,6 @@ export interface IndexOptions {
      * Works only in Spanner.
      */
     nullFiltered?: boolean
-
-    /**
-     * Fulltext parser.
-     * Works only in MySQL.
-     */
-    parser?: string
 
     /**
      * Index filter condition.

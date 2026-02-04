@@ -19,7 +19,6 @@ describe("github issues > #9173 missing typeorm_metadata", () => {
                 enabledDrivers: [
                     "sqlite",
                     "sqlite-pooled",
-                    "mysql",
                     "postgres",
                 ],
             })),

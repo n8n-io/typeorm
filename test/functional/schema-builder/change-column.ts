@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import { expect } from "chai"
 import "reflect-metadata"
 import { DataSource } from "../../../src"
@@ -8,7 +9,6 @@ import {
 } from "../../utils/test-utils"
 import { Post } from "./entity/Post"
 import { PostVersion } from "./entity/PostVersion"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("schema builder > change column", () => {
     let connections: DataSource[]
@@ -70,7 +70,7 @@ describe("schema builder > change column", () => {
                     .findColumnByName("text")!
                     .length.should.be.equal("300")
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     postTable!.indices.length.should.be.equal(2)
                 } else {
                     postTable!.uniques.length.should.be.equal(2)
@@ -309,7 +309,7 @@ describe("schema builder > change column", () => {
                 if (
                     !(
                         connection.driver.options.type === "postgres" ||
-                        DriverUtils.isMySQLFamily(connection.driver)
+                        false
                     )
                 ) {
                     return

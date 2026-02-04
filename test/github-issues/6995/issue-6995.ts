@@ -12,7 +12,7 @@ describe("github issues > #6995 Generating migrations for UpdateDateColumn shoul
         async () =>
             (connections = await createTestingConnections({
                 migrations: [],
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [DefaultUpdateDate],

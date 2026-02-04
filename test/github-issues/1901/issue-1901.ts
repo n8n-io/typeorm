@@ -12,7 +12,7 @@ describe("github issues > #1901 The correct way of adding `ON UPDATE CURRENT_TIM
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

@@ -16,7 +16,7 @@ describe("github issues > #6399 Process extraAppendedAndWhereCondition for inher
             entities: [Post, TargetPost, Comment],
             schemaCreate: true,
             dropSchema: true,
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
         }))
     })
     beforeEach(() => reloadTestingDatabases(connections))

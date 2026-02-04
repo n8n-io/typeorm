@@ -8,9 +8,7 @@ import { Brackets } from "./Brackets"
 import { UpdateResult } from "./result/UpdateResult"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
 import { ReturningResultsEntityUpdator } from "./ReturningResultsEntityUpdator"
-import { MysqlDriver } from "../driver/mysql/MysqlDriver"
 import { OrderByCondition } from "../find-options/OrderByCondition"
-import { LimitOnUpdateNotSupportedError } from "../error/LimitOnUpdateNotSupportedError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
 import { QueryDeepPartialEntity } from "./QueryPartialEntity"
 import { TypeORMError } from "../error"
@@ -50,7 +48,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
         sql += this.createCteExpression()
         sql += this.createUpdateExpression()
         sql += this.createOrderByExpression()
-        sql += this.createLimitExpression()
         return this.replacePropertyNamesForTheWholeQuery(sql.trim())
     }
 
@@ -405,14 +402,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
     }
 
     /**
-     * Sets LIMIT - maximum number of rows to be selected.
-     */
-    limit(limit?: number): this {
-        this.expressionMap.limit = limit
-        return this
-    }
-
-    /**
      * Indicates if entity must be updated after update operation.
      * This may produce extra query or use RETURNING / OUTPUT statement (depend on database).
      * Enabled by default.
@@ -530,25 +519,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
 
                             let expression = null
                             if (
-                                DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
-                                ) &&
-                                this.connection.driver.spatialTypes.indexOf(
-                                    column.type,
-                                ) !== -1
-                            ) {
-                                const useLegacy = (
-                                    this.connection.driver as MysqlDriver
-                                ).options.legacySpatialSupport
-                                const geomFromText = useLegacy
-                                    ? "GeomFromText"
-                                    : "ST_GeomFromText"
-                                if (column.srid != null) {
-                                    expression = `${geomFromText}(${paramName}, ${column.srid})`
-                                } else {
-                                    expression = `${geomFromText}(${paramName})`
-                                }
-                            } else if (
                                 DriverUtils.isPostgresFamily(
                                     this.connection.driver,
                                 ) &&
@@ -670,23 +640,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                     })
                     .join(", ")
             )
-
-        return ""
-    }
-
-    /**
-     * Creates "LIMIT" parts of SQL query.
-     */
-    protected createLimitExpression(): string {
-        let limit: number | undefined = this.expressionMap.limit
-
-        if (limit) {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                return " LIMIT " + limit
-            } else {
-                throw new LimitOnUpdateNotSupportedError()
-            }
-        }
 
         return ""
     }

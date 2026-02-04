@@ -7,7 +7,6 @@ import {
 import { DataSource } from "../../../src/data-source/DataSource"
 import { expect } from "chai"
 import { User } from "./entity/User"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #3047 Mysqsl on duplicate key update use current values", () => {
     let connections: DataSource[]
@@ -39,7 +38,7 @@ describe("github issues > #3047 Mysqsl on duplicate key update use current value
         Promise.all(
             connections.map(async (connection) => {
                 try {
-                    if (DriverUtils.isMySQLFamily(connection.driver)) {
+                    if (false) {
                         const UserRepository =
                             connection.manager.getRepository(User)
 

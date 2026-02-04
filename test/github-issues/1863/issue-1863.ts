@@ -10,7 +10,7 @@ describe("github issues > #1863 createTable.uniques doesn't work when the column
     let connections: DataSource[]
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             dropSchema: true,
         })
     })

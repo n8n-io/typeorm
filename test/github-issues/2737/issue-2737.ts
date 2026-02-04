@@ -15,7 +15,7 @@ describe("github issues > #2737 MySQLDriver findChangedColumns (fields: width, p
             (connections = await createTestingConnections({
                 dropSchema: false,
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 cache: false,
                 driverSpecific: {

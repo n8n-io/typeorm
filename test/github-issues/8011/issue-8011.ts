@@ -13,7 +13,7 @@ describe("github issues > #8011 Enum values with multiple apostrophes not proper
 
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             entities: [Example],
             schemaCreate: true,
             dropSchema: true,

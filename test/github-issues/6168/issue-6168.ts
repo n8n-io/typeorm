@@ -70,7 +70,7 @@ describe("github issues > #6168 fix multiple foreign keys with the same name in 
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: false,
             dropSchema: false,
         })

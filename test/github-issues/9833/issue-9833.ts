@@ -23,8 +23,6 @@ describe("github issues > #9833 Add support for Single Table Inheritance when us
                 schemaCreate: true,
                 dropSchema: true,
                 enabledDrivers: [
-                    "mariadb",
-                    "mysql",
                     "postgres",
                     "sqlite",
                     "sqlite-pooled",

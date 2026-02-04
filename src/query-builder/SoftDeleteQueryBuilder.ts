@@ -9,11 +9,9 @@ import { UpdateResult } from "./result/UpdateResult"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
 import { ReturningResultsEntityUpdator } from "./ReturningResultsEntityUpdator"
 import { OrderByCondition } from "../find-options/OrderByCondition"
-import { LimitOnUpdateNotSupportedError } from "../error/LimitOnUpdateNotSupportedError"
 import { MissingDeleteDateColumnError } from "../error/MissingDeleteDateColumnError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 import { InstanceChecker } from "../util/InstanceChecker"
 
 /**
@@ -48,7 +46,6 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
         let sql = this.createUpdateExpression()
         sql += this.createCteExpression()
         sql += this.createOrderByExpression()
-        sql += this.createLimitExpression()
         return this.replacePropertyNamesForTheWholeQuery(sql.trim())
     }
 
@@ -389,14 +386,6 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
     }
 
     /**
-     * Sets LIMIT - maximum number of rows to be selected.
-     */
-    limit(limit?: number): this {
-        this.expressionMap.limit = limit
-        return this
-    }
-
-    /**
      * Indicates if entity must be updated after update operation.
      * This may produce extra query or use RETURNING / OUTPUT statement (depend on database).
      * Enabled by default.
@@ -536,23 +525,6 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
                     })
                     .join(", ")
             )
-
-        return ""
-    }
-
-    /**
-     * Creates "LIMIT" parts of SQL query.
-     */
-    protected createLimitExpression(): string {
-        let limit: number | undefined = this.expressionMap.limit
-
-        if (limit) {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                return " LIMIT " + limit
-            } else {
-                throw new LimitOnUpdateNotSupportedError()
-            }
-        }
 
         return ""
     }

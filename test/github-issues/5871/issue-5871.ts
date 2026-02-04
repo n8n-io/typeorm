@@ -12,7 +12,7 @@ describe("github issues > #5871 Migration generate does not play well with mysql
         async () =>
             (connections = await createTestingConnections({
                 migrations: [],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [SomeEntity],

@@ -16,7 +16,7 @@ describe("github issues > #3702 MySQL Spatial Type Support : GeomFromText functi
             async () =>
                 (connections = await createTestingConnections({
                     entities: [__dirname + "/entity/*{.js,.ts}"],
-                    enabledDrivers: ["mysql"],
+                    enabledDrivers: ["postgres"],
                     dropSchema: true,
                     schemaCreate: true,
                     driverSpecific: {
@@ -82,7 +82,7 @@ describe("github issues > #3702 MySQL Spatial Type Support : GeomFromText functi
             async () =>
                 (connections = await createTestingConnections({
                     entities: [__dirname + "/entity/*{.js,.ts}"],
-                    enabledDrivers: ["mysql"],
+                    enabledDrivers: ["postgres"],
                     dropSchema: true,
                     schemaCreate: true,
                     driverSpecific: {

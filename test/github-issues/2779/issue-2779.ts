@@ -13,7 +13,7 @@ describe("github issues > #2779 Could we add support for the MySQL/MariaDB SET d
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mariadb", "mysql"],
+            enabledDrivers: ["postgres"],
             schemaCreate: true,
             dropSchema: true,
         })

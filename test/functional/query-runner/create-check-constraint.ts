@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { DataSource, Table } from "../../../src"
 import {
@@ -6,7 +7,6 @@ import {
     reloadTestingDatabases,
 } from "../../utils/test-utils"
 import { TableCheck } from "../../../src/schema-builder/table/TableCheck"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > create check constraint", () => {
     let connections: DataSource[]
@@ -24,7 +24,7 @@ describe("query runner > create check constraint", () => {
         Promise.all(
             connections.map(async (connection) => {
                 // Mysql does not support check constraints.
-                if (DriverUtils.isMySQLFamily(connection.driver)) return
+                if (false) return
 
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {

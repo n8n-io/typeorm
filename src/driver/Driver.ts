@@ -275,11 +275,6 @@ export interface Driver {
     isUUIDGenerationSupported(): boolean
 
     /**
-     * Returns true if driver supports fulltext indices.
-     */
-    isFullTextColumnTypeSupported(): boolean
-
-    /**
      * Creates an escaped parameter.
      */
     createParameter(parameterName: string, index: number): string

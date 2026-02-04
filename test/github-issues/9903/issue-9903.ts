@@ -32,7 +32,7 @@ describe("github issues > #9903 json data type", () => {
                     entities: [__dirname + "/entity/*{.js,.ts}"],
                     schemaCreate: true,
                     dropSchema: true,
-                    enabledDrivers: ["mariadb"],
+                    enabledDrivers: ["postgres"],
                 })),
         )
         beforeEach(() => reloadTestingDatabases(connections))

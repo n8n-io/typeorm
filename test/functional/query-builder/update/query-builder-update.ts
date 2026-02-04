@@ -7,11 +7,9 @@ import {
 } from "../../../utils/test-utils"
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { User } from "./entity/User"
-import { LimitOnUpdateNotSupportedError } from "../../../../src/error/LimitOnUpdateNotSupportedError"
 import { Photo } from "./entity/Photo"
 import { UpdateValuesMissingError } from "../../../../src/error/UpdateValuesMissingError"
 import { EntityPropertyNotFoundError } from "../../../../src/error/EntityPropertyNotFoundError"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > update", () => {
     let connections: DataSource[]
@@ -178,46 +176,6 @@ describe("query builder > update", () => {
                         comments: 1,
                     },
                 })
-            }),
-        ))
-
-    it("should perform update with limit correctly", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                const user1 = new User()
-                user1.name = "Alex Messer"
-                const user2 = new User()
-                user2.name = "Muhammad Mirzoev"
-                const user3 = new User()
-                user3.name = "Brad Porter"
-
-                await connection.manager.save([user1, user2, user3])
-
-                const limitNum = 2
-                const nameToFind = "Dima Zotov"
-
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await connection
-                        .createQueryBuilder()
-                        .update(User)
-                        .set({ name: nameToFind })
-                        .limit(limitNum)
-                        .execute()
-
-                    const loadedUsers = await connection
-                        .getRepository(User)
-                        .findBy({ name: nameToFind })
-                    expect(loadedUsers).to.exist
-                    loadedUsers!.length.should.be.equal(limitNum)
-                } else {
-                    await connection
-                        .createQueryBuilder()
-                        .update(User)
-                        .set({ name: nameToFind })
-                        .limit(limitNum)
-                        .execute()
-                        .should.be.rejectedWith(LimitOnUpdateNotSupportedError)
-                }
             }),
         ))
 

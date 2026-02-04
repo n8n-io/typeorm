@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { expect } from "chai"
 import { DataSource } from "../../../src/data-source/DataSource"
@@ -8,7 +9,6 @@ import {
 } from "../../utils/test-utils"
 import { TableColumn } from "../../../src"
 import { PostgresDriver } from "../../../src/driver/postgres/PostgresDriver"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > change column", () => {
     let connections: DataSource[]

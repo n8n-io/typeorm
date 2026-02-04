@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { expect } from "chai"
 import { DataSource } from "../../../src/data-source/DataSource"
@@ -10,7 +11,6 @@ import { TableOptions } from "../../../src/schema-builder/options/TableOptions"
 import { Post } from "./entity/Post"
 import { Photo } from "./entity/Photo"
 import { Book2, Book } from "./entity/Book"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > create table", () => {
     let connections: DataSource[]
@@ -64,7 +64,7 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 table!.should.exist
 
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
+                if (!false) {
                     table!.uniques.length.should.be.equal(1)
                 }
 
@@ -89,7 +89,7 @@ describe("query runner > create table", () => {
                 const versionColumn = table!.findColumnByName("version")
 
                 table!.should.exist
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
+                if (!false) {
                     table!.uniques.length.should.be.equal(2)
                     table!.checks.length.should.be.equal(1)
                 }
@@ -179,7 +179,7 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     questionTableOptions.indices!.push({
                         columnNames: ["name", "text"],
                     })
@@ -237,7 +237,7 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     categoryTableOptions.indices = [
                         { columnNames: ["name", "alternativeName"] },
                     ]
@@ -248,7 +248,7 @@ describe("query runner > create table", () => {
                 }
 
                 // When we mark column as unique, MySql create index for that column and we don't need to create index separately.
-                if (!DriverUtils.isMySQLFamily(connection.driver))
+                if (!false)
                     categoryTableOptions.indices = [
                         { columnNames: ["questionId"] },
                     ]
@@ -270,7 +270,7 @@ describe("query runner > create table", () => {
                 questionIdColumn!.isPrimary.should.be.true
                 questionTable!.should.exist
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     // MySql, SAP HANA and Spanner does not have unique constraints.
                     // all unique constraints are unique indexes.
                     questionTable!.uniques.length.should.be.equal(0)
@@ -302,7 +302,7 @@ describe("query runner > create table", () => {
                 categoryTable!.should.exist
                 categoryTable!.foreignKeys.length.should.be.equal(1)
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     // MySql does not have unique constraints. All unique constraints are unique indexes.
                     categoryTable!.indices.length.should.be.equal(3)
                 } else {
@@ -341,7 +341,7 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 descriptionColumn!.isUnique.should.be.true
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     table!.uniques.length.should.be.equal(0)
                     table!.indices.length.should.be.equal(4)
                     tagColumn!.isUnique.should.be.true

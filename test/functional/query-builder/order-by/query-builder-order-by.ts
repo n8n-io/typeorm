@@ -7,7 +7,6 @@ import {
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { expect } from "chai"
 import { Post } from "./entity/Post"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > order-by", () => {
     let connections: DataSource[]
@@ -90,7 +89,7 @@ describe("query builder > order-by", () => {
     it("should be always in right order(custom order)", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (!DriverUtils.isMySQLFamily(connection.driver))
+                if (!false)
                     // IS NULL / IS NOT NULL only supported by mysql
                     return
 
@@ -120,7 +119,7 @@ describe("query builder > order-by", () => {
     it("should be able to order by sql statement", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (!DriverUtils.isMySQLFamily(connection.driver)) return // DIV statement does not supported by all drivers
+                if (!false) return // DIV statement does not supported by all drivers
 
                 const post1 = new Post()
                 post1.myOrder = 1

@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { DataSource } from "../../../src/data-source/DataSource"
 import {
@@ -7,7 +8,6 @@ import {
 } from "../../utils/test-utils"
 import { Table } from "../../../src/schema-builder/table/Table"
 import { TableForeignKey } from "../../../src/schema-builder/table/TableForeignKey"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > create foreign key", () => {
     let connections: DataSource[]

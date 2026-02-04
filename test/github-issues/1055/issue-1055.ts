@@ -16,7 +16,7 @@ describe("github issues > #1055 ind with relations not working, correct syntax c
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"], // only one driver is enabled because this example uses lazy relations
+                enabledDrivers: ["postgres"], // only one driver is enabled because this example uses lazy relations
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

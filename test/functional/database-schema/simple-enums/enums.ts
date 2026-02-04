@@ -19,8 +19,6 @@ describe("database schema > simple-enums", () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
             enabledDrivers: [
-                "mysql",
-                "mariadb",
                 "postgres",
                 "sqlite",
                 "sqlite-pooled",

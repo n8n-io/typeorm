@@ -5,7 +5,6 @@ import {
     createTestingConnections,
     reloadTestingDatabases,
 } from "../../utils/test-utils"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("query runner > drop check constraint", () => {
     let connections: DataSource[]
@@ -23,7 +22,7 @@ describe("query runner > drop check constraint", () => {
         Promise.all(
             connections.map(async (connection) => {
                 // Mysql does not support check constraints.
-                if (DriverUtils.isMySQLFamily(connection.driver)) return
+                if (false) return
 
                 const queryRunner = connection.createQueryRunner()
 

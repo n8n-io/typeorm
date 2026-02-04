@@ -181,7 +181,7 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     let [{ version }] = await connection.query(
                         "SELECT VERSION() as version;",
                     )
@@ -217,7 +217,7 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     let [{ version }] = await connection.query(
                         "SELECT VERSION() as version;",
                     )
@@ -258,7 +258,7 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     let [{ version }] = await connection.query(
                         "SELECT VERSION() as version;",
                     )
@@ -298,7 +298,7 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     let [{ version }] = await connection.query(
                         "SELECT VERSION() as version;",
                     )
@@ -340,7 +340,7 @@ describe("query builder > locking", () => {
                     .where("post.id = :id", { id: 1 })
                     .getSql()
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
+                if (false) {
                     expect(sql.indexOf("LOCK IN SHARE MODE") !== -1).to.be.true
                 } else if (connection.driver.options.type === "postgres") {
                     expect(sql.indexOf("FOR SHARE") !== -1).to.be.true
@@ -375,7 +375,7 @@ describe("query builder > locking", () => {
                     .getSql()
 
                 if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
+                    false ||
                     connection.driver.options.type === "postgres"
                 ) {
                     expect(sql.indexOf("FOR UPDATE") !== -1).to.be.true
@@ -450,7 +450,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -469,7 +469,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -489,7 +489,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -507,7 +507,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -934,7 +934,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -953,7 +953,7 @@ describe("query builder > locking", () => {
             connections.map(async (connection) => {
                 if (
                     connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    false
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -970,14 +970,7 @@ describe("query builder > locking", () => {
     it('skip_locked with "pessimistic_read"', () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_read")
@@ -993,14 +986,7 @@ describe("query builder > locking", () => {
     it('nowait with "pessimistic_read"', () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_read")
@@ -1016,14 +1002,7 @@ describe("query builder > locking", () => {
     it('skip_locked with "pessimistic_read" check getOne', () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     return connection.manager.transaction((entityManager) => {
                         return Promise.resolve(
                             entityManager
@@ -1056,25 +1035,4 @@ describe("query builder > locking", () => {
             }),
         ))
 
-    it('skip_locked with "pessimistic_read" fails on early versions of MySQL', () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "mysql" &&
-                    !DriverUtils.isReleaseVersionOrGreater(
-                        connection.driver,
-                        "8.0.0",
-                    )
-                ) {
-                    const sql = connection
-                        .createQueryBuilder(PostWithVersion, "post")
-                        .setLock("pessimistic_read")
-                        .setOnLocked("nowait")
-                        .where("post.id = :id", { id: 1 })
-                        .getSql()
-
-                    expect(sql.endsWith("LOCK IN SHARE MODE")).to.be.true
-                }
-            }),
-        ))
 })

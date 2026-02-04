@@ -15,7 +15,7 @@ describe("github issues > #182 enums are not saved properly", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"], // we can properly test lazy-relations only on one platform
+                enabledDrivers: ["postgres"], // we can properly test lazy-relations only on one platform
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

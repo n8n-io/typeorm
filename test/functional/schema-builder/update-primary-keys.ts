@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { DataSource } from "../../../src/data-source/DataSource"
 import {
@@ -6,7 +7,6 @@ import {
 } from "../../utils/test-utils"
 import { Category } from "./entity/Category"
 import { Question } from "./entity/Question"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("schema builder > update primary keys", () => {
     let connections: DataSource[]

@@ -12,7 +12,7 @@ describe("github issues > #7852 saving a ManyToMany relation tries to insert (DE
     let connections: DataSource[]
     before(async () => {
         connections = await createTestingConnections({
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres"],
             entities: [User, UsersObject],
             schemaCreate: true,
             dropSchema: true,

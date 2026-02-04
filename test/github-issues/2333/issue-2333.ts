@@ -10,7 +10,7 @@ describe("github issues > #2333 datetime column showing changed on every schema:
     before(
         async () =>
             (connections = await createTestingConnections({
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [Test],

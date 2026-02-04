@@ -317,10 +317,7 @@ export class DataSource {
     async dropDatabase(): Promise<void> {
         const queryRunner = this.createQueryRunner()
         try {
-            if (
-                DriverUtils.isMySQLFamily(this.driver) ||
-                DriverUtils.isSQLiteFamily(this.driver)
-            ) {
+            if (DriverUtils.isSQLiteFamily(this.driver)) {
                 const databases: string[] = []
                 this.entityMetadatas.forEach((metadata) => {
                     if (

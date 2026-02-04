@@ -17,8 +17,6 @@ describe("github issues > #2518 TreeRepository.findDescendantsTree does not load
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 enabledDrivers: [
                     "postgres",
-                    "mariadb",
-                    "mysql",
                     "sqlite",
                     "sqlite-pooled",
                 ],

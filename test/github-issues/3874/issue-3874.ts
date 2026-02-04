@@ -14,7 +14,7 @@ describe("github issues > #3874 Using an (empty string) enum as the type of a pr
         async () =>
             (connections = await createTestingConnections({
                 entities: [Settings],
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: true,
                 dropSchema: true,
             })),

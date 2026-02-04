@@ -1,3 +1,4 @@
+import { DriverUtils } from "../../../../src/driver/DriverUtils"
 import "reflect-metadata"
 import { expect } from "chai"
 import {
@@ -8,7 +9,6 @@ import {
 import { DataSource } from "../../../../src/data-source/DataSource"
 import { User } from "./entity/User"
 import { Photo } from "./entity/Photo"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > insert", () => {
     let connections: DataSource[]

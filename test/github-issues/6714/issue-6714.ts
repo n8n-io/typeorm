@@ -16,7 +16,7 @@ describe("github issues > #6714 Migration:generate issue with onUpdate using mar
             entities: [baseEntity],
             schemaCreate: false,
             dropSchema: true,
-            enabledDrivers: ["mariadb"],
+            enabledDrivers: ["postgres"],
         })
         await reloadTestingDatabases(connections)
         await Promise.all(
@@ -35,14 +35,14 @@ describe("github issues > #6714 Migration:generate issue with onUpdate using mar
             entities: [baseEntity],
             schemaCreate: true, // create the database
             dropSchema: true,
-            enabledDrivers: ["mariadb"],
+            enabledDrivers: ["postgres"],
         })
         // this connection change Session entity on update value
         const connections = await createTestingConnections({
             entities: [changedEntity],
             schemaCreate: false, // don't change the entity
             dropSchema: false,
-            enabledDrivers: ["mariadb"],
+            enabledDrivers: ["postgres"],
             name: "test",
         })
         await Promise.all(

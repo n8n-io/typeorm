@@ -17,7 +17,7 @@ export class Post {
 }
 
 module.exports = {
-    type: "mysql",
+    type: "postgres",
     name: "test-conn",
     host: "localhost",
     port: 3306,

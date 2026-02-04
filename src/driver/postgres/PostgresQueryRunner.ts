@@ -3283,7 +3283,6 @@ export class PostgresQueryRunner
                     columnNames: indices.map((i) => i["column_name"]),
                     isUnique: constraint["is_unique"] === "TRUE",
                     where: constraint["condition"],
-                    isFulltext: false,
                 })
             })
             return view
@@ -4006,7 +4005,6 @@ export class PostgresQueryRunner
                         isUnique: constraint["is_unique"] === "TRUE",
                         where: constraint["condition"],
                         isSpatial: constraint["index_type"] === "gist",
-                        isFulltext: false,
                     })
                 })
 

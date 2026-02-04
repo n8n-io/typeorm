@@ -10,7 +10,7 @@ describe("github issues > #7381 Infinite same ALTERs upon startup (mysql, ver 0.
     before(
         async () =>
             (connections = await createTestingConnections({
-                enabledDrivers: ["mysql", "mariadb"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [PushLog],
