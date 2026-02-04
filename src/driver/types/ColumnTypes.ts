@@ -61,13 +61,6 @@ export type WithLengthColumnType =
     | "varbinary" // mysql
     | "string" // all supported dbs
 
-export type WithWidthColumnType =
-    | "tinyint" // mysql
-    | "smallint" // mysql
-    | "mediumint" // mysql
-    | "int" // mysql
-    | "bigint" // mysql
-
 /**
  * All other regular column types.
  */
@@ -78,11 +71,16 @@ export type SimpleColumnType =
     | "simple-enum" // typeorm-specific, automatically mapped to string
 
     // numeric types
+    | "int" // postgres, sqlite
     | "int2" // postgres, sqlite
-    | "integer" // postgres, sqlite
     | "int4" // postgres
     | "int8" // postgres, sqlite
     | "int64" // cockroachdb
+    | "integer" // postgres, sqlite
+    | "tinyint" // sqlite
+    | "smallint" // postgres, sqlite
+    | "mediumint" // sqlite
+    | "bigint" // postgres, sqlite
     | "unsigned big int" // sqlite
     | "float" // mysql, sqlite
     | "float4" // postgres
@@ -172,7 +170,6 @@ export type SimpleColumnType =
 export type ColumnType =
     | WithPrecisionColumnType
     | WithLengthColumnType
-    | WithWidthColumnType
     | SpatialColumnType
     | SimpleColumnType
     | BooleanConstructor
