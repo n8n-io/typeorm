@@ -506,12 +506,8 @@ export abstract class BaseQueryRunner {
             oldColumn.collation !== newColumn.collation ||
             oldColumn.precision !== newColumn.precision ||
             oldColumn.scale !== newColumn.scale ||
-            oldColumn.width !== newColumn.width || // MySQL only
-            oldColumn.zerofill !== newColumn.zerofill || // MySQL only
-            oldColumn.unsigned !== newColumn.unsigned || // MySQL only
             oldColumn.asExpression !== newColumn.asExpression ||
             (checkDefault && oldColumn.default !== newColumn.default) ||
-            oldColumn.onUpdate !== newColumn.onUpdate || // MySQL only
             oldColumn.isNullable !== newColumn.isNullable ||
             (checkComment && oldColumn.comment !== newColumn.comment) ||
             (checkEnum && this.isEnumChanged(oldColumn, newColumn))

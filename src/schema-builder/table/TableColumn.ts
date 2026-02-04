@@ -26,11 +26,6 @@ export class TableColumn {
     default?: any
 
     /**
-     * ON UPDATE trigger. Works only for MySQL.
-     */
-    onUpdate?: string
-
-    /**
      * Indicates if column is NULL, or is NOT NULL in the database.
      */
     isNullable: boolean = false
@@ -73,12 +68,6 @@ export class TableColumn {
     length: string = ""
 
     /**
-     * Column type's display width. Used only on some column types in MySQL.
-     * For example, INT(4) specifies an INT with a display width of four digits.
-     */
-    width?: number
-
-    /**
      * Defines column character set.
      */
     charset?: string
@@ -99,17 +88,6 @@ export class TableColumn {
      * of digits to the right of the decimal point and must not be greater than precision.
      */
     scale?: number
-
-    /**
-     * Puts ZEROFILL attribute on to numeric column. Works only for MySQL.
-     * If you specify ZEROFILL for a numeric column, MySQL automatically adds the UNSIGNED attribute to the column
-     */
-    zerofill: boolean = false
-
-    /**
-     * Puts UNSIGNED attribute on to numeric column. Works only for MySQL.
-     */
-    unsigned: boolean = false
 
     /**
      * Array of possible enumerated values.
@@ -160,15 +138,11 @@ export class TableColumn {
             this.name = options.name
             this.type = options.type || ""
             this.length = options.length || ""
-            this.width = options.width
             this.charset = options.charset
             this.collation = options.collation
             this.precision = options.precision
             this.scale = options.scale
-            this.zerofill = options.zerofill || false
-            this.unsigned = this.zerofill ? true : options.unsigned || false
             this.default = options.default
-            this.onUpdate = options.onUpdate
             this.isNullable = options.isNullable || false
             this.isGenerated = options.isGenerated || false
             this.generationStrategy = options.generationStrategy
@@ -199,20 +173,16 @@ export class TableColumn {
             name: this.name,
             type: this.type,
             length: this.length,
-            width: this.width,
             charset: this.charset,
             collation: this.collation,
             precision: this.precision,
             scale: this.scale,
-            zerofill: this.zerofill,
-            unsigned: this.unsigned,
             enum: this.enum,
             enumName: this.enumName,
             primaryKeyConstraintName: this.primaryKeyConstraintName,
             asExpression: this.asExpression,
             generatedType: this.generatedType,
             default: this.default,
-            onUpdate: this.onUpdate,
             isNullable: this.isNullable,
             isGenerated: this.isGenerated,
             generationStrategy: this.generationStrategy,

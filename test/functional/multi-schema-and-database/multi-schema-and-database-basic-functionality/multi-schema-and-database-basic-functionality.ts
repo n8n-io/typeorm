@@ -223,7 +223,7 @@ describe("multi-schema-and-database > basic-functionality", () => {
                     person.name = "Person #1"
                     await connection.getRepository(Person).save(person)
 
-                    const sql = connection
+                    connection
                         .createQueryBuilder(Person, "person")
                         .where("person.id = :id", { id: 1 })
                         .getSql()

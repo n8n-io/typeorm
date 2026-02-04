@@ -95,16 +95,11 @@ export class JunctionEntityMetadataBuilder {
                     options: {
                         name: columnName,
                         length: referencedColumn.length,
-                        width: referencedColumn.width,
                         type: referencedColumn.type,
                         precision: referencedColumn.precision,
                         scale: referencedColumn.scale,
                         charset: referencedColumn.charset,
                         collation: referencedColumn.collation,
-                        zerofill: referencedColumn.zerofill,
-                        unsigned: referencedColumn.zerofill
-                            ? true
-                            : referencedColumn.unsigned,
                         enum: referencedColumn.enum,
                         enumName: referencedColumn.enumName,
                         foreignKeyConstraintName:
@@ -149,16 +144,11 @@ export class JunctionEntityMetadataBuilder {
                         propertyName: columnName,
                         options: {
                             length: inverseReferencedColumn.length,
-                            width: inverseReferencedColumn.width, // fix https://github.com/typeorm/typeorm/issues/6442
                             type: inverseReferencedColumn.type,
                             precision: inverseReferencedColumn.precision,
                             scale: inverseReferencedColumn.scale,
                             charset: inverseReferencedColumn.charset,
                             collation: inverseReferencedColumn.collation,
-                            zerofill: inverseReferencedColumn.zerofill,
-                            unsigned: inverseReferencedColumn.zerofill
-                                ? true
-                                : inverseReferencedColumn.unsigned,
                             enum: inverseReferencedColumn.enum,
                             enumName: inverseReferencedColumn.enumName,
                             foreignKeyConstraintName:

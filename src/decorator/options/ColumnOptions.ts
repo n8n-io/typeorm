@@ -23,12 +23,6 @@ export interface ColumnOptions extends ColumnCommonOptions {
     length?: string | number
 
     /**
-     * Column type's display width. Used only on some column types in MySQL.
-     * For example, INT(4) specifies an INT with a display width of four digits.
-     */
-    width?: number
-
-    /**
      * Indicates if column's value can be set to NULL.
      * Default value is "false".
      */
@@ -70,11 +64,6 @@ export interface ColumnOptions extends ColumnCommonOptions {
     default?: any
 
     /**
-     * ON UPDATE trigger. Works only for MySQL.
-     */
-    onUpdate?: string
-
-    /**
      * Indicates if this column is a primary key.
      * Same can be achieved when @PrimaryColumn decorator is used.
      */
@@ -101,17 +90,6 @@ export interface ColumnOptions extends ColumnCommonOptions {
      * of digits to the right of the decimal point and must not be greater than precision.
      */
     scale?: number
-
-    /**
-     * Puts ZEROFILL attribute on to numeric column. Works only for MySQL.
-     * If you specify ZEROFILL for a numeric column, MySQL automatically adds the UNSIGNED attribute to this column
-     */
-    zerofill?: boolean
-
-    /**
-     * Puts UNSIGNED attribute on to numeric column. Works only for MySQL.
-     */
-    unsigned?: boolean
 
     /**
      * Defines a column character set.

@@ -16,7 +16,6 @@ import { OptimisticLockCanNotBeUsedError } from "../../../../src/error/Optimisti
 import { NoVersionOrUpdateDateColumnError } from "../../../../src/error/NoVersionOrUpdateDateColumnError"
 import { PessimisticLockTransactionRequiredError } from "../../../../src/error/PessimisticLockTransactionRequiredError"
 import { LockNotSupportedOnGivenDriverError } from "../../../../src/error/LockNotSupportedOnGivenDriverError"
-import { VersionUtils } from "../../../../src/util/VersionUtils"
 import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > locking", () => {

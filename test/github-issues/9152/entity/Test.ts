@@ -4,7 +4,7 @@ export type ValueUnion = 1 | 2 | 3
 
 @Entity()
 export class Test {
-    @PrimaryGeneratedColumn({ unsigned: true })
+    @PrimaryGeneratedColumn()
     id: number
 
     @Column()

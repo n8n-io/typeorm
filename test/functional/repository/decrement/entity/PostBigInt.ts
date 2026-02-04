@@ -10,8 +10,6 @@ export class PostBigInt {
     @Column()
     title: string
 
-    @Column("bigint", {
-        unsigned: true,
-    })
+    @Column("bigint")
     counter: string
 }

@@ -64,7 +64,7 @@ describe("query runner > add column", () => {
                     isNullable: false,
                 })
 
-                let column4 = new TableColumn({
+                new TableColumn({
                     name: "textAndTag2",
                     type: "varchar",
                     length: "200",

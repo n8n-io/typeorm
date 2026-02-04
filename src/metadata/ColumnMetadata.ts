@@ -63,11 +63,6 @@ export class ColumnMetadata {
     length: string = ""
 
     /**
-     * Type's display width in the database.
-     */
-    width?: number
-
-    /**
      * Defines column character set.
      */
     charset?: string
@@ -136,11 +131,6 @@ export class ColumnMetadata {
         | (() => string)
 
     /**
-     * ON UPDATE trigger. Works only for MySQL.
-     */
-    onUpdate?: string
-
-    /**
      * The precision for a decimal (exact numeric) column (applies only for decimal column),
      * which is the maximum number of digits that are stored for the values.
      */
@@ -151,17 +141,6 @@ export class ColumnMetadata {
      * which represents the number of digits to the right of the decimal point and must not be greater than precision.
      */
     scale?: number
-
-    /**
-     * Puts ZEROFILL attribute on to numeric column. Works only for MySQL.
-     * If you specify ZEROFILL for a numeric column, MySQL automatically adds the UNSIGNED attribute to the column
-     */
-    zerofill: boolean = false
-
-    /**
-     * Puts UNSIGNED attribute on to numeric column. Works only for MySQL.
-     */
-    unsigned: boolean = false
 
     /**
      * Array of possible enumerated values.
@@ -372,7 +351,6 @@ export class ColumnMetadata {
             this.length = options.args.options.length
                 ? options.args.options.length.toString()
                 : ""
-        if (options.args.options.width) this.width = options.args.options.width
         if (options.args.options.charset)
             this.charset = options.args.options.charset
         if (options.args.options.collation)
@@ -396,8 +374,6 @@ export class ColumnMetadata {
             this.comment = options.args.options.comment
         if (options.args.options.default !== undefined)
             this.default = options.args.options.default
-        if (options.args.options.onUpdate)
-            this.onUpdate = options.args.options.onUpdate
         if (options.args.options.generatedIdentity)
             this.generatedIdentity = options.args.options.generatedIdentity
         if (
@@ -405,12 +381,6 @@ export class ColumnMetadata {
             options.args.options.scale !== undefined
         )
             this.scale = options.args.options.scale
-        if (options.args.options.zerofill) {
-            this.zerofill = options.args.options.zerofill
-            this.unsigned = true // if you specify ZEROFILL for a numeric column, MySQL automatically adds the UNSIGNED attribute to the column
-        }
-        if (options.args.options.unsigned)
-            this.unsigned = options.args.options.unsigned
         if (options.args.options.precision !== null)
             this.precision = options.args.options.precision
         if (options.args.options.enum) {
@@ -506,9 +476,6 @@ export class ColumnMetadata {
                 this.type = options.connection.driver.mappedDataTypes.updateDate
             if (!this.default)
                 this.default = () =>
-                    options.connection.driver.mappedDataTypes.updateDateDefault
-            if (!this.onUpdate)
-                this.onUpdate =
                     options.connection.driver.mappedDataTypes.updateDateDefault
             // skip precision if it was explicitly set to "null" in column options. Otherwise use default precision if it exist.
             if (
