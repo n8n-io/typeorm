@@ -42,7 +42,7 @@ describe("postgres specific options", () => {
                 (connections = await createTestingConnections({
                     enabledDrivers: ["postgres"],
                     driverSpecific: {
-                        statementTimeout: 1,
+                        statementTimeout: 100,
                     },
                 })),
         )
@@ -51,9 +51,18 @@ describe("postgres specific options", () => {
         it("should timeout statements that exceed the limit", () =>
             Promise.all(
                 connections.map(async (connection) => {
+                    const timeout = await connection.query(
+                        "SHOW statement_timeout",
+                    )
+                    expect(timeout).to.deep.equal([
+                        { statement_timeout: "100ms" },
+                    ])
+
                     await expect(
                         connection.query("SELECT pg_sleep(1)"),
-                    ).to.be.rejectedWith(/canceling statement due to statement timeout/)
+                    ).to.be.rejectedWith(
+                        /canceling statement due to statement timeout/,
+                    )
                 }),
             ))
     })
@@ -65,7 +74,7 @@ describe("postgres specific options", () => {
                 (connections = await createTestingConnections({
                     enabledDrivers: ["postgres"],
                     driverSpecific: {
-                        queryTimeout: 1,
+                        queryTimeout: 100,
                     },
                 })),
         )
