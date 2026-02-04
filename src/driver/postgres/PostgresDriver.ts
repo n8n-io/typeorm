@@ -27,6 +27,7 @@ import { View } from "../../schema-builder/view/View"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
+import type pg from "pg"
 
 /**
  * Organizes communication with PostgreSQL DBMS.
@@ -44,12 +45,12 @@ export class PostgresDriver implements Driver {
     /**
      * Postgres underlying library.
      */
-    postgres: any
+    postgres: typeof pg
 
     /**
      * Pool for master database.
      */
-    master: any
+    master: pg.Pool | undefined
 
     /**
      * Pool for slave databases.
@@ -1455,14 +1456,6 @@ export class PostgresDriver implements Driver {
         try {
             const postgres = this.options.driver || require("pg")
             this.postgres = postgres
-            try {
-                const pgNative =
-                    this.options.nativeDriver || require("pg-native")
-                if (pgNative && this.postgres.native) {
-                    this.postgres = this.postgres.native
-                    this.isNative = true
-                }
-            } catch (e) {}
         } catch (e) {
             // todo: better error for browser env
             throw new DriverPackageNotInstalledError("Postgres", "pg")
@@ -1481,23 +1474,22 @@ export class PostgresDriver implements Driver {
 
         // build connection options for the driver
         // See: https://github.com/brianc/node-postgres/tree/master/packages/pg-pool#create
-        const connectionOptions = Object.assign(
-            {},
-            {
-                connectionString: credentials.url,
-                host: credentials.host,
-                user: credentials.username,
-                password: credentials.password,
-                database: credentials.database,
-                port: credentials.port,
-                ssl: credentials.ssl,
-                connectionTimeoutMillis: options.connectTimeoutMS,
-                application_name:
-                    options.applicationName ?? credentials.applicationName,
-                max: options.poolSize,
-            },
-            options.extra || {},
-        )
+        const connectionOptions: pg.PoolConfig = {
+            connectionString: credentials.url,
+            host: credentials.host,
+            user: credentials.username,
+            password: credentials.password,
+            database: credentials.database,
+            port: credentials.port,
+            ssl: credentials.ssl,
+            connectionTimeoutMillis: options.connectTimeoutMS,
+            application_name:
+                options.applicationName ?? credentials.applicationName,
+            max: options.poolSize,
+            statement_timeout: options.statementTimeout,
+            query_timeout: options.queryTimeout,
+            ...options.extra,
+        }
 
         if (options.parseInt8 !== undefined) {
             if (

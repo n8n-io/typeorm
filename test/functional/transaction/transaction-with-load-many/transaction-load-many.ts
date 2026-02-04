@@ -35,7 +35,7 @@ describe("transaction > transaction with load many", () => {
                     pool.on("acquire", () => acquireCount++)
                 } else if (driver.options.type === "postgres") {
                     const pool = (driver as PostgresDriver).master
-                    pool.on("acquire", () => acquireCount++)
+                    pool?.on("acquire", () => acquireCount++)
                 }
 
                 await connection.manager.transaction(async (entityManager) => {
