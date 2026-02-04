@@ -27,6 +27,7 @@ import { View } from "../../schema-builder/view/View"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
+import type pg from "pg"
 
 /**
  * Organizes communication with PostgreSQL DBMS.
@@ -44,12 +45,12 @@ export class PostgresDriver implements Driver {
     /**
      * Postgres underlying library.
      */
-    postgres: any
+    postgres: typeof pg
 
     /**
      * Pool for master database.
      */
-    master: any
+    master: pg.Pool | undefined
 
     /**
      * Pool for slave databases.
@@ -1481,7 +1482,7 @@ export class PostgresDriver implements Driver {
 
         // build connection options for the driver
         // See: https://github.com/brianc/node-postgres/tree/master/packages/pg-pool#create
-        const connectionOptions = Object.assign(
+        const connectionOptions: pg.PoolConfig = Object.assign(
             {},
             {
                 connectionString: credentials.url,
@@ -1495,6 +1496,8 @@ export class PostgresDriver implements Driver {
                 application_name:
                     options.applicationName ?? credentials.applicationName,
                 max: options.poolSize,
+                statement_timeout: options.statementTimeout,
+                query_timeout: options.queryTimeout,
             },
             options.extra || {},
         )

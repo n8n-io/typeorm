@@ -63,6 +63,18 @@ export interface PostgresConnectionOptions
     readonly connectTimeoutMS?: number
 
     /**
+     * Number of milliseconds before PostgreSQL cancels a running statement (server-side).
+     * Default is no timeout.
+     */
+    readonly statementTimeout?: number
+
+    /**
+     * Number of milliseconds the client waits for a query response before
+     * terminating the connection (client-side). Default is no timeout.
+     */
+    readonly queryTimeout?: number
+
+    /**
      * The Postgres extension to use to generate UUID columns. Defaults to uuid-ossp.
      * If pgcrypto is selected, TypeORM will use the gen_random_uuid() function from this extension.
      * If uuid-ossp is selected, TypeORM will use the uuid_generate_v4() function from this extension.
