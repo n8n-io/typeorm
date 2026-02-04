@@ -138,9 +138,7 @@ describe("query runner > rename table", () => {
                 // should successfully drop pk if pk constraint was correctly renamed.
                 await queryRunner.dropPrimaryKey(table!)
 
-                // MySql does not support unique constraints
-                if (!false) {
-                    const newUniqueConstraintName =
+                const newUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
                             "tag",
@@ -150,8 +148,7 @@ describe("query runner > rename table", () => {
                             (columnName) => columnName === "tag",
                         )
                     })
-                    tableUnique!.name!.should.be.equal(newUniqueConstraintName)
-                }
+                tableUnique!.name!.should.be.equal(newUniqueConstraintName)
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -180,12 +177,6 @@ describe("query runner > rename table", () => {
                     categoryTableName = "testSchema.category"
                     renamedCategoryTableName = "testSchema.renamedCategory"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (false) {
-                    questionTableName = "testDB.question"
-                    renamedQuestionTableName = "testDB.renamedQuestion"
-                    categoryTableName = "testDB.category"
-                    renamedCategoryTableName = "testDB.renamedCategory"
-                    await queryRunner.createDatabase("testDB", true)
                 }
 
                 await queryRunner.createTable(

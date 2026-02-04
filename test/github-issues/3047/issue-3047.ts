@@ -34,38 +34,6 @@ describe("github issues > #3047 Mysqsl on duplicate key update use current value
     user2.last_name = "Lenon"
     user2.is_updated = "yes"
 
-    it("should overwrite using current value in MySQL/MariaDB", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                try {
-                    if (false) {
-                        const UserRepository =
-                            connection.manager.getRepository(User)
-
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .into(User)
-                            .values(user1)
-                            .execute()
-
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .into(User)
-                            .values(user2)
-                            .orUpdate(["is_updated"])
-                            .execute()
-
-                        let loadedUser = await UserRepository.find()
-                        expect(loadedUser).not.to.be.null
-                        expect(loadedUser).to.have.lengthOf(1)
-                        expect(loadedUser[0]).to.includes({ is_updated: "yes" })
-                    }
-                } catch (err) {
-                    throw new Error(err)
-                }
-            }),
-        ))
-
     it("should overwrite using current value in PostgreSQL", () =>
         Promise.all(
             connections.map(async (connection) => {

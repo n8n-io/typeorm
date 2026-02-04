@@ -70,11 +70,7 @@ describe("schema builder > change column", () => {
                     .findColumnByName("text")!
                     .length.should.be.equal("300")
 
-                if (false) {
-                    postTable!.indices.length.should.be.equal(2)
-                } else {
-                    postTable!.uniques.length.should.be.equal(2)
-                }
+                postTable!.uniques.length.should.be.equal(2)
 
                 // revert changes
                 nameColumn.length = "255"
@@ -306,12 +302,7 @@ describe("schema builder > change column", () => {
         Promise.all(
             connections.map(async (connection) => {
                 // Skip the contents of this test if not one of the drivers that support comments
-                if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        false
-                    )
-                ) {
+                if (!(connection.driver.options.type === "postgres")) {
                     return
                 }
 

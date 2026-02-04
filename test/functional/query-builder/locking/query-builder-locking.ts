@@ -181,23 +181,6 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (false) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (version.includes("maria")) return // not supported in mariadb
-                    if (VersionUtils.isGreaterOrEqual(version, "8.0.0")) {
-                        return connection
-                            .createQueryBuilder(PostWithVersion, "post")
-                            .setLock("pessimistic_partial_write")
-                            .where("post.id = :id", { id: 1 })
-                            .getOne()
-                            .should.be.rejectedWith(
-                                PessimisticLockTransactionRequiredError,
-                            )
-                    }
-                }
                 return
             }),
         ))
@@ -217,29 +200,6 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (false) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (version.includes("maria")) return // not supported in mariadb
-                    if (VersionUtils.isGreaterOrEqual(version, "8.0.0")) {
-                        return connection.manager.transaction(
-                            (entityManager) => {
-                                return Promise.all([
-                                    entityManager
-                                        .createQueryBuilder(
-                                            PostWithVersion,
-                                            "post",
-                                        )
-                                        .setLock("pessimistic_partial_write")
-                                        .where("post.id = :id", { id: 1 })
-                                        .getOne().should.not.be.rejected,
-                                ])
-                            },
-                        )
-                    }
-                }
                 return
             }),
         ))
@@ -258,27 +218,6 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (false) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (
-                        (version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "10.3.0")) ||
-                        (!version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "8.0.0"))
-                    ) {
-                        return connection
-                            .createQueryBuilder(PostWithVersion, "post")
-                            .setLock("pessimistic_write_or_fail")
-                            .where("post.id = :id", { id: 1 })
-                            .getOne()
-                            .should.be.rejectedWith(
-                                PessimisticLockTransactionRequiredError,
-                            )
-                    }
-                }
                 return
             }),
         ))
@@ -298,33 +237,6 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (false) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (
-                        (version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "10.3.0")) ||
-                        (!version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "8.0.0"))
-                    ) {
-                        return connection.manager.transaction(
-                            (entityManager) => {
-                                return Promise.all([
-                                    entityManager
-                                        .createQueryBuilder(
-                                            PostWithVersion,
-                                            "post",
-                                        )
-                                        .setLock("pessimistic_write_or_fail")
-                                        .where("post.id = :id", { id: 1 })
-                                        .getOne().should.not.be.rejected,
-                                ])
-                            },
-                        )
-                    }
-                }
                 return
             }),
         ))
@@ -340,9 +252,7 @@ describe("query builder > locking", () => {
                     .where("post.id = :id", { id: 1 })
                     .getSql()
 
-                if (false) {
-                    expect(sql.indexOf("LOCK IN SHARE MODE") !== -1).to.be.true
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     expect(sql.indexOf("FOR SHARE") !== -1).to.be.true
                 }
             }),
@@ -374,10 +284,7 @@ describe("query builder > locking", () => {
                     .where("post.id = :id", { id: 1 })
                     .getSql()
 
-                if (
-                    false ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     expect(sql.indexOf("FOR UPDATE") !== -1).to.be.true
                 }
             }),
@@ -448,10 +355,7 @@ describe("query builder > locking", () => {
     it("should not attach pessimistic_partial_write lock statement on query if locking is not used", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .where("post.id = :id", { id: 1 })
@@ -467,10 +371,7 @@ describe("query builder > locking", () => {
     it("should attach pessimistic_partial_write lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_partial_write")
@@ -487,10 +388,7 @@ describe("query builder > locking", () => {
     it("should not attach pessimistic_write_or_fail lock statement on query if locking is not used", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .where("post.id = :id", { id: 1 })
@@ -505,10 +403,7 @@ describe("query builder > locking", () => {
     it("should attach pessimistic_write_or_fail lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_write_or_fail")
@@ -932,10 +827,7 @@ describe("query builder > locking", () => {
     it("pessimistic_partial_write and skip_locked works", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_partial_write")
@@ -951,10 +843,7 @@ describe("query builder > locking", () => {
     it("pessimistic_write_or_fail and skip_locked ignores skip_locked", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "postgres" ||
-                    false
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
                         .setLock("pessimistic_write_or_fail")

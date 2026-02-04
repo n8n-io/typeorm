@@ -26,15 +26,8 @@ describe("github issues > #3803 column option unique sqlite error", () => {
                 const table = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                // MySQL stores unique constraints as unique indices
-                if (false) {
-                    expect(table!.indices.length).to.be.equal(1)
-                    expect(table!.indices[0].isUnique).to.be.true
-                    expect(table!.indices[0].columnNames[0]).to.be.equal("name")
-                } else {
-                    expect(table!.uniques.length).to.be.equal(1)
-                    expect(table!.uniques[0].columnNames[0]).to.be.equal("name")
-                }
+                expect(table!.uniques.length).to.be.equal(1)
+                expect(table!.uniques[0].columnNames[0]).to.be.equal("name")
             }),
         ))
 })

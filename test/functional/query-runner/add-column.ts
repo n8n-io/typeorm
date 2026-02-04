@@ -41,13 +41,8 @@ describe("query runner > add column", () => {
                     isNullable: false,
                 })
 
-                // MySql, Sqlite does not supports autoincrement composite primary keys.
-                if (
-                    !(
-                        false ||
-                        DriverUtils.isSQLiteFamily(connection.driver)
-                    )
-                ) {
+                // Sqlite does not support autoincrement composite primary keys.
+                if (!DriverUtils.isSQLiteFamily(connection.driver)) {
                     column1.isGenerated = true
                     column1.generationStrategy = "increment"
                 }
@@ -104,16 +99,11 @@ describe("query runner > add column", () => {
                 column2.length.should.be.equal("100")
 
                 if (connection.driver.options.type === "postgres") {
-                    const isMySQL = false
-                    let postgresSupported = false
+                    const postgresSupported = (
+                        connection.driver as PostgresDriver
+                    ).isGeneratedColumnsSupported
 
-                    if (connection.driver.options.type === "postgres") {
-                        postgresSupported = (
-                            connection.driver as PostgresDriver
-                        ).isGeneratedColumnsSupported
-                    }
-
-                    if (isMySQL || postgresSupported) {
+                    if (postgresSupported) {
                         // create typeorm_metadata table manually
                         await createTypeormMetadataTable(
                             connection.driver,
@@ -125,15 +115,6 @@ describe("query runner > add column", () => {
                         column3.should.be.exist
                         column3!.generatedType!.should.be.equals("STORED")
                         column3!.asExpression!.should.be.a("string")
-
-                        if (false) {
-                            await queryRunner.addColumn(table!, column4)
-                            table = await queryRunner.getTable("post")
-                            column4 = table!.findColumnByName("textAndTag2")!
-                            column4.should.be.exist
-                            column4!.generatedType!.should.be.equals("VIRTUAL")
-                            column4!.asExpression!.should.be.a("string")
-                        }
                     }
                 }
 

@@ -228,11 +228,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                         .where("person.id = :id", { id: 1 })
                         .getSql()
 
-                    if (false)
-                        sql.should.be.equal(
-                            "SELECT `person`.`id` AS `person_id`, `person`.`name` AS `person_name` FROM `secondDB`.`person` `person` WHERE `person`.`id` = ?",
-                        )
-
                     table!.name.should.be.equal(tablePath)
                 }),
             ))

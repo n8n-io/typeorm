@@ -36,12 +36,8 @@ describe("schema builder > create table", () => {
                 const versionColumn = postTable!.findColumnByName("version")
                 postTable!.should.exist
 
-                if (false) {
-                    postTable!.indices.length.should.be.equal(2)
-                } else {
-                    postTable!.uniques.length.should.be.equal(2)
-                    postTable!.checks.length.should.be.equal(1)
-                }
+                postTable!.uniques.length.should.be.equal(2)
+                postTable!.checks.length.should.be.equal(1)
 
                 idColumn!.isPrimary.should.be.true
                 versionColumn!.isUnique.should.be.true

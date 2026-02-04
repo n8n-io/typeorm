@@ -64,9 +64,7 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 table!.should.exist
 
-                if (!false) {
-                    table!.uniques.length.should.be.equal(1)
-                }
+                table!.uniques.length.should.be.equal(1)
 
                 await queryRunner.executeMemoryDownSql()
                 table = await queryRunner.getTable("category")
@@ -89,10 +87,8 @@ describe("query runner > create table", () => {
                 const versionColumn = table!.findColumnByName("version")
 
                 table!.should.exist
-                if (!false) {
-                    table!.uniques.length.should.be.equal(2)
-                    table!.checks.length.should.be.equal(1)
-                }
+                table!.uniques.length.should.be.equal(2)
+                table!.checks.length.should.be.equal(1)
 
                 idColumn!.isPrimary.should.be.true
                 versionColumn!.isUnique.should.be.true
@@ -179,22 +175,16 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (false) {
-                    questionTableOptions.indices!.push({
-                        columnNames: ["name", "text"],
-                    })
-                } else {
-                    questionTableOptions.uniques = [
-                        { columnNames: ["name", "text"] },
-                    ]
-                    questionTableOptions.checks = [
-                        {
-                            expression: `${connection.driver.escape(
-                                "name",
-                            )} <> 'ASD'`,
-                        },
-                    ]
-                }
+                questionTableOptions.uniques = [
+                    { columnNames: ["name", "text"] },
+                ]
+                questionTableOptions.checks = [
+                    {
+                        expression: `${connection.driver.escape(
+                            "name",
+                        )} <> 'ASD'`,
+                    },
+                ]
 
                 await queryRunner.createTable(
                     new Table(questionTableOptions),
@@ -237,21 +227,13 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (false) {
-                    categoryTableOptions.indices = [
-                        { columnNames: ["name", "alternativeName"] },
-                    ]
-                } else {
-                    categoryTableOptions.uniques = [
-                        { columnNames: ["name", "alternativeName"] },
-                    ]
-                }
+                categoryTableOptions.uniques = [
+                    { columnNames: ["name", "alternativeName"] },
+                ]
 
-                // When we mark column as unique, MySql create index for that column and we don't need to create index separately.
-                if (!false)
-                    categoryTableOptions.indices = [
-                        { columnNames: ["questionId"] },
-                    ]
+                categoryTableOptions.indices = [
+                    { columnNames: ["questionId"] },
+                ]
 
                 await queryRunner.createTable(
                     new Table(categoryTableOptions),
@@ -270,22 +252,15 @@ describe("query runner > create table", () => {
                 questionIdColumn!.isPrimary.should.be.true
                 questionTable!.should.exist
 
-                if (false) {
-                    // MySql, SAP HANA and Spanner does not have unique constraints.
-                    // all unique constraints are unique indexes.
-                    questionTable!.uniques.length.should.be.equal(0)
-                    questionTable!.indices.length.should.be.equal(2)
-                } else {
-                    questionTable!.uniques.length.should.be.equal(1)
-                    questionTable!.uniques[0].columnNames.length.should.be.equal(
-                        2,
-                    )
-                    questionTable!.indices.length.should.be.equal(1)
-                    questionTable!.indices[0].columnNames.length.should.be.equal(
-                        2,
-                    )
-                    questionTable!.checks.length.should.be.equal(1)
-                }
+                questionTable!.uniques.length.should.be.equal(1)
+                questionTable!.uniques[0].columnNames.length.should.be.equal(
+                    2,
+                )
+                questionTable!.indices.length.should.be.equal(1)
+                questionTable!.indices[0].columnNames.length.should.be.equal(
+                    2,
+                )
+                questionTable!.checks.length.should.be.equal(1)
 
                 questionTable!.foreignKeys.length.should.be.equal(1)
                 questionTable!.foreignKeys[0].columnNames.length.should.be.equal(
@@ -302,13 +277,8 @@ describe("query runner > create table", () => {
                 categoryTable!.should.exist
                 categoryTable!.foreignKeys.length.should.be.equal(1)
 
-                if (false) {
-                    // MySql does not have unique constraints. All unique constraints are unique indexes.
-                    categoryTable!.indices.length.should.be.equal(3)
-                } else {
-                    categoryTable!.uniques.length.should.be.equal(3)
-                    categoryTable!.indices.length.should.be.equal(1)
-                }
+                categoryTable!.uniques.length.should.be.equal(3)
+                categoryTable!.indices.length.should.be.equal(1)
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -341,17 +311,10 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 descriptionColumn!.isUnique.should.be.true
 
-                if (false) {
-                    table!.uniques.length.should.be.equal(0)
-                    table!.indices.length.should.be.equal(4)
-                    tagColumn!.isUnique.should.be.true
-                    textColumn!.isUnique.should.be.true
-                } else {
-                    table!.uniques.length.should.be.equal(2)
-                    table!.indices.length.should.be.equal(2)
-                    tagColumn!.isUnique.should.be.false
-                    textColumn!.isUnique.should.be.false
-                }
+                table!.uniques.length.should.be.equal(2)
+                table!.indices.length.should.be.equal(2)
+                tagColumn!.isUnique.should.be.false
+                textColumn!.isUnique.should.be.false
 
                 await queryRunner.executeMemoryDownSql()
 

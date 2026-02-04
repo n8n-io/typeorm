@@ -25,18 +25,10 @@ describe("database schema > custom constraint names > unique", () => {
             dataSources.map(async (dataSource) => {
                 let metadata = dataSource.getMetadata(Post)
 
-                // This drivers stores unique constraints as unique indices.
-                if (false) {
-                    const uniqueIndex = metadata.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
-                    const unique = metadata.uniques.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(unique).to.exist
-                }
+                const unique = metadata.uniques.find(
+                    (it) => it.name === "UQ_NAME",
+                )
+                expect(unique).to.exist
             }),
         ))
 
@@ -47,18 +39,10 @@ describe("database schema > custom constraint names > unique", () => {
                 const table = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                // This drivers stores unique constraints as unique indices.
-                if (false) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
-                    const unique = table!.uniques.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(unique).to.exist
-                }
+                const unique = table!.uniques.find(
+                    (it) => it.name === "UQ_NAME",
+                )
+                expect(unique).to.exist
             }),
         ))
 
@@ -72,18 +56,10 @@ describe("database schema > custom constraint names > unique", () => {
 
                 await queryRunner.release()
 
-                // This drivers stores unique constraints as unique indices.
-                if (false) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
-                    const unique = table!.uniques.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(unique).to.exist
-                }
+                const unique = table!.uniques.find(
+                    (it) => it.name === "UQ_NAME",
+                )
+                expect(unique).to.exist
             }),
         ))
 
@@ -109,18 +85,10 @@ describe("database schema > custom constraint names > unique", () => {
 
                 await queryRunner.release()
 
-                // This drivers stores unique constraints as unique indices.
-                if (false) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
-                    const unique = table!.uniques.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(unique).to.exist
-                }
+                const unique = table!.uniques.find(
+                    (it) => it.name === "UQ_NAME",
+                )
+                expect(unique).to.exist
             }),
         ))
 })

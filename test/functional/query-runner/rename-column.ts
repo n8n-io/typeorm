@@ -68,9 +68,7 @@ describe("query runner > rename column", () => {
                 expect(table!.findColumnByName("id")).to.be.undefined
                 table!.findColumnByName("id2")!.should.be.exist
 
-                // MySql and SAP does not support unique constraints
-                if (!false) {
-                    const oldUniqueConstraintName =
+                const oldUniqueConstraintName =
                         connection.namingStrategy.uniqueConstraintName(table!, [
                             "text",
                             "tag",
@@ -95,8 +93,7 @@ describe("query runner > rename column", () => {
                             (columnName) => columnName === "tag",
                         )
                     })
-                    tableUnique!.name!.should.be.equal(newUniqueConstraintName)
-                }
+                tableUnique!.name!.should.be.equal(newUniqueConstraintName)
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -122,10 +119,6 @@ describe("query runner > rename column", () => {
                     questionTableName = "testSchema.question"
                     categoryTableName = "testSchema.category"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (false) {
-                    questionTableName = "testDB.question"
-                    categoryTableName = "testDB.category"
-                    await queryRunner.createDatabase("testDB", true)
                 }
 
                 await queryRunner.createTable(

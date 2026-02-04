@@ -106,10 +106,7 @@ describe("repository > find options > locking", () => {
                     })
                 })
 
-                if (false) {
-                    expect(executedSql[0].indexOf("LOCK IN SHARE MODE") !== -1)
-                        .to.be.true
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     expect(executedSql[0].indexOf("FOR SHARE") !== -1).to.be
                         .true
                 }
@@ -215,17 +212,7 @@ describe("repository > find options > locking", () => {
     it("should attach NOWAIT for pessimistic_write", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        (false &&
-                            DriverUtils.isReleaseVersionOrGreater(
-                                connection.driver,
-                                "8.0.0",
-                            ))
-                    )
-                )
-                    return
+                if (!(connection.driver.options.type === "postgres")) return
 
                 const executedSql: string[] = []
 
@@ -280,10 +267,7 @@ describe("repository > find options > locking", () => {
                     })
                 })
 
-                if (
-                    false ||
-                    connection.driver.options.type === "postgres"
-                ) {
+                if (connection.driver.options.type === "postgres") {
                     expect(executedSql[0].indexOf("FOR UPDATE") !== -1).to.be
                         .true
                 }

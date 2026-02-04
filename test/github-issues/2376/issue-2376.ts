@@ -27,21 +27,12 @@ describe("github issues > #2376 Naming single column unique constraint with deco
                 const table = await queryRunner.getTable("user")
                 await queryRunner.release()
 
-                let unique1 = table!.uniques.find(
+                const unique1 = table!.uniques.find(
                     (it) => it.name === "unique-email",
                 )
-                let unique2 = table!.uniques.find(
+                const unique2 = table!.uniques.find(
                     (it) => it.name === "unique-email-nickname",
                 )
-
-                if (false) {
-                    unique1 = table!.indices.find(
-                        (it) => it.name === "unique-email",
-                    )
-                    unique2 = table!.indices.find(
-                        (it) => it.name === "unique-email-nickname",
-                    )
-                }
 
                 expect(unique1).to.be.not.undefined
                 expect(unique2).to.be.not.undefined

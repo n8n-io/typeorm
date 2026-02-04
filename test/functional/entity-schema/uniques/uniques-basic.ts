@@ -27,15 +27,7 @@ describe("entity-schema > uniques", () => {
                 const table = await queryRunner.getTable("person")
                 await queryRunner.release()
 
-                if (false) {
-                    expect(table!.indices.length).to.be.equal(1)
-                    expect(table!.indices[0].name).to.be.equal("UNIQUE_TEST")
-                    expect(table!.indices[0].isUnique).to.be.true
-                    expect(table!.indices[0].columnNames.length).to.be.equal(2)
-                    expect(
-                        table!.indices[0].columnNames,
-                    ).to.deep.include.members(["FirstName", "LastName"])
-                } else if (DriverUtils.isSQLiteFamily(connection.driver)) {
+                if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     expect(table!.uniques.length).to.be.equal(1)
                     expect(table!.uniques[0].columnNames.length).to.be.equal(2)
                     expect(

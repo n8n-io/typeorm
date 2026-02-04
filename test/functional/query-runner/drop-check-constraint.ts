@@ -21,9 +21,6 @@ describe("query runner > drop check constraint", () => {
     it("should correctly drop check constraint and revert drop", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // Mysql does not support check constraints.
-                if (false) return
-
                 const queryRunner = connection.createQueryRunner()
 
                 let table = await queryRunner.getTable("post")
