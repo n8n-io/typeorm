@@ -1,4 +1,4 @@
-import { captureException } from "@sentry/node"
+import { captureException } from "../../util/sentry"
 import type { Database as Sqlite3Database } from "sqlite3"
 import {
     ConnectionIsNotSetError,

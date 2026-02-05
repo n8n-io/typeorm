@@ -99,7 +99,7 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "@sentry/node": "<=8.x",
+    "@sentry/node": "^10.0.0",
     "mysql2": "^3.11.0",
     "pg": "^8.17.0",
     "pg-native": "^3.5.2",

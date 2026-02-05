@@ -1,4 +1,4 @@
-import { captureException } from "@sentry/node"
+import { captureException } from "../../util/sentry"
 import { Database as Sqlite3Database } from "sqlite3"
 import {
     DbLease,

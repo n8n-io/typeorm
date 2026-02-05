@@ -1,4 +1,4 @@
-import { captureException } from "@sentry/node"
+import { captureException } from "../../util/sentry"
 import { QueryRunner } from "../../query-runner/QueryRunner"
 import { ObjectLiteral } from "../../common/ObjectLiteral"
 import { TransactionNotStartedError } from "../../error/TransactionNotStartedError"
