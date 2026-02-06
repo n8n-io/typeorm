@@ -2,17 +2,16 @@
  * Column types used for @PrimaryGeneratedColumn() decorator.
  */
 export type PrimaryGeneratedColumnType =
-    | "int" // mysql, sqlite
+    | "int" // postgres, sqlite
     | "int2" // postgres, sqlite
     | "int4" // postgres
     | "int8" // postgres, sqlite
-    | "integer" // postgres, sqlite, mysql
-    | "tinyint" // mysql, sqlite
-    | "smallint" // mysql, postgres, sqlite
-    | "mediumint" // mysql, sqlite
-    | "bigint" // mysql, postgres, sqlite
-    | "decimal" // mysql, postgres, sqlite
-    | "fixed" // mysql
+    | "integer" // postgres, sqlite
+    | "tinyint" // sqlite
+    | "smallint" // postgres, sqlite
+    | "mediumint" // sqlite
+    | "bigint" // postgres, sqlite
+    | "decimal" // postgres, sqlite
     | "numeric" // postgres, sqlite
 
 /**
@@ -26,19 +25,17 @@ export type SpatialColumnType =
  * Column types where precision and scale properties are used.
  */
 export type WithPrecisionColumnType =
-    | "float" // mysql, sqlite
-    | "double" // mysql, sqlite
-    | "dec" // mysql
-    | "decimal" // mysql, postgres, sqlite
-    | "fixed" // mysql
-    | "numeric" // postgres, sqlite, mysql
-    | "real" // mysql, postgres, sqlite
-    | "double precision" // postgres, sqlite, mysql
-    | "datetime" // mysql, sqlite
-    | "time" // mysql, postgres
+    | "float" // postgres, sqlite
+    | "double" // sqlite
+    | "decimal" // postgres, sqlite
+    | "numeric" // postgres, sqlite
+    | "real" // postgres, sqlite
+    | "double precision" // postgres, sqlite
+    | "datetime" // sqlite
+    | "time" // postgres
     | "time with time zone" // postgres
     | "time without time zone" // postgres
-    | "timestamp" // mysql, postgres
+    | "timestamp" // postgres
     | "timestamp without time zone" // postgres
     | "timestamp with time zone" // postgres
 
@@ -48,17 +45,13 @@ export type WithPrecisionColumnType =
 export type WithLengthColumnType =
     | "character varying" // postgres
     | "varying character" // sqlite
-    | "nvarchar" // mysql
-    | "national varchar" // mysql
-    | "character" // mysql, postgres, sqlite
+    | "nvarchar" // sqlite
+    | "character" // postgres, sqlite
     | "native character" // sqlite
-    | "varchar" // mysql, postgres, sqlite
-    | "char" // mysql, postgres
-    | "nchar" // sqlite, mysql
-    | "national char" // mysql
+    | "varchar" // postgres, sqlite
+    | "char" // postgres
+    | "nchar" // sqlite
     | "nvarchar2" // sqlite
-    | "binary" // mysql
-    | "varbinary" // mysql
     | "string" // all supported dbs
 
 /**
@@ -82,50 +75,38 @@ export type SimpleColumnType =
     | "mediumint" // sqlite
     | "bigint" // postgres, sqlite
     | "unsigned big int" // sqlite
-    | "float" // mysql, sqlite
+    | "float" // postgres, sqlite
     | "float4" // postgres
     | "float8" // postgres
     | "money" // postgres
 
     // boolean types
-    | "boolean" // postgres, sqlite, mysql
-    | "bool" // postgres, mysql
+    | "boolean" // postgres, sqlite
+    | "bool" // postgres
 
     // text/binary types
-    | "tinyblob" // mysql
-    | "tinytext" // mysql
-    | "mediumblob" // mysql
-    | "mediumtext" // mysql
-    | "blob" // mysql, sqlite
-    | "text" // mysql, postgres, sqlite
+    | "blob" // sqlite
+    | "text" // postgres, sqlite
     | "citext" // postgres
     | "hstore" // postgres
-    | "longblob" // mysql
-    | "longtext" // mysql
     | "bytea" // postgres
     | "clob" // sqlite
 
     // date types
     | "timetz" // postgres
     | "timestamptz" // postgres
-    | "date" // mysql, postgres, sqlite
+    | "date" // postgres, sqlite
     | "interval" // postgres
-    | "year" // mysql
 
     // geometric types
-    | "point" // postgres, mysql
+    | "point" // postgres
     | "line" // postgres
     | "lseg" // postgres
     | "box" // postgres
     | "circle" // postgres
     | "path" // postgres
-    | "polygon" // postgres, mysql
-    | "geometry" // mysql
-    | "linestring" // mysql
-    | "multipoint" // mysql
-    | "multilinestring" // mysql
-    | "multipolygon" // mysql
-    | "geometrycollection" // mysql
+    | "polygon" // postgres
+    | "geometry" // postgres
 
     // range types
     | "int4range" // postgres
@@ -144,23 +125,19 @@ export type SimpleColumnType =
     | "datemultirange" // postgres
 
     // other types
-    | "enum" // mysql, postgres
-    | "set" // mysql
+    | "enum" // postgres
     | "cidr" // postgres
     | "inet" // postgres
-    | "inet4" // mariadb
-    | "inet6" // mariadb
     | "macaddr" // postgres
     | "bit" // postgres
     | "bit varying" // postgres
     | "varbit" // postgres
     | "tsvector" // postgres
     | "tsquery" // postgres
-    | "uuid" // postgres, mariadb
+    | "uuid" // postgres
     | "xml" // postgres
-    | "json" // mysql, postgres
+    | "json" // postgres, sqlite
     | "jsonb" // postgres
-    | "varbinary" // mysql
     | "cube" // postgres
     | "ltree" // postgres
 

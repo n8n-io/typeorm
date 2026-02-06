@@ -24,7 +24,7 @@ export interface IndexMetadataArgs {
 
     /**
      * The SPATIAL modifier indexes the entire column and does not allow indexed columns to contain NULL values.
-     * Works only in MySQL.
+     * Works only in PostgreSQL.
      */
     spatial?: boolean
 

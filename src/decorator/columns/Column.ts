@@ -90,15 +90,6 @@ export function Column(
  * Only properties decorated with this decorator will be persisted to the database when entity be saved.
  */
 export function Column(
-    type: "set",
-    options?: ColumnCommonOptions & ColumnEnumOptions,
-): PropertyDecorator
-
-/**
- * Column decorator is used to mark a specific class property as a table column.
- * Only properties decorated with this decorator will be persisted to the database when entity be saved.
- */
-export function Column(
     type: "hstore",
     options?: ColumnCommonOptions & ColumnHstoreOptions,
 ): PropertyDecorator

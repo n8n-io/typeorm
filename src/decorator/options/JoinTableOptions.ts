@@ -22,7 +22,7 @@ export interface JoinTableOptions {
 
     /**
      * Database where join table will be created.
-     * Works only in some databases (like mysql).
+     * Works only in some databases (like postgres).
      */
     database?: string
 

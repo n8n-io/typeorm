@@ -28,7 +28,7 @@ export class TableIndex {
 
     /**
      * The SPATIAL modifier indexes the entire column and does not allow indexed columns to contain NULL values.
-     * Works only in MySQL.
+     * Works only in PostgreSQL.
      */
     isSpatial: boolean
 

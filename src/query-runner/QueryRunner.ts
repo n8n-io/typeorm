@@ -272,7 +272,7 @@ export interface QueryRunner {
     ): Promise<void>
 
     /**
-     * Change table comment. Only supports MySQL and MariaDB
+     * Change table comment. Only supports PostgreSQL
      */
     changeTableComment(
         tableOrName: Table | string,

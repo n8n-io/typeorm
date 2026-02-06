@@ -889,7 +889,7 @@ export class SubjectExecutor {
     /**
      * Groups subjects by metadata names (by tables) to make bulk insertions and deletions possible.
      * However there are some limitations with bulk insertions of data into tables with generated (increment) columns
-     * in some drivers. Some drivers like mysql and sqlite does not support returning multiple generated columns
+     * in some drivers. Some drivers like sqlite does not support returning multiple generated columns
      * after insertion and can only return a single generated column value, that's why its not possible to do bulk insertion,
      * because it breaks insertion result's generatedMap and leads to problems when this subject is used in other subjects saves.
      * That's why we only support bulking in junction tables for those drivers.

@@ -5,7 +5,7 @@ export class User {
     @PrimaryColumn({
         comment: "The ID of this user.",
         length: 16,
-        type: "binary",
+        type: "bytea",
     })
     id: Buffer
 

@@ -145,7 +145,7 @@ export class ColumnMetadata {
     /**
      * Array of possible enumerated values.
      *
-     * `postgres` and `mysql` store enum values as strings but we want to keep support
+     * `postgres` stores enum values as strings but we want to keep support
      * for numeric and heterogeneous based typescript enums, so we need (string|number)[]
      */
     enum?: (string | number)[]

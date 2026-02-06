@@ -9,7 +9,7 @@ export interface IndexOptions {
 
     /**
      * The SPATIAL modifier indexes the entire column and does not allow indexed columns to contain NULL values.
-     * Works only in MySQL and PostgreSQL.
+     * Works only in PostgreSQL.
      */
     spatial?: boolean
 

@@ -224,15 +224,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
     }
 
     /**
-     * Set max execution time.
-     * @param milliseconds
-     */
-    maxExecutionTime(milliseconds: number): this {
-        this.expressionMap.maxExecutionTime = milliseconds
-        return this
-    }
-
-    /**
      * Sets whether the selection is DISTINCT.
      */
     distinct(distinct: boolean = true): this {

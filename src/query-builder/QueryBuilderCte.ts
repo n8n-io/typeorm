@@ -5,7 +5,7 @@ export interface QueryBuilderCteOptions {
      */
     materialized?: boolean
     /**
-     * Supported by Postgres, SQLite, MySQL and MariaDB
+     * Supported by Postgres and SQLite
      * SQL Server automatically detects recursive queries
      */
     recursive?: boolean

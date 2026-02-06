@@ -81,7 +81,7 @@
     "gulpclass": "^0.2.0",
     "husky": "^8.0.3",
     "mocha": "^10.2.0",
-"pg": "^8.17.0",
+    "pg": "^8.17.0",
     "pg-query-stream": "^4.10.3",
     "prettier": "^2.8.3",
     "remap-istanbul": "^0.13.0",

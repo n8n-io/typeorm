@@ -4,7 +4,7 @@ import { StringDecoder } from "string_decoder"
 
 @Entity()
 export class User {
-    @PrimaryColumn("binary", {
+    @PrimaryColumn("bytea", {
         length: 2,
     })
     private _id: Buffer

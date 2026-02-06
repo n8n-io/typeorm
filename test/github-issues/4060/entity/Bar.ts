@@ -9,7 +9,7 @@ import { Foo } from "./Foo"
 
 @Entity()
 export class Bar {
-    @PrimaryColumn({ type: "varbinary", length: 16 })
+    @PrimaryColumn({ type: "bytea", length: 16 })
     id: Buffer
 
     @Column()
