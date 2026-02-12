@@ -16,9 +16,9 @@ export class User {
     @Column("timestamp")
     public timestamp: Date
 
-    @Column("datetime")
+    @Column("timestamp")
     public date1: Date
 
-    @Column("datetime", { nullable: true })
+    @Column("timestamp", { nullable: true })
     public date2: Date
 }

@@ -45,8 +45,8 @@ describe("github issues > #1863 createTable.uniques doesn't work when the column
                 )
 
                 const table = await queryRunner.getTable("post")
-                table!.indices.length.should.be.equal(1)
-                table!.indices[0].name!.should.be.equal("table_unique")
+                table!.uniques.length.should.be.equal(1)
+                table!.uniques[0].name!.should.be.equal("table_unique")
             }),
         ))
 })

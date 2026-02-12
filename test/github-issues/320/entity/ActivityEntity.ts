@@ -9,7 +9,7 @@ export class ActivityEntity {
     @PrimaryGeneratedColumn({ type: "bigint" })
     id: string
 
-    @Column({ type: "datetime" })
+    @Column({ type: "timestamp" })
     endDate: Date
 
     @ManyToMany((type) => TileEntity, (tile) => tile.activities, {

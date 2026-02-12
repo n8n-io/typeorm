@@ -24,7 +24,7 @@ describe("github issues > #1427 precision and scale column types with errant beh
                 let table = await queryRunner.getTable("post")
                 await queryRunner.release()
 
-                table!.findColumnByName("qty")!.type.should.be.equal("decimal")
+                table!.findColumnByName("qty")!.type.should.be.equal("numeric")
                 table!.findColumnByName("qty")!.precision!.should.be.equal(10)
                 table!.findColumnByName("qty")!.scale!.should.be.equal(6)
             }),

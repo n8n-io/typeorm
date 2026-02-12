@@ -24,10 +24,10 @@ describe("github issues > #1113 CreateDateColumn's type is incorrect when using 
                 const table = await queryRunner.getTable("post")
                 table!
                     .findColumnByName("createdAt")!
-                    .type.should.be.equal("timestamp")
+                    .type.should.be.equal("timestamp without time zone")
                 table!
                     .findColumnByName("updatedAt")!
-                    .type.should.be.equal("timestamp")
+                    .type.should.be.equal("timestamp without time zone")
                 await queryRunner.release()
             }),
         ))

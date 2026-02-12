@@ -4291,7 +4291,7 @@ export class PostgresQueryRunner
     ): Query {
         if (!enumName) enumName = this.buildEnumName(table, column)
         const enumValues = column
-            .enum!.map((value) => `'${value.replace("'", "''")}'`)
+            .enum!.map((value) => `'${value.replace(/'/g, "''")}'`)
             .join(", ")
         return new Query(`CREATE TYPE ${enumName} AS ENUM(${enumValues})`)
     }
@@ -4723,7 +4723,6 @@ export class PostgresQueryRunner
             c += ` GENERATED ALWAYS AS (${column.asExpression}) STORED`
         }
 
-        if (column.charset) c += ' CHARACTER SET "' + column.charset + '"'
         if (column.collation) c += ' COLLATE "' + column.collation + '"'
         if (column.isNullable !== true) c += " NOT NULL"
         if (column.default !== undefined && column.default !== null)

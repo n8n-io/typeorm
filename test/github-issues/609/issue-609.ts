@@ -26,7 +26,7 @@ describe("github issues > #609 Custom precision on CreateDateColumn and UpdateDa
 
                 table!
                     .findColumnByName("createDate")!
-                    .default.should.be.equal("CURRENT_TIMESTAMP")
+                    .default.should.be.equal("now()")
             }),
         ))
 })

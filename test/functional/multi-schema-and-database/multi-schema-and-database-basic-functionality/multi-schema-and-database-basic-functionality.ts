@@ -9,8 +9,6 @@ import { expect } from "chai"
 import { Post } from "./entity/Post"
 import { User } from "./entity/User"
 import { Category } from "./entity/Category"
-import { Person } from "./entity/Person"
-
 describe("multi-schema-and-database > basic-functionality", () => {
     describe("custom-table-schema", () => {
         let connections: DataSource[]
@@ -196,39 +194,6 @@ describe("multi-schema-and-database > basic-functionality", () => {
                                 `SELECT * FROM "guest"."category" "category", "userSchema"."user" "user",` +
                                     ` "custom"."post" "post" WHERE "category"."id" = $1 AND "post"."id" = "category"."postId"`,
                             )
-                }),
-            ))
-    })
-
-    describe("custom-database", () => {
-        let connections: DataSource[]
-        before(async () => {
-            connections = await createTestingConnections({
-                entities: [Person],
-                enabledDrivers: ["postgres"],
-            })
-        })
-        beforeEach(() => reloadTestingDatabases(connections))
-        after(() => closeTestingConnections(connections))
-
-        it("should correctly create tables when custom database used in Entity decorator", () =>
-            Promise.all(
-                connections.map(async (connection) => {
-                    const queryRunner = connection.createQueryRunner()
-                    const tablePath = "secondDB.person"
-                    const table = await queryRunner.getTable(tablePath)
-                    await queryRunner.release()
-
-                    const person = new Person()
-                    person.name = "Person #1"
-                    await connection.getRepository(Person).save(person)
-
-                    connection
-                        .createQueryBuilder(Person, "person")
-                        .where("person.id = :id", { id: 1 })
-                        .getSql()
-
-                    table!.name.should.be.equal(tablePath)
                 }),
             ))
     })

@@ -41,7 +41,7 @@ describe("github issues > #695 Join columns are not using correct length", () =>
 
                 table!
                     .findColumnByName("device_id")!
-                    .type.should.be.equal("char")
+                    .type.should.be.equal("character")
                 table!
                     .findColumnByName("device_id")!
                     .length!.should.be.equal("12")

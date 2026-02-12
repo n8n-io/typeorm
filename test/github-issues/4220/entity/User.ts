@@ -4,7 +4,6 @@ import { Entity, PrimaryColumn, Column } from "../../../../src"
 export class User {
     @PrimaryColumn({
         comment: "The ID of this user.",
-        length: 16,
         type: "bytea",
     })
     id: Buffer

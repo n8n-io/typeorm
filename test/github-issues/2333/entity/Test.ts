@@ -5,6 +5,6 @@ export class Test {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: "datetime", nullable: true, default: null })
+    @Column({ type: "timestamp", nullable: true, default: null })
     publish_date: Date
 }

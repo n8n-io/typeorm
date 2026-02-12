@@ -37,7 +37,7 @@ describe("github issues > #6266 Many identical selects after insert bunch of ite
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    it("should execute a single SELECT to get inserted default and generated values of multiple entities", () =>
+    it("should not execute extra SELECTs to get inserted default and generated values of multiple entities", () =>
         Promise.all(
             connections.map(async (connection) => {
                 const selectSpy = sinon.spy(
@@ -52,7 +52,8 @@ describe("github issues > #6266 Many identical selects after insert bunch of ite
                     .values(posts)
                     .execute()
 
-                assert.strictEqual(selectSpy.calledOnce, true)
+                // PostgreSQL uses INSERT...RETURNING so no separate SELECT is needed
+                assert.isAtMost(selectSpy.callCount, 1)
 
                 selectSpy.restore()
             }),

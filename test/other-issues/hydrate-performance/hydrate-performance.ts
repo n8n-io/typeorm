@@ -22,12 +22,16 @@ describe("other issues > hydration performance", () => {
     it("if entity was changed in the listener, changed property should be updated in the db", () =>
         Promise.all(
             connections.map(async function (connection) {
-                // insert few posts first
-                const posts: Post[] = []
-                for (let i = 1; i <= 100000; i++) {
-                    posts.push(new Post("Post #" + i))
+                // insert posts in batches to stay within PostgreSQL parameter limits
+                const totalPosts = 100000
+                const batchSize = 10000
+                for (let offset = 0; offset < totalPosts; offset += batchSize) {
+                    const posts: Post[] = []
+                    for (let i = offset + 1; i <= Math.min(offset + batchSize, totalPosts); i++) {
+                        posts.push(new Post("Post #" + i))
+                    }
+                    await connection.manager.insert(Post, posts)
                 }
-                await connection.manager.insert(Post, posts)
 
                 // select them using raw sql
                 // console.time("select using raw sql");

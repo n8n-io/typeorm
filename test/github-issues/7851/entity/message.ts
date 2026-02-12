@@ -3,7 +3,7 @@ import { User } from "./user"
 
 @Entity("Message")
 export class Message {
-    @PrimaryColumn({ type: "bytea", length: 16 })
+    @PrimaryColumn({ type: "bytea" })
     id!: Buffer
 
     @ManyToOne(() => User, (user) => user.id, { nullable: false })
