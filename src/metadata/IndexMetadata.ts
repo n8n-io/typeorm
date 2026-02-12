@@ -29,7 +29,7 @@ export class IndexMetadata {
     isUnique: boolean = false
 
     /**
-     * The SPATIAL modifier indexes the entire column and does not allow indexed columns to contain NULL values.
+     * If true, creates a GiST index for spatial data types.
      * Works only in PostgreSQL.
      */
     isSpatial: boolean = false

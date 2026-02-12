@@ -8,7 +8,6 @@ import { Brackets } from "./Brackets"
 import { UpdateResult } from "./result/UpdateResult"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
 import { ReturningResultsEntityUpdator } from "./ReturningResultsEntityUpdator"
-import { OrderByCondition } from "../find-options/OrderByCondition"
 import { MissingDeleteDateColumnError } from "../error/MissingDeleteDateColumnError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
 import { TypeORMError } from "../error"
@@ -45,7 +44,6 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
     getQuery(): string {
         let sql = this.createUpdateExpression()
         sql += this.createCteExpression()
-        sql += this.createOrderByExpression()
         return this.replacePropertyNamesForTheWholeQuery(sql.trim())
     }
 
@@ -315,77 +313,6 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
     }
 
     /**
-     * Sets ORDER BY condition in the query builder.
-     * If you had previously ORDER BY expression defined,
-     * calling this function will override previously set ORDER BY conditions.
-     *
-     * Calling order by without order set will remove all previously set order bys.
-     */
-    orderBy(): this
-
-    /**
-     * Sets ORDER BY condition in the query builder.
-     * If you had previously ORDER BY expression defined,
-     * calling this function will override previously set ORDER BY conditions.
-     */
-    orderBy(
-        sort: string,
-        order?: "ASC" | "DESC",
-        nulls?: "NULLS FIRST" | "NULLS LAST",
-    ): this
-
-    /**
-     * Sets ORDER BY condition in the query builder.
-     * If you had previously ORDER BY expression defined,
-     * calling this function will override previously set ORDER BY conditions.
-     */
-    orderBy(order: OrderByCondition): this
-
-    /**
-     * Sets ORDER BY condition in the query builder.
-     * If you had previously ORDER BY expression defined,
-     * calling this function will override previously set ORDER BY conditions.
-     */
-    orderBy(
-        sort?: string | OrderByCondition,
-        order: "ASC" | "DESC" = "ASC",
-        nulls?: "NULLS FIRST" | "NULLS LAST",
-    ): this {
-        if (sort) {
-            if (typeof sort === "object") {
-                this.expressionMap.orderBys = sort as OrderByCondition
-            } else {
-                if (nulls) {
-                    this.expressionMap.orderBys = {
-                        [sort as string]: { order, nulls },
-                    }
-                } else {
-                    this.expressionMap.orderBys = { [sort as string]: order }
-                }
-            }
-        } else {
-            this.expressionMap.orderBys = {}
-        }
-        return this
-    }
-
-    /**
-     * Adds ORDER BY condition in the query builder.
-     */
-    addOrderBy(
-        sort: string,
-        order: "ASC" | "DESC" = "ASC",
-        nulls?: "NULLS FIRST" | "NULLS LAST",
-    ): this {
-        if (nulls) {
-            this.expressionMap.orderBys[sort] = { order, nulls }
-        } else {
-            this.expressionMap.orderBys[sort] = order
-        }
-        return this
-    }
-
-    /**
      * Indicates if entity must be updated after update operation.
      * This may produce extra query or use RETURNING / OUTPUT statement (depend on database).
      * Enabled by default.
@@ -497,35 +424,4 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
         )}${whereExpression} RETURNING ${returningExpression}`
     }
 
-    /**
-     * Creates "ORDER BY" part of SQL query.
-     */
-    protected createOrderByExpression() {
-        const orderBys = this.expressionMap.orderBys
-        if (Object.keys(orderBys).length > 0)
-            return (
-                " ORDER BY " +
-                Object.keys(orderBys)
-                    .map((columnName) => {
-                        if (typeof orderBys[columnName] === "string") {
-                            return (
-                                this.replacePropertyNames(columnName) +
-                                " " +
-                                orderBys[columnName]
-                            )
-                        } else {
-                            return (
-                                this.replacePropertyNames(columnName) +
-                                " " +
-                                (orderBys[columnName] as any).order +
-                                " " +
-                                (orderBys[columnName] as any).nulls
-                            )
-                        }
-                    })
-                    .join(", ")
-            )
-
-        return ""
-    }
 }

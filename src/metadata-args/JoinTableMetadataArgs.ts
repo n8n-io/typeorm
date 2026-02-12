@@ -32,7 +32,7 @@ export interface JoinTableMetadataArgs {
 
     /**
      * Database where join table will be created.
-     * Works only in some databases (like postgres).
+     * Works only in some databases.
      */
     readonly database?: string
 
