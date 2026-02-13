@@ -37,24 +37,23 @@ describe("github issues > #6266 Many identical selects after insert bunch of ite
     beforeEach(() => reloadTestingDatabases(connections))
     after(() => closeTestingConnections(connections))
 
-    it("should execute a single SELECT to get inserted default and generated values of multiple entities", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                const selectSpy = sinon.spy(
-                    SelectQueryBuilder.prototype,
-                    "select",
-                )
+    it("should execute a single SELECT to get inserted default and generated values of multiple entities", async () => {
+        for (const connection of connections) {
+            const selectSpy = sinon.spy(
+                SelectQueryBuilder.prototype,
+                "select",
+            )
 
-                await connection
-                    .createQueryBuilder()
-                    .insert()
-                    .into(Post)
-                    .values(posts)
-                    .execute()
+            await connection
+                .createQueryBuilder()
+                .insert()
+                .into(Post)
+                .values(posts)
+                .execute()
 
-                assert.strictEqual(selectSpy.calledOnce, true)
+            assert.strictEqual(selectSpy.calledOnce, true)
 
-                selectSpy.restore()
-            }),
-        ))
+            selectSpy.restore()
+        }
+    })
 })

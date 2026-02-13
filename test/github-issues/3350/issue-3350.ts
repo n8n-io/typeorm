@@ -16,7 +16,7 @@ describe("github issues > #3350 ER_DUP_FIELDNAME with simple find", () => {
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 subscribers: [__dirname + "/subscriber/*{.js,.ts}"],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

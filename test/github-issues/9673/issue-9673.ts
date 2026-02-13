@@ -20,51 +20,51 @@ describe("github issues > #9673 TreeRepository not loading relations on findDesc
                 schemaCreate: true,
                 dropSchema: true,
                 relationLoadStrategy: "query",
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))
     after(() => closeTestingConnections(dataSources))
 
-    it("should generate multiple queries per relation", () =>
-        Promise.all(
-            dataSources.map(async (dataSource) => {
-                const nodeRepository = dataSource.getTreeRepository(Node)
-                const ruleRepository = dataSource.getRepository(Rule)
-                const factRepository = dataSource.getRepository(Fact)
+    it("should generate multiple queries per relation", async () => {
+        for (const dataSource of dataSources) {
+            const nodeRepository = dataSource.getTreeRepository(Node)
+            const ruleRepository = dataSource.getRepository(Rule)
+            const factRepository = dataSource.getRepository(Fact)
 
-                // Entity instances setup
-                let parent = await nodeRepository.save(
-                    nodeRepository.create({ name: "root node" }),
-                )
-                let child = await nodeRepository.save(
-                    nodeRepository.create({ name: "child node", parent }),
-                )
-                const [factA, factB] = await factRepository.save([
-                    { name: "Fact A" },
-                    { name: "Fact B" },
-                ])
-                const rules = await ruleRepository.save([
-                    { name: "Rule 1", node: child, fact: factA },
-                    { name: "Rule 2", node: child, fact: factA },
-                    { name: "Rule 3", node: child, fact: factB },
-                ])
+            // Entity instances setup
+            let parent = await nodeRepository.save(
+                nodeRepository.create({ name: "root node" }),
+            )
+            let child = await nodeRepository.save(
+                nodeRepository.create({ name: "child node", parent }),
+            )
+            const [factA, factB] = await factRepository.save([
+                { name: "Fact A" },
+                { name: "Fact B" },
+            ])
+            const rules = await ruleRepository.save([
+                { name: "Rule 1", node: child, fact: factA },
+                { name: "Rule 2", node: child, fact: factA },
+                { name: "Rule 3", node: child, fact: factB },
+            ])
 
-                const leftJoinBuilder = sinon.spy(
-                    SelectQueryBuilder.prototype,
-                    "leftJoinAndSelect",
-                )
+            const leftJoinBuilder = sinon.spy(
+                SelectQueryBuilder.prototype,
+                "leftJoinAndSelect",
+            )
 
-                // Validate data loaded correctly
-                ;[, child] = await nodeRepository.findDescendants(parent, {
-                    relations: ["rules", "rules.fact"],
-                })
+            // Validate data loaded correctly
+            ;[, child] = await nodeRepository.findDescendants(parent, {
+                relations: ["rules", "rules.fact"],
+            })
 
-                expect(child.rules).length(rules.length)
-                child.rules?.forEach((rule) => {
-                    expect(rule.fact).exist
-                })
-                expect(leftJoinBuilder.called).not.to.be.true
-            }),
-        ))
+            expect(child.rules).length(rules.length)
+            child.rules?.forEach((rule) => {
+                expect(rule.fact).exist
+            })
+            expect(leftJoinBuilder.called).not.to.be.true
+            leftJoinBuilder.restore()
+        }
+    })
 })

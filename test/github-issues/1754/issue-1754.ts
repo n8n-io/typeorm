@@ -14,7 +14,7 @@ describe("github issue #1754 Repository.save() always updating ManyToOne relatio
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
