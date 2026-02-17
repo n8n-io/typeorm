@@ -12,7 +12,7 @@ describe("github issues > #587 Ordering of fields in composite indexes defined u
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

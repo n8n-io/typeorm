@@ -12,7 +12,7 @@ describe("github issues > #3151 'uuid' in PrimaryGeneratedColumn causes Many-to-
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"],
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

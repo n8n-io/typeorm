@@ -16,7 +16,7 @@ describe("github issues > #234 and #223 lazy loading does not work correctly fro
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"], // we can properly test lazy-relations only on one platform
+                enabledDrivers: ["postgres", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

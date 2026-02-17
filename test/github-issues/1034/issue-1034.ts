@@ -15,7 +15,7 @@ describe("github issues > #1034 Issue using setter with promises", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql"], // we are using lazy relations that's why we are using a single driver
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

@@ -14,7 +14,7 @@ describe("github issues > #10040 TypeORM synchronize database even if it is up t
     before(async () => {
         dataSources = await createTestingConnections({
             entities: [Person, Todo],
-            enabledDrivers: ["mysql"],
+            enabledDrivers: ["postgres", "sqlite-pooled"],
         })
     })
 
