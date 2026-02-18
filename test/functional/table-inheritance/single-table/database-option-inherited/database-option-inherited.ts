@@ -12,13 +12,7 @@ describe("table-inheritance > single-table > database-option-inherited", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "postgres",
-                    "mariadb",
-                    "mysql",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
 

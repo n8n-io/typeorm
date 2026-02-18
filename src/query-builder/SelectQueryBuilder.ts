@@ -15,7 +15,6 @@ import { RelationCountMetadataToAttributeTransformer } from "./relation-count/Re
 import { QueryBuilder } from "./QueryBuilder"
 import { ReadStream } from "../platform/PlatformTools"
 import { LockNotSupportedOnGivenDriverError } from "../error/LockNotSupportedOnGivenDriverError"
-import { MysqlDriver } from "../driver/mysql/MysqlDriver"
 import { SelectQuery } from "./SelectQuery"
 import { EntityMetadata } from "../metadata/EntityMetadata"
 import { ColumnMetadata } from "../metadata/ColumnMetadata"
@@ -26,7 +25,6 @@ import { QueryRunner } from "../query-runner/QueryRunner"
 import { WhereExpressionBuilder } from "./WhereExpressionBuilder"
 import { Brackets } from "./Brackets"
 import { QueryResultCacheOptions } from "../cache/QueryResultCacheOptions"
-import { OffsetWithoutLimitNotSupportedError } from "../error/OffsetWithoutLimitNotSupportedError"
 import { SelectQueryBuilderOption } from "./SelectQueryBuilderOption"
 import { ObjectUtils } from "../util/ObjectUtils"
 import { DriverUtils } from "../driver/DriverUtils"
@@ -2154,13 +2152,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
         // if still selection is empty, then simply set it to all (*)
         if (allSelects.length === 0) allSelects.push({ selection: "*" })
 
-        // Use certain index
         let useIndex: string = ""
-        if (this.expressionMap.useIndex) {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                useIndex = ` USE INDEX (${this.expressionMap.useIndex})`
-            }
-        }
 
         // create a selection query
         const froms = this.expressionMap.aliases
@@ -2205,17 +2197,11 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
      * Creates select | select distinct part of SQL query.
      */
     protected createSelectDistinctExpression(): string {
-        const { selectDistinct, selectDistinctOn, maxExecutionTime } =
+        const { selectDistinct, selectDistinctOn } =
             this.expressionMap
         const { driver } = this.connection
 
         let select = "SELECT "
-
-        if (maxExecutionTime > 0) {
-            if (DriverUtils.isMySQLFamily(driver)) {
-                select += `/*+ MAX_EXECUTION_TIME(${this.expressionMap.maxExecutionTime}) */ `
-            }
-        }
 
         if (
             DriverUtils.isPostgresFamily(driver) &&
@@ -2543,11 +2529,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             limit = this.expressionMap.take
         }
 
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-            if (limit && offset) return " LIMIT " + limit + " OFFSET " + offset
-            if (limit) return " LIMIT " + limit
-            if (offset) throw new OffsetWithoutLimitNotSupportedError()
-        } else if (DriverUtils.isSQLiteFamily(this.connection.driver)) {
+        if (DriverUtils.isSQLiteFamily(this.connection.driver)) {
             if (limit && offset) return " LIMIT " + limit + " OFFSET " + offset
             if (limit) return " LIMIT " + limit
             if (offset) return " LIMIT -1 OFFSET " + offset
@@ -2600,27 +2582,13 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
         }
         switch (this.expressionMap.lockMode) {
             case "pessimistic_read":
-                if (driver.options.type === "mysql") {
-                    if (
-                        DriverUtils.isReleaseVersionOrGreater(driver, "8.0.0")
-                    ) {
-                        return (
-                            " FOR SHARE" + lockTablesClause + onLockExpression
-                        )
-                    } else {
-                        return " LOCK IN SHARE MODE"
-                    }
-                } else if (driver.options.type === "mariadb") {
-                    return " LOCK IN SHARE MODE"
-                } else if (DriverUtils.isPostgresFamily(driver)) {
+                if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR SHARE" + lockTablesClause + onLockExpression
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
                 }
             case "pessimistic_write":
-                if (DriverUtils.isMySQLFamily(driver)) {
-                    return " FOR UPDATE" + onLockExpression
-                } else if (DriverUtils.isPostgresFamily(driver)) {
+                if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR UPDATE" + lockTablesClause + onLockExpression
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
@@ -2628,16 +2596,12 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             case "pessimistic_partial_write":
                 if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR UPDATE" + lockTablesClause + " SKIP LOCKED"
-                } else if (DriverUtils.isMySQLFamily(driver)) {
-                    return " FOR UPDATE SKIP LOCKED"
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
                 }
             case "pessimistic_write_or_fail":
                 if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR UPDATE" + lockTablesClause + " NOWAIT"
-                } else if (DriverUtils.isMySQLFamily(driver)) {
-                    return " FOR UPDATE NOWAIT"
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
                 }
@@ -2746,13 +2710,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             if (
                 this.connection.driver.spatialTypes.indexOf(column.type) !== -1
             ) {
-                if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                    const useLegacy = (this.connection.driver as MysqlDriver)
-                        .options.legacySpatialSupport
-                    const asText = useLegacy ? "AsText" : "ST_AsText"
-                    selectionPath = `${asText}(${selectionPath})`
-                }
-
                 if (DriverUtils.isPostgresFamily(this.connection.driver))
                     if (column.precision) {
                         // cast to JSON to trigger parsing in the driver
@@ -2852,21 +2809,6 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                     )
                     .join(", ") +
                 "))"
-            )
-        }
-
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-            // MySQL & MariaDB can pass multiple parameters to the `DISTINCT` language construct
-            // https://mariadb.com/kb/en/count-distinct/
-            return (
-                "COUNT(DISTINCT " +
-                primaryColumns
-                    .map(
-                        (c) =>
-                            `${distinctAlias}.${this.escape(c.databaseName)}`,
-                    )
-                    .join(", ") +
-                ")"
             )
         }
 

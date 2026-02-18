@@ -15,7 +15,7 @@ describe("github issues > #1465 save child and parent entity", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "mariadb", "sqlite", "sqlite-pooled"],
+                enabledDrivers: ["sqlite", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

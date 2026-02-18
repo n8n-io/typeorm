@@ -22,13 +22,7 @@ describe("github issues > #9833 Add support for Single Table Inheritance when us
                 entities: [BaseSchema, ASchema, BSchema, CSchema],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "mariadb",
-                    "mysql",
-                    "postgres",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
 

@@ -6,8 +6,6 @@ import {
 } from "../../utils/test-utils"
 import { DataSource } from "../../../src/data-source/DataSource"
 import { Animal } from "./entity/Animal"
-import { OffsetWithoutLimitNotSupportedError } from "../../../src/error/OffsetWithoutLimitNotSupportedError"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () => {
     let connections: DataSource[]
@@ -37,13 +35,7 @@ describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () 
                     .orderBy("a.id")
                     .skip(1)
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await qb
-                        .getManyAndCount()
-                        .should.be.rejectedWith(
-                            OffsetWithoutLimitNotSupportedError,
-                        )
-                } else {
+
                     await qb.getManyAndCount().should.eventually.be.eql([
                         [
                             { id: 2, name: "dog", categories: [] },
@@ -52,7 +44,7 @@ describe("github issues > #1099 BUG - QueryBuilder MySQL skip sql is wrong", () 
                         ],
                         4,
                     ])
-                }
+                
             }),
         ))
 })

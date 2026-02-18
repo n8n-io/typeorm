@@ -13,7 +13,7 @@ describe("github issues > #8485 second migration is generated for a combination 
         async () =>
             (dataSources = await createTestingConnections({
                 entities: [User, UserProfile],
-                enabledDrivers: ["mariadb", "mysql", "postgres"],
+                enabledDrivers: ["postgres"],
                 dropSchema: true,
                 schemaCreate: false,
             })),

@@ -22,13 +22,7 @@ describe("github issues > #10494 Custom discriminator values when using Single T
                 entities: [BaseSchema, ASchema, BSchema, CSchema],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "mariadb",
-                    "mysql",
-                    "postgres",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
 

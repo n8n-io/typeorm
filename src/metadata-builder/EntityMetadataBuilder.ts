@@ -19,7 +19,6 @@ import { UniqueMetadata } from "../metadata/UniqueMetadata"
 import { CheckMetadata } from "../metadata/CheckMetadata"
 import { ExclusionMetadata } from "../metadata/ExclusionMetadata"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 
 /**
  * Builds EntityMetadata objects and all its sub-metadatas.
@@ -189,45 +188,16 @@ export class EntityMetadataBuilder {
                             relation.registerJoinColumns(columns)
                         }
                         if (uniqueConstraint) {
-                            if (
-                                DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
+                            if (relation.embeddedMetadata) {
+                                relation.embeddedMetadata.uniques.push(
+                                    uniqueConstraint,
                                 )
-                            ) {
-                                const index = new IndexMetadata({
-                                    entityMetadata:
-                                        uniqueConstraint.entityMetadata,
-                                    columns: uniqueConstraint.columns,
-                                    args: {
-                                        target: uniqueConstraint.target!,
-                                        name: uniqueConstraint.name,
-                                        unique: true,
-                                        synchronize: true,
-                                    },
-                                })
-
-                                if (relation.embeddedMetadata) {
-                                    relation.embeddedMetadata.indices.push(
-                                        index,
-                                    )
-                                } else {
-                                    relation.entityMetadata.ownIndices.push(
-                                        index,
-                                    )
-                                }
-                                this.computeEntityMetadataStep2(entityMetadata)
                             } else {
-                                if (relation.embeddedMetadata) {
-                                    relation.embeddedMetadata.uniques.push(
-                                        uniqueConstraint,
-                                    )
-                                } else {
-                                    relation.entityMetadata.ownUniques.push(
-                                        uniqueConstraint,
-                                    )
-                                }
-                                this.computeEntityMetadataStep2(entityMetadata)
+                                relation.entityMetadata.ownUniques.push(
+                                    uniqueConstraint,
+                                )
                             }
+                            this.computeEntityMetadataStep2(entityMetadata)
                         }
                     })
 
@@ -733,31 +703,12 @@ export class EntityMetadataBuilder {
                 return new IndexMetadata({ entityMetadata, args })
             })
 
-        // This drivers stores unique constraints as unique indices.
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-            const indices = this.metadataArgsStorage
-                .filterUniques(entityMetadata.inheritanceTree)
-                .map((args) => {
-                    return new IndexMetadata({
-                        entityMetadata: entityMetadata,
-                        args: {
-                            target: args.target,
-                            name: args.name,
-                            columns: args.columns,
-                            unique: true,
-                            synchronize: true,
-                        },
-                    })
-                })
-            entityMetadata.ownIndices.push(...indices)
-        } else {
-            const uniques = this.metadataArgsStorage
-                .filterUniques(entityMetadata.inheritanceTree)
-                .map((args) => {
-                    return new UniqueMetadata({ entityMetadata, args })
-                })
-            entityMetadata.ownUniques.push(...uniques)
-        }
+        const uniques = this.metadataArgsStorage
+            .filterUniques(entityMetadata.inheritanceTree)
+            .map((args) => {
+                return new UniqueMetadata({ entityMetadata, args })
+            })
+        entityMetadata.ownUniques.push(...uniques)
     }
 
     /**

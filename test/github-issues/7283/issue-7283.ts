@@ -14,7 +14,7 @@ describe("github issues > #7283 Generating Migration on ManyToOne/OneToMany + Pr
         async () =>
             (connections = await createTestingConnections({
                 migrations: [],
-                enabledDrivers: ["mysql", "mariadb", "postgres"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: false,
                 dropSchema: true,
                 entities: [AccessEvent, Employee],

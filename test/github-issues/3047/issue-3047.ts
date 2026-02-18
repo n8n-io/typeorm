@@ -7,7 +7,6 @@ import {
 import { DataSource } from "../../../src/data-source/DataSource"
 import { expect } from "chai"
 import { User } from "./entity/User"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #3047 Mysqsl on duplicate key update use current values", () => {
     let connections: DataSource[]
@@ -39,28 +38,6 @@ describe("github issues > #3047 Mysqsl on duplicate key update use current value
         Promise.all(
             connections.map(async (connection) => {
                 try {
-                    if (DriverUtils.isMySQLFamily(connection.driver)) {
-                        const UserRepository =
-                            connection.manager.getRepository(User)
-
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .into(User)
-                            .values(user1)
-                            .execute()
-
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .into(User)
-                            .values(user2)
-                            .orUpdate(["is_updated"])
-                            .execute()
-
-                        let loadedUser = await UserRepository.find()
-                        expect(loadedUser).not.to.be.null
-                        expect(loadedUser).to.have.lengthOf(1)
-                        expect(loadedUser[0]).to.includes({ is_updated: "yes" })
-                    }
                 } catch (err) {
                     throw new Error(err)
                 }

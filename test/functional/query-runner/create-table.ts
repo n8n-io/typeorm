@@ -64,9 +64,9 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 table!.should.exist
 
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
-                    table!.uniques.length.should.be.equal(1)
-                }
+
+                table!.uniques.length.should.be.equal(1)
+
 
                 await queryRunner.executeMemoryDownSql()
                 table = await queryRunner.getTable("category")
@@ -89,10 +89,10 @@ describe("query runner > create table", () => {
                 const versionColumn = table!.findColumnByName("version")
 
                 table!.should.exist
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
-                    table!.uniques.length.should.be.equal(2)
-                    table!.checks.length.should.be.equal(1)
-                }
+
+                table!.uniques.length.should.be.equal(2)
+                table!.checks.length.should.be.equal(1)
+
 
                 idColumn!.isPrimary.should.be.true
                 versionColumn!.isUnique.should.be.true
@@ -179,11 +179,7 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    questionTableOptions.indices!.push({
-                        columnNames: ["name", "text"],
-                    })
-                } else {
+
                     questionTableOptions.uniques = [
                         { columnNames: ["name", "text"] },
                     ]
@@ -194,7 +190,7 @@ describe("query runner > create table", () => {
                             )} <> 'ASD'`,
                         },
                     ]
-                }
+                
 
                 await queryRunner.createTable(
                     new Table(questionTableOptions),
@@ -237,19 +233,14 @@ describe("query runner > create table", () => {
                     ],
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    categoryTableOptions.indices = [
-                        { columnNames: ["name", "alternativeName"] },
-                    ]
-                } else {
+
                     categoryTableOptions.uniques = [
                         { columnNames: ["name", "alternativeName"] },
                     ]
-                }
+                
 
                 // When we mark column as unique, MySql create index for that column and we don't need to create index separately.
-                if (!DriverUtils.isMySQLFamily(connection.driver))
-                    categoryTableOptions.indices = [
+                categoryTableOptions.indices = [
                         { columnNames: ["questionId"] },
                     ]
 
@@ -270,12 +261,7 @@ describe("query runner > create table", () => {
                 questionIdColumn!.isPrimary.should.be.true
                 questionTable!.should.exist
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    // MySql, SAP HANA and Spanner does not have unique constraints.
-                    // all unique constraints are unique indexes.
-                    questionTable!.uniques.length.should.be.equal(0)
-                    questionTable!.indices.length.should.be.equal(2)
-                } else {
+
                     questionTable!.uniques.length.should.be.equal(1)
                     questionTable!.uniques[0].columnNames.length.should.be.equal(
                         2,
@@ -285,7 +271,7 @@ describe("query runner > create table", () => {
                         2,
                     )
                     questionTable!.checks.length.should.be.equal(1)
-                }
+                
 
                 questionTable!.foreignKeys.length.should.be.equal(1)
                 questionTable!.foreignKeys[0].columnNames.length.should.be.equal(
@@ -302,13 +288,10 @@ describe("query runner > create table", () => {
                 categoryTable!.should.exist
                 categoryTable!.foreignKeys.length.should.be.equal(1)
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    // MySql does not have unique constraints. All unique constraints are unique indexes.
-                    categoryTable!.indices.length.should.be.equal(3)
-                } else {
+
                     categoryTable!.uniques.length.should.be.equal(3)
                     categoryTable!.indices.length.should.be.equal(1)
-                }
+                
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -341,17 +324,12 @@ describe("query runner > create table", () => {
                 nameColumn!.isUnique.should.be.true
                 descriptionColumn!.isUnique.should.be.true
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    table!.uniques.length.should.be.equal(0)
-                    table!.indices.length.should.be.equal(4)
-                    tagColumn!.isUnique.should.be.true
-                    textColumn!.isUnique.should.be.true
-                } else {
+
                     table!.uniques.length.should.be.equal(2)
                     table!.indices.length.should.be.equal(2)
                     tagColumn!.isUnique.should.be.false
                     textColumn!.isUnique.should.be.false
-                }
+                
 
                 await queryRunner.executeMemoryDownSql()
 

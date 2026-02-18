@@ -27,7 +27,7 @@ describe("Connection", () => {
     describe("before connection is established", function () {
         let dataSource: DataSource
         before(async () => {
-            const options = setupSingleTestingConnection("mysql", {
+            const options = setupSingleTestingConnection("postgres", {
                 name: "default",
                 entities: [],
             })
@@ -102,7 +102,7 @@ describe("Connection", () => {
         it("should throw DriverOptionNotSetError when extra.socketPath and host is missing", function () {
             expect(() => {
                 new DataSource({
-                    type: "mysql",
+                    type: "postgres",
                     username: "test",
                     password: "test",
                     database: "test",

@@ -8,11 +8,11 @@ async function createDotenvFiles() {
     // These files may not always exist
     await fs.writeFile(
         path.join(__dirname, "configs/.env"),
-        "TYPEORM_CONNECTION = mysql\nTYPEORM_DATABASE = test-env",
+        "TYPEORM_CONNECTION = postgres\nTYPEORM_DATABASE = test-env",
     )
     await fs.writeFile(
         path.join(__dirname, "configs/ormconfig.env"),
-        "TYPEORM_CONNECTION = mysql\nTYPEORM_DATABASE = test-ormconfig-env",
+        "TYPEORM_CONNECTION = postgres\nTYPEORM_DATABASE = test-ormconfig-env",
     )
 }
 

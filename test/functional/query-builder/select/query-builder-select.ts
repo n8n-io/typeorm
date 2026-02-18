@@ -11,7 +11,6 @@ import { Post } from "./entity/Post"
 import { Tag } from "./entity/Tag"
 import { HeroImage } from "./entity/HeroImage"
 import { ExternalPost } from "./entity/ExternalPost"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > select", () => {
     let connections: DataSource[]
@@ -592,7 +591,7 @@ describe("query builder > select", () => {
         Promise.all(
             connections.map(async (connection) => {
                 // MAX_EXECUTION_TIME supports only in MySQL
-                if (!DriverUtils.isMySQLFamily(connection.driver)) return
+                return // MySQL-only test
 
                 const sql = connection
                     .createQueryBuilder(Post, "post")
@@ -607,9 +606,9 @@ describe("query builder > select", () => {
         Promise.all(
             connections.map(async (connection) => {
                 // `USE INDEX` is only supported in MySQL
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
-                    return
-                }
+
+                return
+
 
                 const sql = connection
                     .createQueryBuilder(Post, "post")

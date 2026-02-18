@@ -6,7 +6,6 @@ import {
 } from "../../utils/test-utils"
 import { User } from "./entity/User"
 import { expect } from "chai"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #2376 Naming single column unique constraint with decorator not working as expected", () => {
     let connections: DataSource[]
@@ -35,14 +34,6 @@ describe("github issues > #2376 Naming single column unique constraint with deco
                     (it) => it.name === "unique-email-nickname",
                 )
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    unique1 = table!.indices.find(
-                        (it) => it.name === "unique-email",
-                    )
-                    unique2 = table!.indices.find(
-                        (it) => it.name === "unique-email-nickname",
-                    )
-                }
 
                 expect(unique1).to.be.not.undefined
                 expect(unique2).to.be.not.undefined

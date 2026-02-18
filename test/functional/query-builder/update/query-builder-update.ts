@@ -11,7 +11,6 @@ import { LimitOnUpdateNotSupportedError } from "../../../../src/error/LimitOnUpd
 import { Photo } from "./entity/Photo"
 import { UpdateValuesMissingError } from "../../../../src/error/UpdateValuesMissingError"
 import { EntityPropertyNotFoundError } from "../../../../src/error/EntityPropertyNotFoundError"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > update", () => {
     let connections: DataSource[]
@@ -196,20 +195,7 @@ describe("query builder > update", () => {
                 const limitNum = 2
                 const nameToFind = "Dima Zotov"
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await connection
-                        .createQueryBuilder()
-                        .update(User)
-                        .set({ name: nameToFind })
-                        .limit(limitNum)
-                        .execute()
 
-                    const loadedUsers = await connection
-                        .getRepository(User)
-                        .findBy({ name: nameToFind })
-                    expect(loadedUsers).to.exist
-                    loadedUsers!.length.should.be.equal(limitNum)
-                } else {
                     await connection
                         .createQueryBuilder()
                         .update(User)
@@ -217,7 +203,7 @@ describe("query builder > update", () => {
                         .limit(limitNum)
                         .execute()
                         .should.be.rejectedWith(LimitOnUpdateNotSupportedError)
-                }
+                
             }),
         ))
 

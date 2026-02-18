@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid"
 import { EntityTarget } from "../common/EntityTarget"
 import { ObjectLiteral } from "../common/ObjectLiteral"
 import { DriverUtils } from "../driver/DriverUtils"
-import { MysqlDriver } from "../driver/mysql/MysqlDriver"
 import { TypeORMError } from "../error"
 import { InsertValuesMissingError } from "../error/InsertValuesMissingError"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
@@ -394,10 +393,6 @@ export class InsertQueryBuilder<
             query = "UPSERT "
         }
 
-        if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-            query += `${this.expressionMap.onIgnore ? " IGNORE " : ""}`
-        }
-
         query += `INTO ${tableName}`
 
         if (
@@ -410,25 +405,13 @@ export class InsertQueryBuilder<
         // add columns expression
         if (columnsExpression) {
             query += `(${columnsExpression})`
-        } else {
-            if (
-                !valuesExpression &&
-                DriverUtils.isMySQLFamily(this.connection.driver)
-            )
-                // special syntax for mysql DEFAULT VALUES insertion
-                query += "()"
         }
 
         // add VALUES expression
         if (valuesExpression) {
             query += ` VALUES ${valuesExpression}`
         } else {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                // special syntax for mysql DEFAULT VALUES insertion
-                query += " VALUES ()"
-            } else {
-                query += ` DEFAULT VALUES`
-            }
+            query += ` DEFAULT VALUES`
         }
         if (this.expressionMap.onUpdate?.upsertType !== "primary-key") {
             if (
@@ -585,8 +568,7 @@ export class InsertQueryBuilder<
         // add RETURNING expression
         if (
             returningExpression &&
-            (DriverUtils.isPostgresFamily(this.connection.driver) ||
-                DriverUtils.isMySQLFamily(this.connection.driver))
+            DriverUtils.isPostgresFamily(this.connection.driver)
         ) {
             query += ` RETURNING ${returningExpression}`
         }
@@ -619,8 +601,7 @@ export class InsertQueryBuilder<
                 if (
                     column.isGenerated &&
                     column.generationStrategy === "increment" &&
-                    !DriverUtils.isSQLiteFamily(this.connection.driver) &&
-                    !DriverUtils.isMySQLFamily(this.connection.driver)
+                    !DriverUtils.isSQLiteFamily(this.connection.driver)
                 )
                     return false
 
@@ -779,23 +760,6 @@ export class InsertQueryBuilder<
                         const paramName = this.createParameter(value)
 
                         if (
-                            DriverUtils.isMySQLFamily(this.connection.driver) &&
-                            this.connection.driver.spatialTypes.indexOf(
-                                column.type,
-                            ) !== -1
-                        ) {
-                            const useLegacy = (
-                                this.connection.driver as MysqlDriver
-                            ).options.legacySpatialSupport
-                            const geomFromText = useLegacy
-                                ? "GeomFromText"
-                                : "ST_GeomFromText"
-                            if (column.srid != null) {
-                                expression += `${geomFromText}(${paramName}, ${column.srid})`
-                            } else {
-                                expression += `${geomFromText}(${paramName})`
-                            }
-                        } else if (
                             DriverUtils.isPostgresFamily(
                                 this.connection.driver,
                             ) &&

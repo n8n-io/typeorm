@@ -14,7 +14,7 @@ describe("query runner > stream", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [Book],
-            enabledDrivers: ["mysql", "postgres"],
+            enabledDrivers: ["postgres"],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))

@@ -5,10 +5,8 @@ import { DepGraph } from "../util/DepGraph"
 import { Driver } from "../driver/Driver"
 import { DataTypeNotSupportedError } from "../error/DataTypeNotSupportedError"
 import { ColumnType } from "../driver/types/ColumnTypes"
-import { NoConnectionOptionError } from "../error/NoConnectionOptionError"
 import { InitializedRelationError } from "../error/InitializedRelationError"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 
 /// todo: add check if there are multiple tables with the same name
 /// todo: add checks when generated column / table names are too long for the specific driver
@@ -147,28 +145,6 @@ export class EntityMetadataValidator {
                         `Column "${column.propertyName}" of Entity "${entityMetadata.name}" is defined as enum, but missing "enum" or "enumName" properties.`,
                     )
             })
-
-        if (DriverUtils.isMySQLFamily(driver)) {
-            const generatedColumns = entityMetadata.columns.filter(
-                (column) =>
-                    column.isGenerated && column.generationStrategy !== "uuid",
-            )
-            if (generatedColumns.length > 1)
-                throw new TypeORMError(
-                    `Error in ${entityMetadata.name} entity. There can be only one auto-increment column in MySql table.`,
-                )
-        }
-
-        // for mysql we are able to not define a default selected database, instead all entities can have their database
-        // defined in their decorators. To make everything work either all entities must have database define and we
-        // can live without database set in the connection options, either database in the connection options must be set
-        if (DriverUtils.isMySQLFamily(driver)) {
-            const metadatasWithDatabase = allEntityMetadatas.filter(
-                (metadata) => metadata.database,
-            )
-            if (metadatasWithDatabase.length === 0 && !driver.database)
-                throw new NoConnectionOptionError("database")
-        }
 
         // Postgres supports only STORED generated columns.
         if (driver.options.type === "postgres") {

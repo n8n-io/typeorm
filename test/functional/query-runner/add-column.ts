@@ -44,8 +44,7 @@ describe("query runner > add column", () => {
                 // MySql, Sqlite does not supports autoincrement composite primary keys.
                 if (
                     !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
-                        DriverUtils.isSQLiteFamily(connection.driver)
+DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
                     column1.isGenerated = true
@@ -69,14 +68,7 @@ describe("query runner > add column", () => {
                     isNullable: false,
                 })
 
-                let column4 = new TableColumn({
-                    name: "textAndTag2",
-                    type: "varchar",
-                    length: "200",
-                    generatedType: "VIRTUAL",
-                    asExpression: "text || tag",
-                    isNullable: false,
-                })
+
 
                 await queryRunner.addColumn(table!, column1)
                 await queryRunner.addColumn("post", column2)
@@ -91,8 +83,7 @@ describe("query runner > add column", () => {
                 // Spanner does not support autoincrement.
                 if (
                     !(
-                        DriverUtils.isMySQLFamily(connection.driver) ||
-                        DriverUtils.isSQLiteFamily(connection.driver)
+DriverUtils.isSQLiteFamily(connection.driver)
                     )
                 ) {
                     column1!.isGenerated.should.be.true
@@ -104,10 +95,8 @@ describe("query runner > add column", () => {
                 column2.length.should.be.equal("100")
 
                 if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
-                    connection.driver.options.type === "postgres"
+connection.driver.options.type === "postgres"
                 ) {
-                    const isMySQL = connection.options.type === "mysql"
                     let postgresSupported = false
 
                     if (connection.driver.options.type === "postgres") {
@@ -116,7 +105,7 @@ describe("query runner > add column", () => {
                         ).isGeneratedColumnsSupported
                     }
 
-                    if (isMySQL || postgresSupported) {
+                    if (postgresSupported) {
                         // create typeorm_metadata table manually
                         await createTypeormMetadataTable(
                             connection.driver,
@@ -129,14 +118,6 @@ describe("query runner > add column", () => {
                         column3!.generatedType!.should.be.equals("STORED")
                         column3!.asExpression!.should.be.a("string")
 
-                        if (DriverUtils.isMySQLFamily(connection.driver)) {
-                            await queryRunner.addColumn(table!, column4)
-                            table = await queryRunner.getTable("post")
-                            column4 = table!.findColumnByName("textAndTag2")!
-                            column4.should.be.exist
-                            column4!.generatedType!.should.be.equals("VIRTUAL")
-                            column4!.asExpression!.should.be.a("string")
-                        }
                     }
                 }
 
