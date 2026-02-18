@@ -587,35 +587,4 @@ describe("query builder > select", () => {
             ))
     })
 
-    it("Support max execution time", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                // MAX_EXECUTION_TIME supports only in MySQL
-                return // MySQL-only test
-
-                const sql = connection
-                    .createQueryBuilder(Post, "post")
-                    .maxExecutionTime(1000)
-                    .getSql()
-
-                expect(sql).contains("SELECT /*+ MAX_EXECUTION_TIME(1000) */")
-            }),
-        ))
-
-    it("Support using certain index", () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                // `USE INDEX` is only supported in MySQL
-
-                return
-
-
-                const sql = connection
-                    .createQueryBuilder(Post, "post")
-                    .useIndex("my_index")
-                    .getSql()
-
-                expect(sql).contains("FROM post USE INDEX (my_index)")
-            }),
-        ))
 })
