@@ -55,7 +55,8 @@ describe("github issues > #813 order by must support functions", () => {
                 const posts = await connection
                     .createQueryBuilder(Post, "post")
                     .leftJoinAndSelect("post.categories", "categories")
-                    .orderBy("RANDOM()")
+                    .addSelect("RANDOM()", "random_order")
+                    .orderBy("random_order")
                     .skip(0)
                     .take(1)
                     .getMany()
