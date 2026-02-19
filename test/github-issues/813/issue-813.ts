@@ -22,8 +22,6 @@ describe("github issues > #813 order by must support functions", () => {
     it("should work perfectly", () =>
         Promise.all(
             connections.map(async (connection) => {
-                return // MySQL-only test
-
                 const categories = [new Category(), new Category()]
                 await connection.manager.save(categories)
 
@@ -35,7 +33,7 @@ describe("github issues > #813 order by must support functions", () => {
                 const posts = await connection
                     .createQueryBuilder(Post, "post")
                     .leftJoinAndSelect("post.categories", "categories")
-                    .orderBy("RAND()")
+                    .orderBy("RANDOM()")
                     .getMany()
 
                 posts[0].id.should.be.equal(1)
@@ -46,8 +44,6 @@ describe("github issues > #813 order by must support functions", () => {
     it("should work perfectly with pagination as well", () =>
         Promise.all(
             connections.map(async (connection) => {
-                return // MySQL-only test
-
                 const categories = [new Category(), new Category()]
                 await connection.manager.save(categories)
 
@@ -59,7 +55,7 @@ describe("github issues > #813 order by must support functions", () => {
                 const posts = await connection
                     .createQueryBuilder(Post, "post")
                     .leftJoinAndSelect("post.categories", "categories")
-                    .orderBy("RAND()")
+                    .orderBy("RANDOM()")
                     .skip(0)
                     .take(1)
                     .getMany()
