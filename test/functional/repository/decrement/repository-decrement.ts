@@ -180,7 +180,7 @@ describe("repository > decrement method", () => {
             async () =>
                 (connections = await createTestingConnections({
                     entities: [PostBigInt],
-                    enabledDrivers: ["mysql", "mariadb", "postgres"],
+                    enabledDrivers: ["postgres"],
                     // logging: true
                 })),
         )

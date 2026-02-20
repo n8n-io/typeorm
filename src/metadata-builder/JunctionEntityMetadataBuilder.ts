@@ -6,7 +6,6 @@ import { IndexMetadata } from "../metadata/IndexMetadata"
 import { JoinTableMetadataArgs } from "../metadata-args/JoinTableMetadataArgs"
 import { RelationMetadata } from "../metadata/RelationMetadata"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 
 /**
  * Creates EntityMetadata for junction tables.
@@ -95,17 +94,7 @@ export class JunctionEntityMetadataBuilder {
                     propertyName: columnName,
                     options: {
                         name: columnName,
-                        length:
-                            !referencedColumn.length &&
-                            DriverUtils.isMySQLFamily(this.connection.driver) &&
-                            // some versions of mariadb support the column type and should not try to provide the length property
-                            this.connection.driver.normalizeType(
-                                referencedColumn,
-                            ) !== "uuid" &&
-                            (referencedColumn.generationStrategy === "uuid" ||
-                                referencedColumn.type === "uuid")
-                                ? "36"
-                                : referencedColumn.length, // fix https://github.com/typeorm/typeorm/issues/3604
+                        length: referencedColumn.length,
                         width: referencedColumn.width,
                         type: referencedColumn.type,
                         precision: referencedColumn.precision,
@@ -159,20 +148,7 @@ export class JunctionEntityMetadataBuilder {
                         mode: "virtual",
                         propertyName: columnName,
                         options: {
-                            length:
-                                !inverseReferencedColumn.length &&
-                                DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
-                                ) &&
-                                // some versions of mariadb support the column type and should not try to provide the length property
-                                this.connection.driver.normalizeType(
-                                    inverseReferencedColumn,
-                                ) !== "uuid" &&
-                                (inverseReferencedColumn.generationStrategy ===
-                                    "uuid" ||
-                                    inverseReferencedColumn.type === "uuid")
-                                    ? "36"
-                                    : inverseReferencedColumn.length, // fix https://github.com/typeorm/typeorm/issues/3604
+                            length: inverseReferencedColumn.length,
                             width: inverseReferencedColumn.width, // fix https://github.com/typeorm/typeorm/issues/6442
                             type: inverseReferencedColumn.type,
                             precision: inverseReferencedColumn.precision,

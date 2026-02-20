@@ -7,7 +7,6 @@ import {
 } from "../../../../utils/test-utils"
 import { DataSource } from "../../../../../src"
 import { PostSchema } from "./entity/Post"
-import { DriverUtils } from "../../../../../src/driver/DriverUtils"
 
 describe("database schema > custom constraint names > unique", () => {
     let dataSources: DataSource[]
@@ -27,17 +26,12 @@ describe("database schema > custom constraint names > unique", () => {
                 let metadata = dataSource.getMetadata(PostSchema)
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
-                    const uniqueIndex = metadata.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
+
                     const unique = metadata.uniques.find(
                         (it) => it.name === "UQ_NAME",
                     )
                     expect(unique).to.exist
-                }
+                
             }),
         ))
 
@@ -49,17 +43,12 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
+
                     const unique = table!.uniques.find(
                         (it) => it.name === "UQ_NAME",
                     )
                     expect(unique).to.exist
-                }
+                
             }),
         ))
 
@@ -74,17 +63,12 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
+
                     const unique = table!.uniques.find(
                         (it) => it.name === "UQ_NAME",
                     )
                     expect(unique).to.exist
-                }
+                
             }),
         ))
 
@@ -111,17 +95,12 @@ describe("database schema > custom constraint names > unique", () => {
                 await queryRunner.release()
 
                 // This drivers stores unique constraints as unique indices.
-                if (DriverUtils.isMySQLFamily(dataSource.driver)) {
-                    const uniqueIndex = table!.indices.find(
-                        (it) => it.name === "UQ_NAME",
-                    )
-                    expect(uniqueIndex).to.exist
-                } else {
+
                     const unique = table!.uniques.find(
                         (it) => it.name === "UQ_NAME",
                     )
                     expect(unique).to.exist
-                }
+                
             }),
         ))
 })

@@ -15,13 +15,7 @@ describe("github issues > #2518 TreeRepository.findDescendantsTree does not load
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: [
-                    "postgres",
-                    "mariadb",
-                    "mysql",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
 

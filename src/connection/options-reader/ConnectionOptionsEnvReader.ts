@@ -75,7 +75,6 @@ export class ConnectionOptionsEnvReader {
                 maxQueryExecutionTime: PlatformTools.getEnvVariable(
                     "TYPEORM_MAX_QUERY_EXECUTION_TIME",
                 ),
-                debug: PlatformTools.getEnvVariable("TYPEORM_DEBUG"),
                 cache: this.transformCaching(),
                 uuidExtension: PlatformTools.getEnvVariable(
                     "TYPEORM_UUID_EXTENSION",

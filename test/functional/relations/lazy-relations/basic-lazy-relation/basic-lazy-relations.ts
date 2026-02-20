@@ -380,7 +380,6 @@ describe("basic-lazy-relations", () => {
             connections
                 .filter((connection) =>
                     new Set([
-                        "mysql",
                         "sqlite",
                         "sqlite-pooled",
                         "postgres",
@@ -414,10 +413,8 @@ describe("basic-lazy-relations", () => {
             connections
                 .filter((connection) =>
                     new Set([
-                        "mysql",
                         "sqlite",
                         "sqlite-pooled",
-
                         "postgres",
                     ]).has(connection.options.type),
                 )

@@ -8,7 +8,6 @@ import {
 import { Teacher } from "./entity/Teacher"
 import { Post } from "./entity/Post"
 import { CheckMetadata } from "../../../src/metadata/CheckMetadata"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("schema builder > change check constraint", () => {
     let connections: DataSource[]
@@ -25,8 +24,6 @@ describe("schema builder > change check constraint", () => {
     it("should correctly add new check constraint", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // Mysql does not support check constraints.
-                if (DriverUtils.isMySQLFamily(connection.driver)) return
 
                 const teacherMetadata = connection.getMetadata(Teacher)
                 const checkMetadata = new CheckMetadata({
@@ -54,8 +51,6 @@ describe("schema builder > change check constraint", () => {
     it("should correctly change check", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // Mysql does not support check constraints.
-                if (DriverUtils.isMySQLFamily(connection.driver)) return
 
                 const postMetadata = connection.getMetadata(Post)
                 postMetadata.checks[0].expression = `${connection.driver.escape(
@@ -78,8 +73,6 @@ describe("schema builder > change check constraint", () => {
     it("should correctly drop removed check", () =>
         Promise.all(
             connections.map(async (connection) => {
-                // Mysql does not support check constraints.
-                if (DriverUtils.isMySQLFamily(connection.driver)) return
 
                 const postMetadata = connection.getMetadata(Post)
                 postMetadata.checks = []

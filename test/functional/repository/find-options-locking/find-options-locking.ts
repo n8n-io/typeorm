@@ -106,10 +106,7 @@ describe("repository > find options > locking", () => {
                     })
                 })
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    expect(executedSql[0].indexOf("LOCK IN SHARE MODE") !== -1)
-                        .to.be.true
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     expect(executedSql[0].indexOf("FOR SHARE") !== -1).to.be
                         .true
                 }
@@ -183,12 +180,7 @@ describe("repository > find options > locking", () => {
             connections.map(async (connection) => {
                 if (
                     !(
-                        connection.driver.options.type === "postgres" ||
-                        (connection.driver.options.type === "mysql" &&
-                            DriverUtils.isReleaseVersionOrGreater(
-                                connection.driver,
-                                "8.0.0",
-                            ))
+                        connection.driver.options.type === "postgres"
                     )
                 )
                     return
@@ -226,14 +218,7 @@ describe("repository > find options > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    !(
-                        connection.driver.options.type === "postgres" ||
-                        (DriverUtils.isMySQLFamily(connection.driver) &&
-                            DriverUtils.isReleaseVersionOrGreater(
-                                connection.driver,
-                                "8.0.0",
-                            ))
-                    )
+                    !(connection.driver.options.type === "postgres")
                 )
                     return
 
@@ -291,7 +276,6 @@ describe("repository > find options > locking", () => {
                 })
 
                 if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
                     connection.driver.options.type === "postgres"
                 ) {
                     expect(executedSql[0].indexOf("FOR UPDATE") !== -1).to.be

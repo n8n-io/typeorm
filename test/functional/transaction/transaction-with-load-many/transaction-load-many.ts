@@ -7,9 +7,7 @@ import {
 } from "../../../utils/test-utils"
 import { DataSource } from "../../../../src"
 import { Post } from "./entity/Post"
-import { MysqlDriver } from "../../../../src/driver/mysql/MysqlDriver"
 import { PostgresDriver } from "../../../../src/driver/postgres/PostgresDriver"
-import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("transaction > transaction with load many", () => {
     let connections: DataSource[]
@@ -17,7 +15,7 @@ describe("transaction > transaction with load many", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["postgres", "mariadb", "mysql"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
@@ -30,10 +28,7 @@ describe("transaction > transaction with load many", () => {
 
                 const driver = connection.driver
 
-                if (DriverUtils.isMySQLFamily(driver)) {
-                    const pool = (driver as MysqlDriver).pool
-                    pool.on("acquire", () => acquireCount++)
-                } else if (driver.options.type === "postgres") {
+                if (driver.options.type === "postgres") {
                     const pool = (driver as PostgresDriver).master
                     pool?.on("acquire", () => acquireCount++)
                 }

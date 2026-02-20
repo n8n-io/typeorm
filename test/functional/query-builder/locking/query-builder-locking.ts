@@ -16,7 +16,6 @@ import { OptimisticLockCanNotBeUsedError } from "../../../../src/error/Optimisti
 import { NoVersionOrUpdateDateColumnError } from "../../../../src/error/NoVersionOrUpdateDateColumnError"
 import { PessimisticLockTransactionRequiredError } from "../../../../src/error/PessimisticLockTransactionRequiredError"
 import { LockNotSupportedOnGivenDriverError } from "../../../../src/error/LockNotSupportedOnGivenDriverError"
-import { VersionUtils } from "../../../../src/util/VersionUtils"
 import { DriverUtils } from "../../../../src/driver/DriverUtils"
 
 describe("query builder > locking", () => {
@@ -181,23 +180,6 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (version.includes("maria")) return // not supported in mariadb
-                    if (VersionUtils.isGreaterOrEqual(version, "8.0.0")) {
-                        return connection
-                            .createQueryBuilder(PostWithVersion, "post")
-                            .setLock("pessimistic_partial_write")
-                            .where("post.id = :id", { id: 1 })
-                            .getOne()
-                            .should.be.rejectedWith(
-                                PessimisticLockTransactionRequiredError,
-                            )
-                    }
-                }
                 return
             }),
         ))
@@ -217,29 +199,6 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (version.includes("maria")) return // not supported in mariadb
-                    if (VersionUtils.isGreaterOrEqual(version, "8.0.0")) {
-                        return connection.manager.transaction(
-                            (entityManager) => {
-                                return Promise.all([
-                                    entityManager
-                                        .createQueryBuilder(
-                                            PostWithVersion,
-                                            "post",
-                                        )
-                                        .setLock("pessimistic_partial_write")
-                                        .where("post.id = :id", { id: 1 })
-                                        .getOne().should.not.be.rejected,
-                                ])
-                            },
-                        )
-                    }
-                }
                 return
             }),
         ))
@@ -258,27 +217,6 @@ describe("query builder > locking", () => {
                         )
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (
-                        (version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "10.3.0")) ||
-                        (!version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "8.0.0"))
-                    ) {
-                        return connection
-                            .createQueryBuilder(PostWithVersion, "post")
-                            .setLock("pessimistic_write_or_fail")
-                            .where("post.id = :id", { id: 1 })
-                            .getOne()
-                            .should.be.rejectedWith(
-                                PessimisticLockTransactionRequiredError,
-                            )
-                    }
-                }
                 return
             }),
         ))
@@ -298,33 +236,6 @@ describe("query builder > locking", () => {
                     })
                 }
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    let [{ version }] = await connection.query(
-                        "SELECT VERSION() as version;",
-                    )
-                    version = version.toLowerCase()
-                    if (
-                        (version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "10.3.0")) ||
-                        (!version.includes("maria") &&
-                            VersionUtils.isGreaterOrEqual(version, "8.0.0"))
-                    ) {
-                        return connection.manager.transaction(
-                            (entityManager) => {
-                                return Promise.all([
-                                    entityManager
-                                        .createQueryBuilder(
-                                            PostWithVersion,
-                                            "post",
-                                        )
-                                        .setLock("pessimistic_write_or_fail")
-                                        .where("post.id = :id", { id: 1 })
-                                        .getOne().should.not.be.rejected,
-                                ])
-                            },
-                        )
-                    }
-                }
                 return
             }),
         ))
@@ -340,9 +251,7 @@ describe("query builder > locking", () => {
                     .where("post.id = :id", { id: 1 })
                     .getSql()
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    expect(sql.indexOf("LOCK IN SHARE MODE") !== -1).to.be.true
-                } else if (connection.driver.options.type === "postgres") {
+                if (connection.driver.options.type === "postgres") {
                     expect(sql.indexOf("FOR SHARE") !== -1).to.be.true
                 }
             }),
@@ -375,7 +284,6 @@ describe("query builder > locking", () => {
                     .getSql()
 
                 if (
-                    DriverUtils.isMySQLFamily(connection.driver) ||
                     connection.driver.options.type === "postgres"
                 ) {
                     expect(sql.indexOf("FOR UPDATE") !== -1).to.be.true
@@ -449,8 +357,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -468,8 +375,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -488,8 +394,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -506,8 +411,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -933,8 +837,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -952,8 +855,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    DriverUtils.isMySQLFamily(connection.driver)
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -971,12 +873,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -994,12 +891,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
+                    connection.driver.options.type === "postgres"
                 ) {
                     const sql = connection
                         .createQueryBuilder(PostWithVersion, "post")
@@ -1017,12 +909,7 @@ describe("query builder > locking", () => {
         Promise.all(
             connections.map(async (connection) => {
                 if (
-                    connection.driver.options.type === "postgres" ||
-                    (connection.driver.options.type === "mysql" &&
-                        DriverUtils.isReleaseVersionOrGreater(
-                            connection.driver,
-                            "8.0.0",
-                        ))
+                    connection.driver.options.type === "postgres"
                 ) {
                     return connection.manager.transaction((entityManager) => {
                         return Promise.resolve(
@@ -1056,25 +943,4 @@ describe("query builder > locking", () => {
             }),
         ))
 
-    it('skip_locked with "pessimistic_read" fails on early versions of MySQL', () =>
-        Promise.all(
-            connections.map(async (connection) => {
-                if (
-                    connection.driver.options.type === "mysql" &&
-                    !DriverUtils.isReleaseVersionOrGreater(
-                        connection.driver,
-                        "8.0.0",
-                    )
-                ) {
-                    const sql = connection
-                        .createQueryBuilder(PostWithVersion, "post")
-                        .setLock("pessimistic_read")
-                        .setOnLocked("nowait")
-                        .where("post.id = :id", { id: 1 })
-                        .getSql()
-
-                    expect(sql.endsWith("LOCK IN SHARE MODE")).to.be.true
-                }
-            }),
-        ))
 })

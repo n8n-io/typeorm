@@ -139,19 +139,19 @@ describe("query runner > rename table", () => {
                 await queryRunner.dropPrimaryKey(table!)
 
                 // MySql does not support unique constraints
-                if (!DriverUtils.isMySQLFamily(connection.driver)) {
-                    const newUniqueConstraintName =
-                        connection.namingStrategy.uniqueConstraintName(table!, [
-                            "text",
-                            "tag",
-                        ])
-                    let tableUnique = table!.uniques.find((unique) => {
-                        return !!unique.columnNames.find(
-                            (columnName) => columnName === "tag",
-                        )
-                    })
-                    tableUnique!.name!.should.be.equal(newUniqueConstraintName)
-                }
+
+                const newUniqueConstraintName =
+                    connection.namingStrategy.uniqueConstraintName(table!, [
+                        "text",
+                        "tag",
+                    ])
+                let tableUnique = table!.uniques.find((unique) => {
+                    return !!unique.columnNames.find(
+                        (columnName) => columnName === "tag",
+                    )
+                })
+                tableUnique!.name!.should.be.equal(newUniqueConstraintName)
+
 
                 await queryRunner.executeMemoryDownSql()
 
@@ -180,12 +180,6 @@ describe("query runner > rename table", () => {
                     categoryTableName = "testSchema.category"
                     renamedCategoryTableName = "testSchema.renamedCategory"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    questionTableName = "testDB.question"
-                    renamedQuestionTableName = "testDB.renamedQuestion"
-                    categoryTableName = "testDB.category"
-                    renamedCategoryTableName = "testDB.renamedCategory"
-                    await queryRunner.createDatabase("testDB", true)
                 }
 
                 await queryRunner.createTable(

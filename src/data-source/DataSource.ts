@@ -318,7 +318,6 @@ export class DataSource {
         const queryRunner = this.createQueryRunner()
         try {
             if (
-                DriverUtils.isMySQLFamily(this.driver) ||
                 DriverUtils.isSQLiteFamily(this.driver)
             ) {
                 const databases: string[] = []

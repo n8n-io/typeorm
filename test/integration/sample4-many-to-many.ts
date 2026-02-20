@@ -17,7 +17,7 @@ describe("many-to-many", function () {
     // connect to db
     let dataSource: DataSource
     before(async function () {
-        const options = setupSingleTestingConnection("mysql", {
+        const options = setupSingleTestingConnection("postgres", {
             entities: [
                 __dirname + "/../../sample/sample4-many-to-many/entity/*",
             ],

@@ -1,30 +1,5 @@
 version: "3"
 services:
-  # mysql
-  mysql:
-    platform: linux/amd64
-    image: "mysql:5.7.37"
-    container_name: "typeorm-mysql"
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: "admin"
-      MYSQL_USER: "test"
-      MYSQL_PASSWORD: "test"
-      MYSQL_DATABASE: "test"
-
-  # mariadb
-  mariadb:
-    image: "mariadb:10.10.3"
-    container_name: "typeorm-mariadb"
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: "admin"
-      MYSQL_USER: "test"
-      MYSQL_PASSWORD: "test"
-      MYSQL_DATABASE: "test"
-
   # postgres
   postgres:
     # mdillon/postgis is postgres + PostGIS (only). if you need additional

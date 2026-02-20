@@ -7,7 +7,6 @@ import {
 import { DataSource } from "../../../src/data-source/DataSource"
 import { expect } from "chai"
 import { User } from "./entity/User"
-import { DriverUtils } from "../../../src/driver/DriverUtils"
 
 describe("github issues > #1780 Support for insertion ignore on duplicate error", () => {
     let connections: DataSource[]
@@ -36,51 +35,6 @@ describe("github issues > #1780 Support for insertion ignore on duplicate error"
         Promise.all(
             connections.map(async (connection) => {
                 try {
-                    if (DriverUtils.isMySQLFamily(connection.driver)) {
-                        const UserRepository =
-                            connection.manager.getRepository(User)
-                        // ignore while insertion duplicated row
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .orIgnore()
-                            .into(User)
-                            .values(user1)
-                            .execute()
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .orIgnore()
-                            .into(User)
-                            .values(user2)
-                            .execute()
-                        let loadedUser_1 = await UserRepository.find()
-                        expect(loadedUser_1).not.to.be.eql([])
-                        loadedUser_1.length.should.be.equal(1)
-                        // remove all rows
-                        await UserRepository.remove(loadedUser_1)
-                        let loadedUser_2 = await UserRepository.find()
-                        expect(loadedUser_2).to.be.eql([])
-                        // update while insertion duplicated row
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .orUpdate(["is_updated"])
-                            .into(User)
-                            .values(user1)
-                            .execute()
-                        await UserRepository.createQueryBuilder()
-                            .insert()
-                            .orUpdate(["is_updated"])
-                            .into(User)
-                            .values(user2)
-                            .execute()
-                        let loadedUser_3 = await UserRepository.find()
-                        expect(loadedUser_3).not.to.be.eql([])
-                        loadedUser_3.length.should.be.equal(1)
-                        expect(loadedUser_3[0]).to.deep.include({
-                            first_name: "John",
-                            last_name: "Lenon",
-                            is_updated: "yes",
-                        })
-                    }
                 } catch (err) {
                     throw new Error(err)
                 }

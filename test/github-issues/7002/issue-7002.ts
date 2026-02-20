@@ -18,7 +18,7 @@ describe.skip("github issues > #7002 cascade save fails if the child entity has 
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: ["mysql", "postgres"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

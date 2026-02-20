@@ -11,7 +11,7 @@ describe("github issues > #7479 Only first single quote in comments is escaped",
     before(
         async () =>
             (connections = await createTestingConnections({
-                enabledDrivers: ["postgres", "mysql"],
+                enabledDrivers: ["postgres"],
                 schemaCreate: true,
                 dropSchema: true,
                 entities: [Post],

@@ -16,12 +16,7 @@ describe("github issues > #9173 missing typeorm_metadata", () => {
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "sqlite",
-                    "sqlite-pooled",
-                    "mysql",
-                    "postgres",
-                ],
+                enabledDrivers: ["sqlite", "sqlite-pooled", "postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

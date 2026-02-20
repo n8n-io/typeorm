@@ -15,7 +15,7 @@ describe("transaction > transaction with full isolation support", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
-                enabledDrivers: ["mysql", "postgres"], // todo: for some reasons mariadb tests are not passing here
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

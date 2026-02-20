@@ -15,12 +15,7 @@ describe("github issues > #8527 cannot clear database inside a transaction.", ()
         async () =>
             (connections = await createTestingConnections({
                 entities: [TestEntity],
-                enabledDrivers: [
-                    "postgres",
-                    "sqlite",
-                    "sqlite-pooled",
-                    "mysql",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
                 dropSchema: true,
                 schemaCreate: true,
             })),

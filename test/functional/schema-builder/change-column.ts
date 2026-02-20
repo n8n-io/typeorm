@@ -70,11 +70,9 @@ describe("schema builder > change column", () => {
                     .findColumnByName("text")!
                     .length.should.be.equal("300")
 
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    postTable!.indices.length.should.be.equal(2)
-                } else {
+
                     postTable!.uniques.length.should.be.equal(2)
-                }
+                
 
                 // revert changes
                 nameColumn.length = "255"
@@ -309,7 +307,7 @@ describe("schema builder > change column", () => {
                 if (
                     !(
                         connection.driver.options.type === "postgres" ||
-                        DriverUtils.isMySQLFamily(connection.driver)
+                        false
                     )
                 ) {
                     return

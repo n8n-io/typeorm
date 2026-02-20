@@ -17,13 +17,7 @@ describe("github issues > #9272 Fix select on deeply nested embedded entities, u
                 entities: [__dirname + "/entity/*{.js,.ts}"],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "mariadb",
-                    "mysql",
-                    "postgres",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(dataSources))

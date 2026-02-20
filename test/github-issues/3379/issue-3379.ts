@@ -28,9 +28,6 @@ describe("github issues > #3379 Migration will keep create and drop indexes if i
                 if (connection.driver.options.type === "postgres") {
                     postTableName = "testSchema.post"
                     await queryRunner.createSchema("testSchema", true)
-                } else if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    postTableName = "testDB.post"
-                    await queryRunner.createDatabase("testDB", true)
                 }
 
                 await queryRunner.createTable(
@@ -61,30 +58,6 @@ describe("github issues > #3379 Migration will keep create and drop indexes if i
                 )
 
                 // Only MySQL and SQLServer allows non unique index names
-                if (DriverUtils.isMySQLFamily(connection.driver)) {
-                    await queryRunner.createTable(
-                        new Table({
-                            name: "category",
-                            columns: [
-                                {
-                                    name: "id",
-                                    type: "int",
-                                    isPrimary: true,
-                                    isGenerated: true,
-                                    generationStrategy: "increment",
-                                },
-                                {
-                                    name: "name",
-                                    type: "varchar",
-                                },
-                            ],
-                            indices: [
-                                { name: "name_index", columnNames: ["name"] },
-                            ],
-                        }),
-                        true,
-                    )
-                }
 
                 await queryRunner.release()
 

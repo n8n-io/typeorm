@@ -1983,7 +1983,7 @@ describe("github issues > #7155 > tree relations", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/RelationEntities{.js,.ts}"],
-                enabledDrivers: ["mysql", "postgres"],
+                enabledDrivers: ["postgres"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))
@@ -2128,7 +2128,7 @@ async function generateConnections(): Promise<DataSource[]> {
     const connections = await Promise.all([
         createTestingConnections({
             entities: [__dirname + "/entity/Remaining*{.js,.ts}"],
-            enabledDrivers: ["mysql", "postgres"],
+            enabledDrivers: ["postgres"],
         }),
     ])
 

@@ -6,9 +6,6 @@ const getDriver = async (
     type: DataSource["options"]["type"],
 ): Promise<DriverConstructor> => {
     switch (type) {
-        case "mysql":
-        case "mariadb":
-            return (await import("./mysql/MysqlDriver")).MysqlDriver
         case "postgres":
             return (await import("./postgres/PostgresDriver")).PostgresDriver
         case "sqlite":
@@ -18,8 +15,6 @@ const getDriver = async (
                 .SqliteReadWriteDriver
         default:
             throw new MissingDriverError(type, [
-                "mariadb",
-                "mysql",
                 "postgres",
                 "sqlite",
                 "sqlite-pooled",

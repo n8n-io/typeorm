@@ -20,13 +20,7 @@ describe("github issues > #10496 User-defined index name for Single Table Inheri
                 entities: [Base, A, B, C],
                 schemaCreate: true,
                 dropSchema: true,
-                enabledDrivers: [
-                    "mariadb",
-                    "mysql",
-                    "postgres",
-                    "sqlite",
-                    "sqlite-pooled",
-                ],
+                enabledDrivers: ["postgres", "sqlite", "sqlite-pooled"],
             })),
     )
 

@@ -8,7 +8,6 @@ import { Brackets } from "./Brackets"
 import { UpdateResult } from "./result/UpdateResult"
 import { ReturningStatementNotSupportedError } from "../error/ReturningStatementNotSupportedError"
 import { ReturningResultsEntityUpdator } from "./ReturningResultsEntityUpdator"
-import { MysqlDriver } from "../driver/mysql/MysqlDriver"
 import { OrderByCondition } from "../find-options/OrderByCondition"
 import { LimitOnUpdateNotSupportedError } from "../error/LimitOnUpdateNotSupportedError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
@@ -530,25 +529,6 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
 
                             let expression = null
                             if (
-                                DriverUtils.isMySQLFamily(
-                                    this.connection.driver,
-                                ) &&
-                                this.connection.driver.spatialTypes.indexOf(
-                                    column.type,
-                                ) !== -1
-                            ) {
-                                const useLegacy = (
-                                    this.connection.driver as MysqlDriver
-                                ).options.legacySpatialSupport
-                                const geomFromText = useLegacy
-                                    ? "GeomFromText"
-                                    : "ST_GeomFromText"
-                                if (column.srid != null) {
-                                    expression = `${geomFromText}(${paramName}, ${column.srid})`
-                                } else {
-                                    expression = `${geomFromText}(${paramName})`
-                                }
-                            } else if (
                                 DriverUtils.isPostgresFamily(
                                     this.connection.driver,
                                 ) &&
@@ -681,11 +661,7 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
         let limit: number | undefined = this.expressionMap.limit
 
         if (limit) {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                return " LIMIT " + limit
-            } else {
-                throw new LimitOnUpdateNotSupportedError()
-            }
+            throw new LimitOnUpdateNotSupportedError()
         }
 
         return ""

@@ -13,7 +13,6 @@ import { LimitOnUpdateNotSupportedError } from "../error/LimitOnUpdateNotSupport
 import { MissingDeleteDateColumnError } from "../error/MissingDeleteDateColumnError"
 import { UpdateValuesMissingError } from "../error/UpdateValuesMissingError"
 import { TypeORMError } from "../error"
-import { DriverUtils } from "../driver/DriverUtils"
 import { InstanceChecker } from "../util/InstanceChecker"
 
 /**
@@ -547,11 +546,7 @@ export class SoftDeleteQueryBuilder<Entity extends ObjectLiteral>
         let limit: number | undefined = this.expressionMap.limit
 
         if (limit) {
-            if (DriverUtils.isMySQLFamily(this.connection.driver)) {
-                return " LIMIT " + limit
-            } else {
-                throw new LimitOnUpdateNotSupportedError()
-            }
+            throw new LimitOnUpdateNotSupportedError()
         }
 
         return ""
