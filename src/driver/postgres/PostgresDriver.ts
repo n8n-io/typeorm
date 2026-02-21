@@ -27,7 +27,7 @@ import { View } from "../../schema-builder/view/View"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
-import type pg from "pg"
+import pg, { PoolClient } from "pg"
 
 /**
  * Organizes communication with PostgreSQL DBMS.
@@ -1180,6 +1180,24 @@ export class PostgresDriver implements Driver {
         }
 
         const connection = await this.master.connect()
+        const { master } = this
+        const onError = (error: Error) => {
+            connection.release(error)
+        }
+        const onRelease = (error: Error, client: PoolClient) => {
+            if (client === connection) {
+                if (error) {
+                    this.connection.logger.log(
+                        "warn",
+                        `Postgres connection raised an error. ${error}`,
+                    )
+                }
+                connection.removeListener("error", onError)
+                master.removeListener("release", onRelease)
+            }
+        }
+        connection.on("error", onError)
+        master.on("release", onRelease)
         const { schema } = this.options
         if (schema && schema !== "public") {
             await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
