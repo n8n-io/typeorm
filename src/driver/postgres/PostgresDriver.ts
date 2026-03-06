@@ -390,6 +390,15 @@ export class PostgresDriver implements Driver {
         const extensionsMetadata = await this.checkMetadataForExtensions()
         const [connection, release] = await this.obtainMasterConnection()
 
+        // Create schema if it doesn't exist (only runs once during initialization)
+        const { schema } = this.options
+        if (schema && schema !== "public") {
+            await this.executeQuery(
+                connection,
+                `CREATE SCHEMA IF NOT EXISTS "${schema}"`,
+            )
+        }
+
         const installExtensions =
             this.options.installExtensions === undefined ||
             this.options.installExtensions
@@ -1180,10 +1189,10 @@ export class PostgresDriver implements Driver {
         }
 
         const connection = await this.master.connect()
+        // Set search_path for each connection (schema creation moved to afterConnect)
         const { schema } = this.options
         if (schema && schema !== "public") {
-            await connection.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
-            await connection.query(`SET search_path TO ${schema},public`)
+            await connection.query(`SET search_path TO "${schema}",public`)
         } else {
             await connection.query("SET search_path TO public")
         }
