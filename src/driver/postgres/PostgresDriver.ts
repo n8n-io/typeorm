@@ -1189,13 +1189,19 @@ export class PostgresDriver implements Driver {
         }
 
         const connection = await this.master.connect()
-        // Set search_path for each connection (schema creation moved to afterConnect)
-        const { schema } = this.options
+        // Apply per-connection session settings (schema creation moved to afterConnect)
+        const { schema, statementTimeout } = this.options
         if (schema && schema !== "public") {
             await connection.query(`SET search_path TO "${schema}",public`)
         } else {
             await connection.query("SET search_path TO public")
         }
+        if (statementTimeout) {
+            await connection.query(
+                `SET statement_timeout = ${statementTimeout}`,
+            )
+        }
+
         return [connection, () => connection.release()]
     }
 
@@ -1529,25 +1535,6 @@ export class PostgresDriver implements Driver {
           cause the hosting app to crash.
          */
         pool.on("error", poolErrorHandler)
-
-        // Apply statement_timeout via SET after connection is established
-        // instead of as a startup parameter. Some PostgreSQL providers
-        // (e.g. AWS RDS Proxy) reject startup parameters
-        // they don't recognize.
-        if (options.statementTimeout) {
-            pool.on("connect", (client: any) => {
-                client
-                    .query(
-                        `SET statement_timeout = ${options.statementTimeout}`,
-                    )
-                    .catch((err: any) =>
-                        logger.log(
-                            "warn",
-                            `Failed to set statement_timeout: ${err.message}`,
-                        ),
-                    )
-            })
-        }
 
         return new Promise((ok, fail) => {
             pool.connect((err: any, connection: any, release: Function) => {
