@@ -1189,13 +1189,19 @@ export class PostgresDriver implements Driver {
         }
 
         const connection = await this.master.connect()
-        // Set search_path for each connection (schema creation moved to afterConnect)
-        const { schema } = this.options
+        // Apply per-connection session settings (schema creation moved to afterConnect)
+        const { schema, statementTimeout } = this.options
         if (schema && schema !== "public") {
             await connection.query(`SET search_path TO "${schema}",public`)
         } else {
             await connection.query("SET search_path TO public")
         }
+        if (statementTimeout) {
+            await connection.query(
+                `SET statement_timeout = ${statementTimeout}`,
+            )
+        }
+
         return [connection, () => connection.release()]
     }
 
@@ -1495,7 +1501,6 @@ export class PostgresDriver implements Driver {
             application_name:
                 options.applicationName ?? credentials.applicationName,
             max: options.poolSize,
-            statement_timeout: options.statementTimeout,
             query_timeout: options.queryTimeout,
             ...options.extra,
         }
