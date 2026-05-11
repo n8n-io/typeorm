@@ -1,4 +1,3 @@
-import { captureException } from "../../util/sentry"
 import { Database as Sqlite3Database } from "sqlite3"
 import {
     DbLease,
@@ -106,7 +105,6 @@ export class SqliteWriteConnection
             })
         } catch (error) {
             if (error === E_TIMEOUT) {
-                captureException(error)
                 this.throwLockTimeoutError(error)
             }
 
@@ -120,8 +118,6 @@ export class SqliteWriteConnection
         try {
             await this.writeConnectionMutex.acquire()
         } catch (error) {
-            captureException(error)
-
             if (error === E_TIMEOUT) {
                 this.throwLockTimeoutError(error)
             }
@@ -202,7 +198,6 @@ export class SqliteWriteConnection
                 .join(", "),
         )
         console.error(error)
-        captureException(error, { extra })
     }
 
     private throwLockTimeoutError(cause: Error) {

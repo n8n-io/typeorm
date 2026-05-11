@@ -1,4 +1,3 @@
-import { captureException } from "../../util/sentry"
 import { QueryRunner } from "../../query-runner/QueryRunner"
 import { ObjectLiteral } from "../../common/ObjectLiteral"
 import { TransactionNotStartedError } from "../../error/TransactionNotStartedError"
@@ -167,8 +166,7 @@ export abstract class AbstractSqliteQueryRunner
 
             await this.broadcaster.broadcast("AfterTransactionRollback")
         } catch (rollbackError) {
-            captureException(new TransactionRollbackFailedError(rollbackError))
-            throw rollbackError
+            throw new TransactionRollbackFailedError(rollbackError)
         }
     }
 

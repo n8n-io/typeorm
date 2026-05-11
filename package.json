@@ -94,16 +94,12 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "@sentry/node": "^10.0.0",
     "pg": "^8.17.0",
     "pg-native": "^3.5.2",
     "pg-query-stream": "^4.10.3",
     "sqlite3": "^5.1.7"
   },
   "peerDependenciesMeta": {
-    "@sentry/node": {
-      "optional": true
-    },
     "pg": {
       "optional": true
     },
