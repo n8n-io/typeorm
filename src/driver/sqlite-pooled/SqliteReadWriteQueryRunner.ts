@@ -1,4 +1,3 @@
-import { captureException } from "../../util/sentry"
 import type { Database as Sqlite3Database } from "sqlite3"
 import {
     ConnectionIsNotSetError,
@@ -131,9 +130,8 @@ export class SqliteReadWriteQueryRunner
 
             await this.broadcaster.broadcast("AfterTransactionCommit")
         } catch (commitError) {
-            captureException(new TransactionCommitFailedError(commitError))
             this.trxDbLease.markAsInvalid()
-            throw commitError
+            throw new TransactionCommitFailedError(commitError)
         } finally {
             this.releaseTrxDbLease()
         }
@@ -157,9 +155,8 @@ export class SqliteReadWriteQueryRunner
 
             await this.broadcaster.broadcast("AfterTransactionRollback")
         } catch (rollbackError) {
-            captureException(new TransactionRollbackFailedError(rollbackError))
             this.trxDbLease.markAsInvalid()
-            throw rollbackError
+            throw new TransactionRollbackFailedError(rollbackError)
         } finally {
             this.releaseTrxDbLease()
         }
