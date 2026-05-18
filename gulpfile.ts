@@ -41,6 +41,7 @@ async function copyPackageFile() {
     delete pkg.packageManager
     delete pkg.pnpm
     delete pkg.scripts
+    pkg.private = false
 
     await fs.writeFile(
         "./build/package/package.json",
@@ -67,6 +68,13 @@ gulp.task(
             copyReadme,
         ),
     ),
+)
+
+gulp.task(
+    "pack",
+    gulp.series("package", async () => {
+        await execAsync("cd ./build/package && npm pack && mv -f *.tgz ..")
+    }),
 )
 
 gulp.task("clean", () => fs.rm("./build", { recursive: true, force: true }))
