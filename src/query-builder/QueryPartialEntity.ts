@@ -1,4 +1,4 @@
-import { ObjectLiteral } from "../common/ObjectLiteral"
+import type { ObjectLiteral } from "../common/ObjectLiteral"
 
 /**
  * Make all properties in T optional
@@ -11,18 +11,15 @@ export type QueryPartialEntity<T> = {
  * Make all properties in T optional. Deep version.
  */
 export type QueryDeepPartialEntity<T> = _QueryDeepPartialEntity<
-    ObjectLiteral extends T ? unknown : T,
-    never
->;
+    ObjectLiteral extends T ? unknown : T
+>
 
-type _QueryDeepPartialEntity<Entity, Seen = never> = {
-    [Property in keyof Entity]?: (
-        Entity[Property] extends Seen
-            ? Entity[Property]  // break cycle
-            : Entity[Property] extends Array<infer ArrayItem>
-                ? Array<_QueryDeepPartialEntity<ArrayItem, Seen | Entity[Property]>>
-                : Entity[Property] extends ReadonlyArray<infer ArrayItem>
-                    ? ReadonlyArray<_QueryDeepPartialEntity<ArrayItem, Seen | Entity[Property]>>
-                    : _QueryDeepPartialEntity<Entity[Property], Seen | Entity[Property]>
-    ) | (() => string);
-};
+type _QueryDeepPartialEntity<T> = {
+    [P in keyof T]?:
+        | (T[P] extends Array<infer U>
+              ? Array<_QueryDeepPartialEntity<U>>
+              : T[P] extends ReadonlyArray<infer U>
+                ? ReadonlyArray<_QueryDeepPartialEntity<U>>
+                : _QueryDeepPartialEntity<T[P]>)
+        | (() => string)
+}
