@@ -53,6 +53,18 @@ export class SqliteReadonlyConnectionPool implements SqliteConnectionPool {
         await this.pool.destroy()
     }
 
+    public getStats(): {
+        used: number
+        free: number
+        pendingAcquires: number
+    } {
+        return {
+            used: this.pool.numUsed(),
+            free: this.pool.numFree(),
+            pendingAcquires: this.pool.numPendingAcquires(),
+        }
+    }
+
     public async runExclusive<T>(
         dbLeaseHolder: DbLeaseHolder,
         callback: (leasedDbConnection: DbLease) => Promise<T>,
