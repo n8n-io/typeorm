@@ -125,6 +125,15 @@ export class SqliteReadWriteDriver extends AbstractSqliteDriver {
         )
     }
 
+    getPoolStats(): { active: number; idle: number; waiting: number } {
+        const { used, free, pendingAcquires } = this.readonlyPool.getStats()
+        return {
+            active: used,
+            idle: free,
+            waiting: pendingAcquires,
+        }
+    }
+
     normalizeType(column: {
         type?: ColumnType
         length?: number | string
