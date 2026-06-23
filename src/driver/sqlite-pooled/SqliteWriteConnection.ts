@@ -31,6 +31,9 @@ export class SqliteWriteConnection
 
     private dbLease: DbLease | undefined
 
+    /** Callers currently blocked waiting to acquire the write connection. */
+    private waitingWrites = 0
+
     constructor(
         private readonly sqliteLibrary: SqliteLibrary,
         private readonly options: {
@@ -77,14 +80,25 @@ export class SqliteWriteConnection
         }
     }
 
+    public getStats(): { active: number; waiting: number } {
+        return {
+            active: this.writeConnectionMutex.isLocked() ? 1 : 0,
+            waiting: this.waitingWrites,
+        }
+    }
+
     public async runExclusive<T>(
         dbLeaseHolder: DbLeaseHolder,
         callback: (dbLease: DbLease) => Promise<T>,
     ): Promise<T> {
         this.assertNotReleased()
 
+        this.waitingWrites++
+        let acquired = false
         try {
             return await this.writeConnectionMutex.runExclusive(async () => {
+                acquired = true
+                this.waitingWrites--
                 this.dbLease = await this.createAndGetConnection(dbLeaseHolder)
 
                 const result = await callback(this.dbLease).finally(() => {
@@ -109,12 +123,15 @@ export class SqliteWriteConnection
             }
 
             throw error
+        } finally {
+            if (!acquired) this.waitingWrites--
         }
     }
 
     public async leaseConnection(dbLeaseHolder: DbLeaseHolder) {
         this.assertNotReleased()
 
+        this.waitingWrites++
         try {
             await this.writeConnectionMutex.acquire()
         } catch (error) {
@@ -122,6 +139,8 @@ export class SqliteWriteConnection
                 this.throwLockTimeoutError(error)
             }
             throw error
+        } finally {
+            this.waitingWrites--
         }
 
         this.dbLease = await this.createAndGetConnection(dbLeaseHolder)
