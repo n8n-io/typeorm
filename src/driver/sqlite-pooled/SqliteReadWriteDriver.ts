@@ -130,7 +130,7 @@ export class SqliteReadWriteDriver extends AbstractSqliteDriver {
         const write = this.writeConnection.getStats()
         return {
             active: read.used + write.active,
-            idle: read.free,
+            idle: read.free + write.idle,
             waiting: read.pendingAcquires + write.waiting,
         }
     }

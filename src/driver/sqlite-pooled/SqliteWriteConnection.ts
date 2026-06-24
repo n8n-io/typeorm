@@ -80,9 +80,11 @@ export class SqliteWriteConnection
         }
     }
 
-    public getStats(): { active: number; waiting: number } {
+    public getStats(): { active: number; idle: number; waiting: number } {
+        const active = this.writeConnectionMutex.isLocked() ? 1 : 0
         return {
-            active: this.writeConnectionMutex.isLocked() ? 1 : 0,
+            active,
+            idle: active ? 0 : 1,
             waiting: this.waitingWrites,
         }
     }
