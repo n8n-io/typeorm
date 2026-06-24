@@ -126,11 +126,12 @@ export class SqliteReadWriteDriver extends AbstractSqliteDriver {
     }
 
     getPoolStats(): { active: number; idle: number; waiting: number } {
-        const { used, free, pendingAcquires } = this.readonlyPool.getStats()
+        const read = this.readonlyPool.getStats()
+        const write = this.writeConnection.getStats()
         return {
-            active: used,
-            idle: free,
-            waiting: pendingAcquires,
+            active: read.used + write.active,
+            idle: read.free + write.idle,
+            waiting: read.pendingAcquires + write.waiting,
         }
     }
 
